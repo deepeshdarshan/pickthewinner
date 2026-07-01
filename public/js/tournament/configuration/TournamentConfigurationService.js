@@ -65,7 +65,7 @@ export const TournamentConfigurationService = {
   getDefaultConfiguration() {
     return {
       predictionLockMinutes: appSettings.defaultPredictionLockMinutes,
-      timezone: ApplicationContext.getTimezone(),
+      timezone: appSettings.timezone,
       scoring: { ...DEFAULT_SCORING },
       tieBreaker: { ...DEFAULT_TIE_BREAKER },
       requiresWinner: true,
@@ -98,7 +98,7 @@ export const TournamentConfigurationService = {
    */
   getTimezone() {
     const config = cachedConfiguration ?? this.getDefaultConfiguration();
-    return String(config.timezone ?? ApplicationContext.getTimezone());
+    return String(config.timezone ?? appSettings.timezone);
   },
 
   /**

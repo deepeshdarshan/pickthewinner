@@ -24,7 +24,7 @@
 ### Module 03 — User Management
 - [x] `user.constants.js` — roles, statuses, providers, routes, validation messages
 - [x] `user.events.js` — PROFILE_CREATED, PROFILE_UPDATED, PROFILE_LOADED, PROFILE_DELETED, PREFERENCES_UPDATED
-- [x] `user.validator.js` — phone, timezone, preferences validation
+- [x] `user.validator.js` — phone, IST timezone, preferences validation
 - [x] `user.service.js` — Firestore CRUD, caching, last login, soft delete
 - [x] `user.renderer.js` — profile and complete-profile UI templates
 - [x] `profile.page.js` — view and edit profile

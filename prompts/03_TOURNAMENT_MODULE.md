@@ -441,7 +441,7 @@ Automatic recalculation
 
 Support
 
-Timezone
+Timezone (fixed IST — `Asia/Kolkata`, GMT+05:30)
 
 Prediction Lock
 
@@ -513,7 +513,7 @@ Tournament Name required
 
 Season required
 
-Timezone required
+Timezone required — always `Asia/Kolkata` (IST, GMT+05:30)
 
 Prediction Lock required
 

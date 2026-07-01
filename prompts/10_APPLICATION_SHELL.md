@@ -386,6 +386,8 @@ Version
 
 Timezone
 
+Fixed to IST (`Asia/Kolkata`, GMT+05:30). Configure in `app.config.js` only.
+
 Default Prediction Lock Minutes
 
 Date Formats
@@ -422,7 +424,7 @@ Date Formatter
 
 Time Formatter
 
-Timezone Helper
+Timezone Helper (IST / `Asia/Kolkata` only)
 
 Countdown Helper
 

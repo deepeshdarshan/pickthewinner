@@ -154,7 +154,7 @@ Kickoff Date
 
 Kickoff Time
 
-Timezone
+Always IST (`Asia/Kolkata`, GMT+05:30)
 
 Status
 
@@ -234,13 +234,7 @@ Matches.
 
 # Kickoff Time
 
-Store kickoff in UTC.
-
-Display using
-
-Tournament Timezone
-
-Contestant Local Time (future)
+Store and display kickoff in IST (`Asia/Kolkata`, GMT+05:30).
 
 Automatically calculate
 
@@ -391,6 +385,8 @@ Venue
 Round
 
 Timezone
+
+Always `Asia/Kolkata` (IST, GMT+05:30)
 
 Status
 

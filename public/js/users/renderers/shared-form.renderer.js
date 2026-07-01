@@ -4,7 +4,22 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
-import { TIMEZONE_OPTIONS, DEFAULT_TIMEZONE } from '../user.constants.js';
+import { escapeHtml } from '../../utils/html.util.js';
+import { TIMEZONE_OPTIONS, DEFAULT_TIMEZONE, APP_TIMEZONE_LABEL } from '../user.constants.js';
+
+/**
+ * Renders a read-only application timezone label (IST only).
+ * @returns {string}
+ */
+export function renderAppTimezoneDisplay() {
+  return `
+    <div class="mb-3">
+      <span class="form-label d-block">Timezone</span>
+      <p class="mb-0">${escapeHtml(APP_TIMEZONE_LABEL)}</p>
+      <p class="form-text ptw-text-muted mb-0">All match times and deadlines use Indian Standard Time.</p>
+    </div>
+  `;
+}
 
 /**
  * Renders timezone select options.

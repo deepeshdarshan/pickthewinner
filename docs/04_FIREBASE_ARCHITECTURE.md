@@ -517,15 +517,13 @@ Future reporting
 
 Document
 
-UTC storage
+IST only (`Asia/Kolkata`, GMT+05:30)
 
-Tournament timezone
-
-Display timezone
+Storage and display timezone
 
 Prediction lock calculations
 
-Daylight Saving considerations
+No daylight saving adjustments (IST is fixed offset)
 
 ---
 

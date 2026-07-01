@@ -446,7 +446,7 @@ Theme
 
 Timezone
 
-Application Settings
+Application-wide IST (`Asia/Kolkata`, GMT+05:30)
 
 Caching strategy
 

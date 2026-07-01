@@ -290,6 +290,8 @@ Configurable lock window
 
 Timezone handling
 
+All times use IST (`Asia/Kolkata`, GMT+05:30). No UTC display or per-user timezone selection.
+
 Locked UI
 
 Locked API behavior
@@ -398,7 +400,7 @@ Acceptance criteria for
 
 Theme
 
-Timezone
+Timezone (read-only IST, GMT+05:30)
 
 Notification Preferences
 

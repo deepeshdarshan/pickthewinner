@@ -84,11 +84,9 @@ function bindProfileForm(outlet, uid) {
  */
 async function handleProfileUpdate(form, uid) {
   const phoneInput = form.querySelector('#ptw-edit-phone');
-  const timezoneInput = form.querySelector('#ptw-edit-timezone');
 
   const payload = {
     phone: phoneInput instanceof HTMLInputElement ? phoneInput.value : '',
-    timezone: timezoneInput instanceof HTMLSelectElement ? timezoneInput.value : '',
     notificationPreferences: readNotificationPreferences(form),
   };
 
@@ -105,7 +103,6 @@ async function handleProfileUpdate(form, uid) {
   try {
     await updateUser(uid, {
       phone: payload.phone.replace(/\D/g, ''),
-      timezone: payload.timezone,
       notificationPreferences: payload.notificationPreferences,
     });
 

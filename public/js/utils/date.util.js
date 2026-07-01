@@ -1,7 +1,12 @@
 /**
- * @fileoverview Date formatting and parsing utilities.
+ * @fileoverview Date formatting and parsing utilities — calendar boundaries use IST.
  * @module utils/date.util
  */
+
+import { appSettings } from '../config/app.config.js';
+
+/** @type {Readonly<string>} */
+export const APP_TIMEZONE = appSettings.timezone;
 
 /**
  * Formats a Date as YYYY-MM-DD.
@@ -20,19 +25,20 @@ export function formatDateISO(date) {
 }
 
 /**
- * Formats a date for display using locale conventions.
+ * Formats a date for display in IST using locale conventions.
  * @param {Date|string|number} value
  * @param {Intl.DateTimeFormatOptions} [options]
- * @param {string} [locale='en-US']
+ * @param {string} [locale]
  * @returns {string}
  */
-export function formatDateDisplay(value, options = {}, locale = 'en-US') {
+export function formatDateDisplay(value, options = {}, locale = appSettings.locale) {
   const date = toDate(value);
   if (!date) {
     return '';
   }
 
   return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -55,15 +61,18 @@ export function toDate(value) {
 }
 
 /**
- * Returns true when two dates fall on the same calendar day.
+ * Returns true when two dates fall on the same calendar day in IST.
  * @param {Date} a
  * @param {Date} b
  * @returns {boolean}
  */
 export function isSameDay(a, b) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  const dayKey = (date) => new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+
+  return dayKey(a) === dayKey(b);
 }

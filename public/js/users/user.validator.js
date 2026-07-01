@@ -5,7 +5,7 @@
 
 import {
   USER_VALIDATION_MESSAGES,
-  TIMEZONE_OPTIONS,
+  DEFAULT_TIMEZONE,
 } from './user.constants.js';
 import { DISTRICT_WISE_PS_MAP } from './location.constants.js';
 
@@ -104,7 +104,7 @@ export function validatePradeshikaSabha(value, district) {
 }
 
 /**
- * Validates a timezone selection.
+ * Validates that a timezone value matches the application zone (IST).
  * @param {unknown} value
  * @returns {UserValidationResult}
  */
@@ -116,9 +116,7 @@ export function validateTimezone(value) {
     return { valid: false, errors };
   }
 
-  const isValid = TIMEZONE_OPTIONS.some((option) => option.value === value);
-
-  if (!isValid) {
+  if (value !== DEFAULT_TIMEZONE) {
     errors.timezone = USER_VALIDATION_MESSAGES.TIMEZONE_INVALID;
     return { valid: false, errors };
   }
@@ -195,7 +193,7 @@ export function validateCompleteProfileForm(data) {
 
 /**
  * Validates a profile update payload.
- * @param {{ phone?: unknown, timezone?: unknown, notificationPreferences?: unknown }} data
+ * @param {{ phone?: unknown, notificationPreferences?: unknown }} data
  * @returns {UserValidationResult}
  */
 export function validateProfileUpdate(data) {
@@ -203,10 +201,6 @@ export function validateProfileUpdate(data) {
 
   if (data.phone !== undefined) {
     results.push(validatePhone(data.phone));
-  }
-
-  if (data.timezone !== undefined) {
-    results.push(validateTimezone(data.timezone));
   }
 
   if (data.notificationPreferences !== undefined) {

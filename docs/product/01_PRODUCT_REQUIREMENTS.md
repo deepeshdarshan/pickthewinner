@@ -170,7 +170,7 @@ Country
 
 Timezone
 
-Preferences
+Fixed to IST (`Asia/Kolkata`, GMT+05:30). Display only — not user-configurable.
 
 Profile Completion
 
@@ -338,7 +338,7 @@ Document
 
 Theme
 
-Timezone
+Timezone (read-only IST, GMT+05:30)
 
 Notifications
 

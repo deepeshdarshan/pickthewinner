@@ -1,49 +1,67 @@
 /**
- * @fileoverview Time formatting utilities.
+ * @fileoverview Time formatting utilities — all display uses IST (Asia/Kolkata).
  * @module utils/time.util
  */
 
+import { appSettings } from '../config/app.config.js';
 import { toDate } from './date.util.js';
 
-/**
- * Formats a time value for display.
- * @param {Date|string|number} value
- * @param {Intl.DateTimeFormatOptions} [options]
- * @param {string} [locale='en-US']
- * @returns {string}
- */
-export function formatTime(value, options = {}, locale = 'en-US') {
-  const date = toDate(value);
-  if (!date) {
-    return '';
-  }
+/** @type {Readonly<string>} */
+export const APP_TIMEZONE = appSettings.timezone;
 
-  return new Intl.DateTimeFormat(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
+/** @type {Readonly<string>} */
+export const APP_TIMEZONE_LABEL = appSettings.timezoneLabel;
+
+/**
+ * @param {Intl.DateTimeFormatOptions} [options]
+ * @returns {Intl.DateTimeFormatOptions}
+ */
+function withAppTimezone(options = {}) {
+  return {
+    timeZone: APP_TIMEZONE,
     ...options,
-  }).format(date);
+  };
 }
 
 /**
- * Formats a combined date and time string.
+ * Formats a time value for display in IST.
  * @param {Date|string|number} value
- * @param {string} [locale='en-US']
+ * @param {Intl.DateTimeFormatOptions} [options]
+ * @param {string} [locale]
  * @returns {string}
  */
-export function formatDateTime(value, locale = 'en-US') {
+export function formatTime(value, options = {}, locale = appSettings.locale) {
   const date = toDate(value);
   if (!date) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale, withAppTimezone({
+    hour: 'numeric',
+    minute: '2-digit',
+    ...options,
+  })).format(date);
+}
+
+/**
+ * Formats a combined date and time string in IST.
+ * @param {Date|string|number} value
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function formatDateTime(value, locale = appSettings.locale) {
+  const date = toDate(value);
+  if (!date) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(locale, withAppTimezone({
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  }).format(date);
+  })).format(date);
 }
 
 /**

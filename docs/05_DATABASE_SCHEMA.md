@@ -110,7 +110,7 @@ Examples
 - Collections should remain flat where possible.
 - Denormalization is allowed only when justified.
 - Avoid unnecessary subcollections.
-- Store timestamps in UTC.
+- Store and interpret all timestamps in IST (`Asia/Kolkata`, GMT+05:30).
 - Prefer immutable identifiers.
 - Keep documents small.
 - Avoid deeply nested objects.
@@ -287,7 +287,7 @@ Scoring Configuration
 
 Timezone
 
-Logo
+Always `Asia/Kolkata` (IST, GMT+05:30)
 
 Banner
 
@@ -553,7 +553,7 @@ lastLogin
 
 publishedAt
 
-Always UTC.
+Always IST (`Asia/Kolkata`, GMT+05:30).
 
 Server timestamps.
 
@@ -863,7 +863,7 @@ Use denormalized tournament name where appropriate.
 
 ADR-DB-004
 
-Store timestamps in UTC.
+Store timestamps in IST (`Asia/Kolkata`, GMT+05:30).
 
 ADR-DB-005
 

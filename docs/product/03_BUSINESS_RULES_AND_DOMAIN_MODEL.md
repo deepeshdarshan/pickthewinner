@@ -245,6 +245,8 @@ Lock window
 
 Timezone behavior
 
+All application times use IST (`Asia/Kolkata`, GMT+05:30). Users cannot select a different timezone.
+
 Automatic locking
 
 Manual override
@@ -257,7 +259,7 @@ Prediction closes
 
 10 minutes before kickoff.
 
-Time is based on tournament timezone.
+Time is based on IST (`Asia/Kolkata`, GMT+05:30).
 
 Administrators may manually reopen prediction windows if required.
 
@@ -433,7 +435,7 @@ Theme
 
 Timezone
 
-Notification preferences
+Read-only IST (`Asia/Kolkata`, GMT+05:30)
 
 Application version
 
@@ -485,7 +487,7 @@ Future support only if not implemented.
 
 Document
 
-Timezone
+Timezone — IST only (`Asia/Kolkata`, GMT+05:30)
 
 Kickoff
 

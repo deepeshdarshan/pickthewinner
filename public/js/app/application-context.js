@@ -99,7 +99,7 @@ export const ApplicationContext = {
    * @returns {string}
    */
   getTimezone() {
-    return currentProfile?.timezone ?? appSettings.timezone;
+    return appSettings.timezone;
   },
 
   /**

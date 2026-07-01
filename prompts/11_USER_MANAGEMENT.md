@@ -259,8 +259,10 @@ Collect
 
 - Phone Number
 - Country (optional)
-- Timezone
+- District and Pradeshika Sabha
 - Notification Preferences
+
+Timezone is assigned automatically as IST (`Asia/Kolkata`, GMT+05:30).
 
 Do NOT ask
 
@@ -282,14 +284,13 @@ Display
 - Phone
 - Role
 - Provider
-- Timezone
+- Timezone (read-only IST)
 - Member Since
 - Last Login
 
 Allow editing
 
 - Phone
-- Timezone
 - Notification Preferences
 
 Read-only
@@ -298,6 +299,7 @@ Read-only
 - Role
 - Email
 - Provider
+- Timezone (IST, GMT+05:30)
 
 ---
 
@@ -497,7 +499,7 @@ Maximum 15 digits
 
 Timezone
 
-Required
+Auto-assigned as `Asia/Kolkata` (IST, GMT+05:30). Not user-editable.
 
 Notification Preferences
 

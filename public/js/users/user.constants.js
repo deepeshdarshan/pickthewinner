@@ -33,8 +33,16 @@ export const USER_ROUTES = Object.freeze({
   COMPLETE_PROFILE: '/complete-profile',
 });
 
+import { appSettings } from '../config/app.config.js';
+
 /** @type {Readonly<string>} */
-export const DEFAULT_TIMEZONE = 'Asia/Kolkata';
+export const DEFAULT_TIMEZONE = appSettings.timezone;
+
+/** @type {Readonly<string>} */
+export const APP_TIMEZONE_LABEL = appSettings.timezoneLabel;
+
+/** @type {Readonly<string>} */
+export const APP_LOCALE = appSettings.locale;
 
 /** @type {Readonly<{ email: boolean, browser: boolean }>} */
 export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
@@ -53,7 +61,7 @@ export const USER_VALIDATION_MESSAGES = Object.freeze({
   PRADESHIKA_SABHA_REQUIRED: 'Pradeshika Sabha is required.',
   PRADESHIKA_SABHA_INVALID: 'Select a valid Pradeshika Sabha for the chosen district.',
   TIMEZONE_REQUIRED: 'Timezone is required.',
-  TIMEZONE_INVALID: 'Select a valid timezone.',
+  TIMEZONE_INVALID: 'Application time is fixed to IST (GMT+05:30).',
 });
 
 /** @type {Readonly<Record<string, string>>} */
@@ -85,21 +93,9 @@ export const FIRESTORE_USER_ERROR_MESSAGES = Object.freeze({
 });
 
 /**
- * Common IANA timezones offered in profile forms.
+ * Application timezone — IST only. Users cannot select a different zone.
  * @type {Readonly<Array<{ value: string, label: string }>>}
  */
 export const TIMEZONE_OPTIONS = Object.freeze([
-  { value: 'Asia/Kolkata', label: 'India (IST) — Asia/Kolkata' },
-  { value: 'Asia/Dubai', label: 'UAE — Asia/Dubai' },
-  { value: 'Europe/London', label: 'UK — Europe/London' },
-  { value: 'Europe/Paris', label: 'Central Europe — Europe/Paris' },
-  { value: 'Europe/Berlin', label: 'Germany — Europe/Berlin' },
-  { value: 'America/New_York', label: 'US Eastern — America/New_York' },
-  { value: 'America/Chicago', label: 'US Central — America/Chicago' },
-  { value: 'America/Denver', label: 'US Mountain — America/Denver' },
-  { value: 'America/Los_Angeles', label: 'US Pacific — America/Los_Angeles' },
-  { value: 'America/Sao_Paulo', label: 'Brazil — America/Sao_Paulo' },
-  { value: 'Australia/Sydney', label: 'Australia — Australia/Sydney' },
-  { value: 'Pacific/Auckland', label: 'New Zealand — Pacific/Auckland' },
-  { value: 'UTC', label: 'UTC' },
+  { value: DEFAULT_TIMEZONE, label: APP_TIMEZONE_LABEL },
 ]);

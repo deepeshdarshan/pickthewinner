@@ -1,10 +1,9 @@
 /**
- * @fileoverview Settings page — theme, timezone, notifications, and logout.
+ * @fileoverview Settings page — theme, notifications, and logout.
  * @module pages/settings.page
  */
 
 import { renderPageHeader } from '../components/page-header.component.js';
-import { AppContext } from '../app/app.context.js';
 import { appSettings } from '../config/app.config.js';
 import { performLogout } from '../auth/actions/logout.action.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
@@ -14,7 +13,6 @@ import { USER_MESSAGES } from '../users/user.constants.js';
 import { getLocalItem, setLocalItem } from '../utils/storage.util.js';
 import { STORAGE_KEYS } from '../config/application.constants.js';
 import { Logger } from '../utils/logger.util.js';
-import { renderTimezoneOptions } from '../users/renderers/shared-form.renderer.js';
 import { renderNotificationPreferences } from '../users/renderers/preferences.renderer.js';
 import { escapeHtml } from '../utils/html.util.js';
 
@@ -54,7 +52,6 @@ async function initSettingsPage(outlet) {
  * @returns {string}
  */
 function renderSettingsMarkup(profile, theme) {
-  const timezone = profile?.timezone ?? AppContext.getTimezone();
   const preferences = profile?.notificationPreferences ?? {
     email: false,
     browser: true,
@@ -91,13 +88,6 @@ function renderSettingsMarkup(profile, theme) {
             </div>
             <div class="card-body">
               <form id="ptw-settings-form" novalidate>
-                <div class="mb-3">
-                  <label for="ptw-settings-timezone" class="form-label">Timezone</label>
-                  <select class="form-select" id="ptw-settings-timezone" name="timezone" required aria-required="true">
-                    ${renderTimezoneOptions(timezone)}
-                  </select>
-                </div>
-
                 ${renderNotificationPreferences(preferences, {
                   emailId: 'ptw-settings-notify-email',
                   browserId: 'ptw-settings-notify-browser',
@@ -117,6 +107,8 @@ function renderSettingsMarkup(profile, theme) {
             </div>
             <div class="card-body">
               <dl class="row mb-0">
+                <dt class="col-sm-4 ptw-text-muted">Timezone</dt>
+                <dd class="col-sm-8">${escapeHtml(appSettings.timezoneLabel)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Application</dt>
                 <dd class="col-sm-8">${escapeHtml(appSettings.appName)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Version</dt>
@@ -175,7 +167,6 @@ function bindSettingsEvents(outlet, uid) {
  * @returns {Promise<void>}
  */
 async function handleSavePreferences(form, uid) {
-  const timezoneInput = form.querySelector('#ptw-settings-timezone');
   const emailNotify = form.querySelector('#ptw-settings-notify-email');
   const browserNotify = form.querySelector('#ptw-settings-notify-browser');
 
@@ -183,7 +174,6 @@ async function handleSavePreferences(form, uid) {
 
   try {
     await updateUser(uid, {
-      timezone: timezoneInput instanceof HTMLSelectElement ? timezoneInput.value : undefined,
       notificationPreferences: {
         email: emailNotify instanceof HTMLInputElement ? emailNotify.checked : false,
         browser: browserNotify instanceof HTMLInputElement ? browserNotify.checked : true,

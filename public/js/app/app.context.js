@@ -110,11 +110,11 @@ export const AppContext = {
   },
 
   /**
-   * Returns the user's timezone preference.
+   * Returns the application timezone (IST only).
    * @returns {string}
    */
   getTimezone() {
-    return getCachedProfile()?.timezone ?? appSettings.timezone;
+    return appSettings.timezone;
   },
 
   /**

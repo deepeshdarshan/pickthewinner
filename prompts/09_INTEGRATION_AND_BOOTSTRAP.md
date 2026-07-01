@@ -485,9 +485,9 @@ Allow editing
 
 - Phone
 
-- Timezone
-
 - Notification Preferences
+
+Display timezone as read-only IST (`Asia/Kolkata`, GMT+05:30).
 
 ---
 
@@ -499,7 +499,7 @@ Display
 
 Theme
 
-Timezone
+Timezone (read-only IST, GMT+05:30)
 
 Notification Preferences
 
@@ -576,7 +576,7 @@ Theme
 
 Timezone
 
-Application Version
+IST (`Asia/Kolkata`, GMT+05:30) — application default from `app.config.js`
 ```
 
 Every module must use AppContext.

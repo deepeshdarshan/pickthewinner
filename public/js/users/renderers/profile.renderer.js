@@ -9,8 +9,8 @@ import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateDisplay } from '../../utils/date.util.js';
 import { toTitleCase } from '../../utils/formatting.util.js';
 import { renderAvatar } from '../../shared/avatar/avatar.component.js';
-import { USER_MESSAGES } from '../user.constants.js';
-import { renderTimezoneOptions } from './shared-form.renderer.js';
+import { USER_MESSAGES, APP_TIMEZONE_LABEL } from '../user.constants.js';
+import { renderAppTimezoneDisplay } from './shared-form.renderer.js';
 import { renderNotificationPreferences } from './preferences.renderer.js';
 
 /**
@@ -127,6 +127,8 @@ export function renderProfilePage(profile, authUser) {
                 <dd class="col-sm-8">${escapeHtml(toTitleCase(profile.provider.replace('_', ' ')))}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Role</dt>
                 <dd class="col-sm-8">${escapeHtml(toTitleCase(profile.role))}</dd>
+                <dt class="col-sm-4 ptw-text-muted">Timezone</dt>
+                <dd class="col-sm-8">${escapeHtml(APP_TIMEZONE_LABEL)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Member Since</dt>
                 <dd class="col-sm-8">${escapeHtml(memberSince)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Last Login</dt>
@@ -157,13 +159,7 @@ export function renderProfilePage(profile, authUser) {
                   <div class="invalid-feedback" id="ptw-edit-phone-error" role="alert"></div>
                 </div>
 
-                <div class="mb-3">
-                  <label for="ptw-edit-timezone" class="form-label">Timezone</label>
-                  <select class="form-select" id="ptw-edit-timezone" name="timezone" required aria-required="true">
-                    ${renderTimezoneOptions(profile.timezone)}
-                  </select>
-                  <div class="invalid-feedback" id="ptw-edit-timezone-error" role="alert"></div>
-                </div>
+                ${renderAppTimezoneDisplay()}
 
                 ${renderNotificationPreferences(profile.notificationPreferences, {
                   emailId: 'ptw-edit-notify-email',

@@ -345,11 +345,15 @@ Email
 
 Phone
 
-Timezone
+Timezone (read-only IST, GMT+05:30)
 
 Notification Preferences
 
 Editable fields
+
+Phone
+
+Notification Preferences
 
 Read-only fields
 
