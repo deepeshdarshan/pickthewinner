@@ -210,11 +210,41 @@ Cards must be reusable.
 # Forms
 
 - Rounded inputs
-- Floating labels preferred
+- Labels above fields (not floating labels on auth/profile flows)
 - Consistent spacing
 - Blue focus border
 - Error messages in Red
 - Success messages in Green
+
+## Icon Input Fields
+
+Use the shared icon input pattern for text inputs and selects on login and profile flows.
+
+Structure:
+
+- Label above the field
+- Single bordered container (`.ptw-icon-input`)
+- Leading Bootstrap Icon in Primary Blue
+- Vertical divider between icon and control
+- Borderless input/select inside the container
+
+Renderer:
+
+- `renderIconInputField()` — text, email, password, tel, etc.
+- `renderIconSelectField()` — dropdowns
+
+Icon mapping examples:
+
+| Field | Icon class |
+|-------|------------|
+| Email | `bi-envelope` |
+| Password | `bi-lock` |
+| Phone | `bi-telephone` |
+| District | `bi-geo-alt` |
+| Pradeshika Sabha | `bi-building` |
+| Person / username | `bi-person` |
+
+Icons are decorative (`aria-hidden="true"`). Labels remain the accessible name for the control.
 
 ---
 

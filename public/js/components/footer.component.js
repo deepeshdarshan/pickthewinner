@@ -22,10 +22,6 @@ export function renderFooter() {
             </p>
           </div>
 
-          <nav class="ptw-footer__links" aria-label="Footer links">
-            <a href="#" class="ptw-footer__link" aria-disabled="true">Terms of Service</a>
-          </nav>
-
           <div class="ptw-footer__meta">
             <p class="ptw-footer__version mb-0">v${appSettings.version}</p>
             <p class="ptw-footer__timezone mb-0">|</p>

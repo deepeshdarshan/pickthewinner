@@ -12,7 +12,7 @@ import { mountPlaceholderPage } from './page-placeholder.js';
  */
 export function render(outlet) {
   mountPlaceholderPage(outlet, {
-    title: 'My Predictions',
+    title: 'Predictions',
     subtitle: 'Your match predictions',
     icon: 'bi-bullseye',
     description: 'Prediction entry and editing will appear here.',

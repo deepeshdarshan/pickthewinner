@@ -4,6 +4,7 @@
  */
 
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { CONTESTANT_ROUTES } from '../config/routes.js';
 import { UserDomain } from '../domain/user.domain.js';
 import { USER_ROLES, USER_ROUTES } from './user.constants.js';
 import { getCachedProfile, loadCurrentUser } from './user.service.js';
@@ -22,7 +23,7 @@ export function getDashboardRouteForProfile(profile) {
     return AUTH_ROUTES.ADMIN;
   }
 
-  return '/predictions';
+  return CONTESTANT_ROUTES.PREDICTIONS;
 }
 
 /**

@@ -72,13 +72,15 @@ h6 {
   padding-inline: var(--ptw-space-4);
 }
 
-.ptw-body-wrapper:has(.ptw-login-page) {
+.ptw-body-wrapper:has(.ptw-login-page),
+.ptw-body-wrapper:has(.ptw-landing-page) {
   flex: 1;
   min-height: 0;
   flex-direction: column;
 }
 
-.ptw-main:has(.ptw-login-page) {
+.ptw-main:has(.ptw-login-page),
+.ptw-main:has(.ptw-landing-page) {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -87,7 +89,8 @@ h6 {
   padding-bottom: 0;
 }
 
-.ptw-login-page {
+.ptw-login-page,
+.ptw-landing-page {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -96,6 +99,72 @@ h6 {
   min-height: 0;
   padding: var(--ptw-space-4);
   animation: ptw-fade-in var(--ptw-transition-base) ease-out;
+}
+
+.ptw-login-page,
+.ptw-landing-page {
+  background-color: var(--ptw-color-bg-primary);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--ptw-color-text-muted) 18%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+}
+
+.ptw-login-page__inner {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.ptw-landing-page__inner {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+}
+
+.ptw-landing-card {
+  overflow: hidden;
+}
+
+.ptw-landing-card:hover {
+  transform: none;
+}
+
+.ptw-landing-card__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+  .ptw-landing-card__layout {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.ptw-landing-card__hero {
+  padding: var(--ptw-space-6) var(--ptw-space-5);
+  text-align: center;
+}
+
+@media (min-width: 992px) {
+  .ptw-landing-card__hero {
+    padding: var(--ptw-space-8) var(--ptw-space-6);
+  }
+}
+
+.ptw-landing-card__guide {
+  padding: var(--ptw-space-4);
+  background-color: color-mix(in srgb, var(--ptw-color-bg-tertiary) 55%, var(--ptw-color-bg-secondary));
+  border-top: 1px solid var(--ptw-color-border);
+}
+
+@media (min-width: 992px) {
+  .ptw-landing-card__guide {
+    padding: var(--ptw-space-5);
+    border-top: none;
+    border-left: 1px solid var(--ptw-color-border);
+  }
 }
 
 .ptw-page-content {

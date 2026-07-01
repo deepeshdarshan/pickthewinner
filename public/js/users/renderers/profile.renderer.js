@@ -9,9 +9,9 @@ import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateDisplay } from '../../utils/date.util.js';
 import { toTitleCase } from '../../utils/formatting.util.js';
 import { renderAvatar } from '../../shared/avatar/avatar.component.js';
+import { renderIconInputField } from '../../shared/form/icon-input.component.js';
 import { USER_MESSAGES, APP_TIMEZONE_LABEL } from '../user.constants.js';
 import { renderAppTimezoneDisplay } from './shared-form.renderer.js';
-import { renderNotificationPreferences } from './preferences.renderer.js';
 
 /**
  * @typedef {import('../user.service.js').UserProfile} UserProfile
@@ -92,7 +92,7 @@ export function renderProfilePage(profile, authUser) {
     <div class="container ptw-page-content">
       ${renderPageHeader({
         title: 'Profile',
-        subtitle: 'Manage your account details and preferences',
+        subtitle: 'Manage your account details',
       })}
 
       <div class="row g-4">
@@ -119,8 +119,6 @@ export function renderProfilePage(profile, authUser) {
             </div>
             <div class="card-body">
               <dl class="row mb-0">
-                <dt class="col-sm-4 ptw-text-muted">UID</dt>
-                <dd class="col-sm-8"><code class="small">${escapeHtml(profile.uid)}</code></dd>
                 <dt class="col-sm-4 ptw-text-muted">Email</dt>
                 <dd class="col-sm-8">${escapeHtml(email)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Provider</dt>
@@ -143,28 +141,21 @@ export function renderProfilePage(profile, authUser) {
             </div>
             <div class="card-body">
               <form id="ptw-profile-form" novalidate>
-                <div class="mb-3">
-                  <label for="ptw-edit-phone" class="form-label">Phone Number</label>
-                  <input
-                    type="tel"
-                    class="form-control"
-                    id="ptw-edit-phone"
-                    name="phone"
-                    value="${escapeHtml(profile.phone)}"
-                    inputmode="tel"
-                    autocomplete="tel"
-                    required
-                    aria-required="true"
-                  >
-                  <div class="invalid-feedback" id="ptw-edit-phone-error" role="alert"></div>
-                </div>
+                ${renderIconInputField({
+                  id: 'ptw-edit-phone',
+                  name: 'phone',
+                  label: 'Phone Number',
+                  icon: 'bi-telephone',
+                  type: 'tel',
+                  value: profile.phone,
+                  placeholder: 'e.g. 9876543210',
+                  inputMode: 'tel',
+                  autocomplete: 'tel',
+                  required: true,
+                  errorId: 'ptw-edit-phone-error',
+                })}
 
                 ${renderAppTimezoneDisplay()}
-
-                ${renderNotificationPreferences(profile.notificationPreferences, {
-                  emailId: 'ptw-edit-notify-email',
-                  browserId: 'ptw-edit-notify-browser',
-                })}
 
                 <button type="submit" class="btn btn-ptw-primary" id="ptw-profile-save">
                   <i class="bi bi-save me-2" aria-hidden="true"></i>

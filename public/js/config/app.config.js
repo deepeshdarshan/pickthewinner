@@ -36,6 +36,7 @@ export const firebaseConfig = {
  *   theme: string,
  *   toastDurationMs: number,
  *   pageTransitionMs: number,
+ *   assets: { logo: string, favicon: string },
  *   environment: typeof environment
  * }>}
  */
@@ -54,5 +55,9 @@ export const appSettings = Object.freeze({
   theme: 'dark',
   toastDurationMs: 4000,
   pageTransitionMs: 250,
+  assets: {
+    logo: '/assets/logos/logo.png',
+    favicon: '/assets/logos/favicon.ico',
+  },
   environment,
 });

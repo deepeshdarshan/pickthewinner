@@ -11,6 +11,7 @@ import { AppContext } from '../app/app.context.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { performLogout } from '../auth/actions/logout.action.js';
+import { renderAppLogo } from '../shared/logo/logo.component.js';
 import { renderAvatar } from '../shared/avatar/avatar.component.js';
 import { escapeHtml } from '../utils/html.util.js';
 
@@ -61,6 +62,17 @@ function renderNavItems(routes, activePath) {
 }
 
 /**
+ * Renders the navbar brand mark — small logo beside the app title.
+ * @returns {string}
+ */
+function renderNavbarBrand() {
+  return `
+    ${renderAppLogo({ variant: 'navbar', alt: '' })}
+    <span class="ptw-navbar__brand-text">${escapeHtml(appSettings.appName)}</span>
+  `;
+}
+
+/**
  * Renders a brand-only navbar for unauthenticated landing and login pages.
  * @returns {string}
  */
@@ -69,8 +81,7 @@ function renderMinimalNavbar() {
     <nav class="navbar navbar-expand-lg navbar-dark ptw-navbar sticky-top" aria-label="Main navigation">
       <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand" href="/" data-route>
-          <i class="bi bi-trophy-fill" aria-hidden="true"></i>
-          <span class="ptw-navbar__brand-text">${escapeHtml(appSettings.appName)}</span>
+          ${renderNavbarBrand()}
         </a>
       </div>
     </nav>
@@ -196,8 +207,7 @@ function renderAuthenticatedNavbar(options) {
     <nav class="navbar navbar-expand-lg navbar-dark ptw-navbar sticky-top" aria-label="Main navigation">
       <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand" href="/" data-route>
-          <i class="bi bi-trophy-fill" aria-hidden="true"></i>
-          <span class="ptw-navbar__brand-text">${escapeHtml(appSettings.appName)}</span>
+          ${renderNavbarBrand()}
         </a>
 
         ${mobileActions}

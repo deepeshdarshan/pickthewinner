@@ -7,6 +7,7 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { renderHtml } from '../../renderers/base.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderAvatar } from '../../shared/avatar/avatar.component.js';
+import { renderIconInputField } from '../../shared/form/icon-input.component.js';
 import { USER_MESSAGES } from '../user.constants.js';
 import { renderLocationFields } from './location.renderer.js';
 
@@ -81,21 +82,19 @@ export function renderCompleteProfileForm(authUser) {
               </div>
 
               <form id="ptw-complete-profile-form" novalidate>
-                <div class="mb-3">
-                  <label for="ptw-profile-phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
-                  <input
-                    type="tel"
-                    class="form-control"
-                    id="ptw-profile-phone"
-                    name="phone"
-                    inputmode="tel"
-                    autocomplete="tel"
-                    required
-                    aria-required="true"
-                    placeholder="e.g. 9876543210"
-                  >
-                  <div class="invalid-feedback" id="ptw-profile-phone-error" role="alert"></div>
-                </div>
+                ${renderIconInputField({
+                  id: 'ptw-profile-phone',
+                  name: 'phone',
+                  label: 'Phone Number',
+                  icon: 'bi-telephone',
+                  type: 'tel',
+                  placeholder: 'e.g. 9876543210',
+                  inputMode: 'tel',
+                  autocomplete: 'tel',
+                  required: true,
+                  requiredMarker: true,
+                  errorId: 'ptw-profile-phone-error',
+                })}
 
                 ${renderLocationFields()}
 

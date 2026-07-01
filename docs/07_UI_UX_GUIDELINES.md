@@ -371,6 +371,30 @@ Error messages
 
 Responsive forms
 
+## Icon Input Fields (Login & Profile)
+
+Use the shared icon input pattern for authentication and profile forms.
+
+- Label positioned above the field
+- Single rounded container with border
+- Leading Bootstrap Icon (Primary Blue) on the left
+- Thin vertical divider between icon and control
+- Borderless `input` or `select` inside the container
+- Placeholder text inside the control area
+
+Standard icon mapping:
+
+- Email — `bi-envelope`
+- Password — `bi-lock`
+- Phone — `bi-telephone`
+- District — `bi-geo-alt`
+- Pradeshika Sabha — `bi-building`
+- Username — `bi-person`
+
+Implementation: `renderIconInputField()` and `renderIconSelectField()` in `public/js/shared/form/icon-input.component.js`. Styles: `.ptw-icon-input` in `public/css/components.css`.
+
+Icons are decorative; the visible label provides the accessible name.
+
 ---
 
 # 13. Tables

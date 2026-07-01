@@ -7,6 +7,12 @@ import { USER_ROLES } from '../users/user.constants.js';
 import { AUTHORIZATION_ROUTES } from '../authorization/permission.constants.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 
+/** @enum {string} */
+export const CONTESTANT_ROUTES = Object.freeze({
+  PREDICTIONS: '/predictions',
+  SCORE: '/score',
+});
+
 /**
  * @typedef {Object} RouteDefinition
  * @property {string} path - URL path (History API).
@@ -71,13 +77,13 @@ export const ROUTES = Object.freeze([
     roles: [USER_ROLES.ADMIN],
   },
   {
-    path: '/predictions',
+    path: CONTESTANT_ROUTES.PREDICTIONS,
     name: 'predictions',
-    title: 'My Predictions',
+    title: 'Predictions',
     pageModule: '../pages/predictions.page.js',
     showInNavbar: true,
     showInMobileNav: true,
-    navLabel: 'My Predictions',
+    navLabel: 'Predictions',
     icon: 'bi-bullseye',
     requiresAuth: true,
     requiresProfile: true,
@@ -86,13 +92,13 @@ export const ROUTES = Object.freeze([
     roles: [USER_ROLES.CONTESTANT],
   },
   {
-    path: '/my-score',
-    name: 'my-score',
-    title: 'My Score',
-    pageModule: '../pages/my-score.page.js',
+    path: CONTESTANT_ROUTES.SCORE,
+    name: 'score',
+    title: 'Score',
+    pageModule: '../pages/score.page.js',
     showInNavbar: true,
     showInMobileNav: true,
-    navLabel: 'My Score',
+    navLabel: 'Score',
     icon: 'bi-bar-chart',
     requiresAuth: true,
     requiresProfile: true,

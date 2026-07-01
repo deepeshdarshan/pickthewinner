@@ -11,7 +11,7 @@
 import { isAuthenticated } from '../auth/auth.service.js';
 import { loadCurrentUser, getCachedProfile } from '../users/user.service.js';
 import { USER_ROUTES } from '../users/user.constants.js';
-import { findRouteByPath, normalizePath } from '../config/routes.js';
+import { findRouteByPath, normalizePath, CONTESTANT_ROUTES } from '../config/routes.js';
 import { Roles, AUTHORIZATION_ROUTES, AUTHORIZATION_MESSAGES } from './permission.constants.js';
 import { getPermissionsForRole } from './permission.service.js';
 import {
@@ -213,7 +213,7 @@ export const AuthorizationService = {
     }
 
     if (this.hasRole(Roles.CONTESTANT)) {
-      return '/predictions';
+      return CONTESTANT_ROUTES.PREDICTIONS;
     }
 
     if (isAuthenticated()) {

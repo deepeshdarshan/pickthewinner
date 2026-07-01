@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { DISTRICTS, DISTRICT_WISE_PS_MAP } from '../location.constants.js';
 
 /**
@@ -48,35 +49,27 @@ export function renderPradeshikaSabhaOptions(district = '', selected = '') {
  */
 export function renderLocationFields() {
   return `
-    <div class="mb-3">
-      <label for="ptw-profile-district" class="form-label">District <span class="text-danger">*</span></label>
-      <select
-        class="form-select"
-        id="ptw-profile-district"
-        name="district"
-        required
-        aria-required="true"
-      >
-        ${renderDistrictOptions()}
-      </select>
-      <div class="invalid-feedback" id="ptw-profile-district-error" role="alert"></div>
-    </div>
-
-    <div class="mb-3">
-      <label for="ptw-profile-pradeshika-sabha" class="form-label">Pradeshika Sabha <span class="text-danger">*</span></label>
-      <select
-        class="form-select"
-        id="ptw-profile-pradeshika-sabha"
-        name="pradeshikaSabha"
-        required
-        aria-required="true"
-        disabled
-        aria-disabled="true"
-      >
-        ${renderPradeshikaSabhaOptions()}
-      </select>
-      <div class="invalid-feedback" id="ptw-profile-pradeshika-sabha-error" role="alert"></div>
-    </div>
+    ${renderIconSelectField({
+      id: 'ptw-profile-district',
+      name: 'district',
+      label: 'District',
+      icon: 'bi-geo-alt',
+      optionsHtml: renderDistrictOptions(),
+      required: true,
+      requiredMarker: true,
+      errorId: 'ptw-profile-district-error',
+    })}
+    ${renderIconSelectField({
+      id: 'ptw-profile-pradeshika-sabha',
+      name: 'pradeshikaSabha',
+      label: 'Pradeshika Sabha',
+      icon: 'bi-building',
+      optionsHtml: renderPradeshikaSabhaOptions(),
+      required: true,
+      requiredMarker: true,
+      disabled: true,
+      errorId: 'ptw-profile-pradeshika-sabha-error',
+    })}
   `;
 }
 

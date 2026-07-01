@@ -59,8 +59,11 @@
 }
 
 .is-invalid ~ .invalid-feedback,
+.ptw-icon-input:has(.is-invalid) ~ .invalid-feedback,
 .was-validated .form-control:invalid ~ .invalid-feedback,
-.was-validated .form-select:invalid ~ .invalid-feedback {
+.was-validated .form-select:invalid ~ .invalid-feedback,
+.was-validated .ptw-icon-input:has(.form-control:invalid) ~ .invalid-feedback,
+.was-validated .ptw-icon-input:has(.form-select:invalid) ~ .invalid-feedback {
   display: block;
 }
 

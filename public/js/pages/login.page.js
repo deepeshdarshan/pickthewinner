@@ -15,7 +15,10 @@ import { navigateTo } from '../services/router.service.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
 import { getPostLoginDestination } from '../users/user.navigation.js';
 import { USER_ROUTES } from '../users/user.constants.js';
+import { renderAppLogo } from '../shared/logo/logo.component.js';
+import { renderIconInputField } from '../shared/form/icon-input.component.js';
 import { Logger } from '../utils/logger.util.js';
+import { escapeHtml } from '../utils/html.util.js';
 
 /** @type {'contestant'|'admin'} */
 let activeMode = 'contestant';
@@ -41,29 +44,23 @@ function renderLoginMarkup() {
 
   return `
     <div class="ptw-login-page">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-12 col-md-8 col-lg-5">
-            <div class="text-center mb-4">
-              <i class="bi bi-trophy-fill ptw-login__logo" aria-hidden="true"></i>
-              <h1 class="h3 mt-3 mb-1">${appSettings.appName}</h1>
-              <p class="ptw-text-muted mb-0">Predict matches with your friends.</p>
+      <div class="ptw-login-page__inner">
+        <div class="card ptw-card ptw-login-card">
+          <div class="card-body ptw-login-card__body">
+            <div class="ptw-login-card__brand">
+              ${renderAppLogo({ variant: 'login' })}
+              <p class="ptw-login-card__tagline">${escapeHtml(appSettings.appTagline)}</p>
             </div>
-
-            <div class="card ptw-card">
-              <div class="card-body p-4">
-                ${isAdmin ? renderAdminForm() : renderContestantForm()}
-              </div>
-            </div>
-
-            <p class="text-center ptw-text-muted small mt-4 mb-0">
-              ${isAdmin
-                ? `<a href="/login" data-route class="ptw-link">← Back to Contestant Login</a>`
-                : `<a href="/login?mode=admin" data-route class="ptw-link">Admin Login</a>`
-              }
-            </p>
+            ${isAdmin ? renderAdminForm() : renderContestantForm()}
           </div>
         </div>
+
+        <p class="text-center ptw-text-muted small mt-4 mb-0">
+          ${isAdmin
+            ? `<a href="/login" data-route class="ptw-link">← Back to Contestant Login</a>`
+            : `<a href="/login?mode=admin" data-route class="ptw-link">Admin Login</a>`
+          }
+        </p>
       </div>
     </div>
   `;
@@ -92,31 +89,30 @@ function renderContestantForm() {
 function renderAdminForm() {
   return `
     <form id="ptw-admin-login-form" novalidate>
-      <h2 class="h5 mb-3">Administrator Sign In</h2>
-      <div class="mb-3">
-        <label for="ptw-admin-email" class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          id="ptw-admin-email"
-          name="email"
-          autocomplete="username"
-          required
-          aria-required="true"
-        >
-      </div>
-      <div class="mb-4">
-        <label for="ptw-admin-password" class="form-label">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="ptw-admin-password"
-          name="password"
-          autocomplete="current-password"
-          required
-          aria-required="true"
-        >
-      </div>
+      <h2 class="h5 mb-3 ptw-login-form__title">Administrator Sign In</h2>
+      ${renderIconInputField({
+        id: 'ptw-admin-email',
+        name: 'email',
+        label: 'Email',
+        icon: 'bi-envelope',
+        type: 'email',
+        placeholder: 'Enter your email address',
+        autocomplete: 'username',
+        required: true,
+        errorId: 'ptw-admin-email-error',
+      })}
+      ${renderIconInputField({
+        id: 'ptw-admin-password',
+        name: 'password',
+        label: 'Password',
+        icon: 'bi-lock',
+        type: 'password',
+        placeholder: 'Enter your password',
+        autocomplete: 'current-password',
+        required: true,
+        wrapperClass: 'mb-4',
+        errorId: 'ptw-admin-password-error',
+      })}
       <button type="submit" class="btn btn-ptw-primary w-100 btn-lg" id="ptw-admin-login-submit">
         <i class="bi bi-shield-lock me-2" aria-hidden="true"></i>
         Login

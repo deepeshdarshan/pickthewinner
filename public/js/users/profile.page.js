@@ -16,7 +16,6 @@ import { validateProfileUpdate } from './user.validator.js';
 import {
   applyFormErrors,
   mountProfileLoading,
-  readNotificationPreferences,
   renderProfileEmpty,
   renderProfilePage,
 } from './user.renderer.js';
@@ -87,7 +86,6 @@ async function handleProfileUpdate(form, uid) {
 
   const payload = {
     phone: phoneInput instanceof HTMLInputElement ? phoneInput.value : '',
-    notificationPreferences: readNotificationPreferences(form),
   };
 
   const validation = validateProfileUpdate(payload);
@@ -103,7 +101,6 @@ async function handleProfileUpdate(form, uid) {
   try {
     await updateUser(uid, {
       phone: payload.phone.replace(/\D/g, ''),
-      notificationPreferences: payload.notificationPreferences,
     });
 
     showSuccessToast(USER_MESSAGES.PROFILE_UPDATED);
