@@ -28,33 +28,23 @@ export const firestore = db;
 /** @type {import('firebase/storage').FirebaseStorage} */
 export const storage = getStorage(app);
 
-/** @type {Promise<void>|null} */
-let firestoreNetworkPromise = null;
-
 /**
- * Ensures the Firestore client is online before reads/writes.
- * Popup sign-in can briefly leave Firestore in an offline state.
+ * Re-enables the Firestore network client.
+ * Called each time before a read/write to recover from the brief offline
+ * state that can follow a Google popup sign-in (COOP side-effect).
+ * Not cached — each call issues a fresh enableNetwork so retries work.
  * @returns {Promise<void>}
  */
 export async function ensureFirestoreOnline() {
-  if (!firestoreNetworkPromise) {
-    firestoreNetworkPromise = enableNetwork(db)
-      .catch((error) => {
-        firestoreNetworkPromise = null;
-
-        if (error?.code === 'failed-precondition') {
-          return;
-        }
-
-        throw error;
-      });
+  try {
+    await enableNetwork(db);
+  } catch (error) {
+    if (error?.code !== 'failed-precondition') {
+      Logger.warn('[Firebase] ensureFirestoreOnline failed:', error);
+    }
   }
-
-  await firestoreNetworkPromise;
 }
 
-void ensureFirestoreOnline().catch((error) => {
-  Logger.warn('[Firebase] Initial Firestore network enable failed:', error);
-});
+void ensureFirestoreOnline().catch(() => {});
 
 export { app };

@@ -5,47 +5,32 @@
 
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { USER_ROLES, USER_ROUTES } from './user.constants.js';
-import { loadCurrentUser } from './user.service.js';
-import { Logger } from '../utils/logger.util.js';
-
-/**
- * @param {unknown} error
- * @returns {boolean}
- */
-function isTransientFirestoreError(error) {
-  if (typeof error !== 'object' || error === null || !('code' in error)) {
-    return false;
-  }
-
-  const code = String(/** @type {{ code: string }} */ (error).code);
-  return code === 'unavailable' || code === 'failed-precondition';
-}
+import { getCachedProfile } from './user.service.js';
 
 /**
  * Resolves the destination route after a successful sign-in.
+ *
+ * Uses only the in-memory profile cache to avoid a redundant Firestore read
+ * right after popup sign-in (when the Firestore client may be briefly offline).
+ * If the cache is empty the guards on the destination route will do the
+ * profile check and redirect appropriately.
+ *
  * @param {import('firebase/auth').User} _firebaseUser
  * @param {string} [_authProvider]
  * @returns {Promise<string>}
  */
 export async function getPostLoginDestination(_firebaseUser, _authProvider) {
-  try {
-    const profile = await loadCurrentUser();
+  const cached = getCachedProfile();
 
-    if (!profile) {
-      return USER_ROUTES.COMPLETE_PROFILE;
-    }
-
-    if (profile.role === USER_ROLES.ADMIN) {
+  if (cached) {
+    if (cached.role === USER_ROLES.ADMIN) {
       return AUTH_ROUTES.ADMIN;
     }
 
     return AUTH_ROUTES.DASHBOARD;
-  } catch (error) {
-    if (isTransientFirestoreError(error)) {
-      Logger.warn('[UserNavigation] Profile lookup unavailable after sign-in; routing to complete-profile.');
-      return USER_ROUTES.COMPLETE_PROFILE;
-    }
-
-    throw error;
   }
+
+  // No cache yet — the user.guard on /complete-profile will redirect to
+  // /dashboard or /admin once the profile is loaded.
+  return USER_ROUTES.COMPLETE_PROFILE;
 }

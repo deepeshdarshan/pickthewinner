@@ -26,9 +26,6 @@ export function renderFooter() {
           <nav class="ptw-footer__links" aria-label="Footer links">
             <a href="#" class="ptw-footer__link" aria-disabled="true">Privacy</a>
             <a href="#" class="ptw-footer__link" aria-disabled="true">Terms</a>
-            <a href="#" class="ptw-footer__link" aria-disabled="true" title="GitHub (placeholder)">
-              <i class="bi bi-github me-1" aria-hidden="true"></i>GitHub
-            </a>
           </nav>
 
           <p class="ptw-footer__tagline mb-0">${appSettings.appTagline}</p>

@@ -6,6 +6,7 @@
 import {
   doc,
   getDoc,
+  getDocFromCache,
   setDoc,
   updateDoc,
   serverTimestamp,
@@ -229,31 +230,49 @@ function delay(ms) {
 }
 
 /**
- * Reads a user document with Firestore network recovery retries.
+ * @param {import('firebase/firestore').DocumentReference} ref
+ * @param {number} timeoutMs
+ * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
+ */
+function getDocWithTimeout(ref, timeoutMs) {
+  return Promise.race([
+    getDoc(ref),
+    new Promise((_, reject) => {
+      window.setTimeout(() => {
+        reject(Object.assign(new Error('Firestore read timed out'), { code: 'unavailable' }));
+      }, timeoutMs);
+    }),
+  ]);
+}
+
+/**
+ * Reads a user document — cache first, then server with a short timeout.
  * @param {string} uid
  * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
  */
 async function fetchUserSnapshot(uid) {
-  const maxAttempts = 4;
-  let lastError;
+  const ref = getUserDocRef(uid);
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      await ensureFirestoreOnline();
-      return await getDoc(getUserDocRef(uid));
-    } catch (error) {
-      lastError = error;
-
-      if (!isTransientFirestoreError(error) || attempt === maxAttempts) {
-        throw error;
-      }
-
-      Logger.warn(`[UserService] Retrying profile read (${attempt}/${maxAttempts})…`);
-      await delay(250 * attempt);
-    }
+  try {
+    return await getDocFromCache(ref);
+  } catch {
+    // Not in local cache — fetch from server.
   }
 
-  throw lastError;
+  await ensureFirestoreOnline();
+
+  try {
+    return await getDocWithTimeout(ref, 2000);
+  } catch (firstError) {
+    if (!isTransientFirestoreError(firstError)) {
+      throw firstError;
+    }
+
+    Logger.warn('[UserService] Firestore slow/unreachable — one quick retry…');
+    await delay(300);
+    await ensureFirestoreOnline();
+    return getDocWithTimeout(ref, 2000);
+  }
 }
 
 /**
@@ -318,13 +337,22 @@ export async function createUser(uid, data) {
  * @returns {Promise<UserProfile|null>}
  */
 export async function getUser(uid) {
-  const snapshot = await fetchUserSnapshot(uid);
+  try {
+    const snapshot = await fetchUserSnapshot(uid);
 
-  if (!snapshot.exists()) {
-    return null;
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return normalizeUserDocument(uid, snapshot.data());
+  } catch (error) {
+    if (isTransientFirestoreError(error)) {
+      Logger.warn('[UserService] Profile read unreachable — treating as no profile.');
+      return null;
+    }
+
+    throw error;
   }
-
-  return normalizeUserDocument(uid, snapshot.data());
 }
 
 /**

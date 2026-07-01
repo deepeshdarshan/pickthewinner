@@ -99,10 +99,11 @@ export function waitForAuthReady() {
     }
 
     authUnsubscribe = onAuthStateChanged(auth, (user) => {
-      const previousUser = currentUser ?? auth.currentUser;
+      const previousUser = currentUser;
 
-      if (!user && signInInProgress && auth.currentUser) {
-        currentUser = auth.currentUser;
+      if (!user && signInInProgress) {
+        // Suppress spurious null auth events that COOP popup issues can trigger
+        // mid-sign-in. Keep the current user value unchanged.
         return;
       }
 

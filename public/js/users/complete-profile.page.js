@@ -40,29 +40,43 @@ export function render(outlet) {
 async function initCompleteProfilePage(outlet) {
   mountCompleteProfileLoading(outlet);
 
-  const authUser = getCurrentUser();
+  let authUser = getCurrentUser();
+
+  if (!authUser) {
+    await new Promise((resolve) => { window.setTimeout(resolve, 400); });
+    authUser = getCurrentUser();
+  }
 
   if (!authUser) {
     await navigateTo(AUTH_ROUTES.LOGIN, true);
     return;
   }
 
+  outlet.innerHTML = renderCompleteProfileForm(authUser);
+  bindCompleteProfileForm(outlet, authUser.uid);
+
+  // Background check — redirect returning users without blocking the form.
+  void redirectIfProfileExists();
+}
+
+/**
+ * Redirects to the dashboard when a Firestore profile already exists.
+ * @returns {Promise<void>}
+ */
+async function redirectIfProfileExists() {
   try {
     const existingProfile = await loadCurrentUser();
 
-    if (existingProfile) {
-      const destination = existingProfile.role === USER_ROLES.ADMIN
-        ? AUTH_ROUTES.ADMIN
-        : AUTH_ROUTES.DASHBOARD;
-      await navigateTo(destination, true);
+    if (!existingProfile) {
       return;
     }
 
-    outlet.innerHTML = renderCompleteProfileForm(authUser);
-    bindCompleteProfileForm(outlet, authUser.uid);
+    const destination = existingProfile.role === USER_ROLES.ADMIN
+      ? AUTH_ROUTES.ADMIN
+      : AUTH_ROUTES.DASHBOARD;
+    await navigateTo(destination, true);
   } catch (error) {
-    Logger.error('[CompleteProfile] Failed to initialize:', error);
-    showErrorToast(getUserErrorMessage(error));
+    Logger.warn('[CompleteProfile] Could not verify existing profile:', error);
   }
 }
 

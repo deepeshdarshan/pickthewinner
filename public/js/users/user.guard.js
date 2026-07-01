@@ -28,9 +28,17 @@ export async function canActivateUserRoute(route) {
   }
 
   const isCompleteProfileRoute = route.path === USER_ROUTES.COMPLETE_PROFILE;
-  const requiresProfile = route.requiresProfile ?? route.requiresAuth;
 
-  if (!requiresProfile && !isCompleteProfileRoute) {
+  // /complete-profile is always reachable for authenticated users.
+  // The page itself handles existing-profile detection and redirection.
+  // Never guard-redirect from /complete-profile → /complete-profile (infinite loop).
+  if (isCompleteProfileRoute) {
+    return { allowed: true };
+  }
+
+  const requiresProfile = route.requiresProfile ?? false;
+
+  if (!requiresProfile) {
     return { allowed: true };
   }
 
@@ -41,27 +49,12 @@ export async function canActivateUserRoute(route) {
       profile = await loadCurrentUser();
     } catch (error) {
       Logger.error('[UserGuard] Failed to load profile:', error);
-      return {
-        allowed: false,
-        redirectTo: '/error',
-        replace: true,
-      };
+      return { allowed: false, redirectTo: USER_ROUTES.COMPLETE_PROFILE, replace: true };
     }
   }
 
-  const profileComplete = UserDomain.isProfileComplete(profile);
-
-  if (!profileComplete && requiresProfile && !isCompleteProfileRoute) {
+  if (!UserDomain.isProfileComplete(profile)) {
     return { allowed: false, redirectTo: USER_ROUTES.COMPLETE_PROFILE, replace: true };
-  }
-
-  if (profileComplete && isCompleteProfileRoute) {
-    await AuthorizationService.resolve();
-    return {
-      allowed: false,
-      redirectTo: AuthorizationService.getDefaultRouteForRole(),
-      replace: true,
-    };
   }
 
   return { allowed: true };
