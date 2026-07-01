@@ -1,0 +1,102 @@
+/**
+ * PickTheWinner Design System — CSS Variables
+ * All colors, spacing, and tokens. Never hardcode values outside this file.
+ */
+
+:root {
+  /* Primary Colors */
+  --ptw-color-primary-blue: #1565ff;
+  --ptw-color-primary-green: #00c853;
+  --ptw-color-accent-red: #d50032;
+  --ptw-color-accent-gold: #ffc107;
+
+  /* Background */
+  --ptw-color-bg-primary: #0b1220;
+  --ptw-color-bg-secondary: #172033;
+  --ptw-color-bg-tertiary: #1f2a44;
+
+  /* Text */
+  --ptw-color-text-primary: #ffffff;
+  --ptw-color-text-secondary: #c7d2e0;
+  --ptw-color-text-muted: #94a3b8;
+
+  /* Border */
+  --ptw-color-border: #2d3a52;
+
+  /* Status */
+  --ptw-color-success: #00c853;
+  --ptw-color-warning: #ffc107;
+  --ptw-color-danger: #d50032;
+  --ptw-color-info: #1565ff;
+
+  /* Bootstrap overrides */
+  --bs-body-bg: var(--ptw-color-bg-primary);
+  --bs-body-color: var(--ptw-color-text-primary);
+  --bs-primary: var(--ptw-color-primary-blue);
+  --bs-success: var(--ptw-color-success);
+  --bs-warning: var(--ptw-color-warning);
+  --bs-danger: var(--ptw-color-danger);
+  --bs-info: var(--ptw-color-info);
+  --bs-border-color: var(--ptw-color-border);
+  --bs-link-color: var(--ptw-color-primary-blue);
+  --bs-link-hover-color: var(--ptw-color-primary-green);
+
+  /* Typography */
+  --ptw-font-heading: 'Poppins', system-ui, sans-serif;
+  --ptw-font-body: 'Inter', system-ui, sans-serif;
+  --ptw-font-weight-regular: 400;
+  --ptw-font-weight-medium: 500;
+  --ptw-font-weight-semibold: 600;
+  --ptw-font-weight-bold: 700;
+
+  --ptw-font-size-xs: 0.75rem;
+  --ptw-font-size-sm: 0.875rem;
+  --ptw-font-size-base: 1rem;
+  --ptw-font-size-lg: 1.125rem;
+  --ptw-font-size-xl: 1.25rem;
+  --ptw-font-size-2xl: 1.5rem;
+  --ptw-font-size-3xl: 2rem;
+
+  /* Spacing */
+  --ptw-space-1: 0.25rem;
+  --ptw-space-2: 0.5rem;
+  --ptw-space-3: 0.75rem;
+  --ptw-space-4: 1rem;
+  --ptw-space-5: 1.5rem;
+  --ptw-space-6: 2rem;
+  --ptw-space-8: 3rem;
+
+  /* Border Radius */
+  --ptw-radius-sm: 0.375rem;
+  --ptw-radius-md: 0.5rem;
+  --ptw-radius-lg: 0.75rem;
+  --ptw-radius-xl: 1rem;
+  --ptw-radius-pill: 50rem;
+
+  /* Shadows */
+  --ptw-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --ptw-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --ptw-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  /* Transitions */
+  --ptw-transition-fast: 150ms ease;
+  --ptw-transition-base: 250ms ease;
+  --ptw-transition-slow: 400ms ease;
+
+  /* Layout */
+  --ptw-container-max: 1200px;
+  --ptw-navbar-height: 4rem;
+  --ptw-sidebar-width: 260px;
+  --ptw-sidebar-collapsed-width: 72px;
+  --ptw-footer-height: 3.5rem;
+  --ptw-mobile-nav-height: 4rem;
+
+  /* Z-Index */
+  --ptw-z-dropdown: 1000;
+  --ptw-z-sticky: 1020;
+  --ptw-z-fixed: 1030;
+  --ptw-z-modal-backdrop: 1040;
+  --ptw-z-modal: 1050;
+  --ptw-z-toast: 1060;
+  --ptw-z-loading: 1070;
+}

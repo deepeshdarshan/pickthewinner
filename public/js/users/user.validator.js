@@ -1,0 +1,171 @@
+/**
+ * @fileoverview User profile validation — no DOM manipulation.
+ * @module users/user.validator
+ */
+
+import {
+  USER_VALIDATION_MESSAGES,
+  TIMEZONE_OPTIONS,
+} from './user.constants.js';
+
+/**
+ * @typedef {Object} UserValidationResult
+ * @property {boolean} valid
+ * @property {Record<string, string>} errors
+ */
+
+/**
+ * Validates a display name.
+ * @param {unknown} value
+ * @returns {UserValidationResult}
+ */
+export function validateName(value) {
+  const errors = {};
+
+  if (typeof value !== 'string' || !value.trim()) {
+    errors.name = USER_VALIDATION_MESSAGES.NAME_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  if (value.trim().length < 2) {
+    errors.name = USER_VALIDATION_MESSAGES.NAME_TOO_SHORT;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * Validates a phone number (10–15 digits).
+ * @param {unknown} value
+ * @returns {UserValidationResult}
+ */
+export function validatePhone(value) {
+  const errors = {};
+  const digits = typeof value === 'string' ? value.replace(/\D/g, '') : '';
+
+  if (!digits) {
+    errors.phone = USER_VALIDATION_MESSAGES.PHONE_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  if (digits.length < 10 || digits.length > 15) {
+    errors.phone = USER_VALIDATION_MESSAGES.PHONE_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * Validates a timezone selection.
+ * @param {unknown} value
+ * @returns {UserValidationResult}
+ */
+export function validateTimezone(value) {
+  const errors = {};
+
+  if (typeof value !== 'string' || !value.trim()) {
+    errors.timezone = USER_VALIDATION_MESSAGES.TIMEZONE_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  const isValid = TIMEZONE_OPTIONS.some((option) => option.value === value);
+
+  if (!isValid) {
+    errors.timezone = USER_VALIDATION_MESSAGES.TIMEZONE_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * Validates notification preferences.
+ * @param {unknown} preferences
+ * @returns {UserValidationResult}
+ */
+export function validatePreferences(preferences) {
+  if (preferences === undefined || preferences === null) {
+    return { valid: true, errors: {} };
+  }
+
+  if (typeof preferences !== 'object') {
+    return {
+      valid: false,
+      errors: { notificationPreferences: 'Invalid notification preferences.' },
+    };
+  }
+
+  const { email, browser } = /** @type {{ email?: unknown, browser?: unknown }} */ (preferences);
+
+  if (email !== undefined && typeof email !== 'boolean') {
+    return {
+      valid: false,
+      errors: { 'notificationPreferences.email': 'Email preference must be true or false.' },
+    };
+  }
+
+  if (browser !== undefined && typeof browser !== 'boolean') {
+    return {
+      valid: false,
+      errors: { 'notificationPreferences.browser': 'Browser preference must be true or false.' },
+    };
+  }
+
+  return { valid: true, errors: {} };
+}
+
+/**
+ * Merges multiple validation results into one.
+ * @param {UserValidationResult[]} results
+ * @returns {UserValidationResult}
+ */
+export function mergeValidationResults(results) {
+  const errors = {};
+
+  results.forEach((result) => {
+    Object.assign(errors, result.errors);
+  });
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+/**
+ * Validates the complete-profile form payload.
+ * @param {{ phone?: unknown, timezone?: unknown, notificationPreferences?: unknown }} data
+ * @returns {UserValidationResult}
+ */
+export function validateCompleteProfileForm(data) {
+  return mergeValidationResults([
+    validatePhone(data.phone),
+    validateTimezone(data.timezone),
+    validatePreferences(data.notificationPreferences),
+  ]);
+}
+
+/**
+ * Validates a profile update payload.
+ * @param {{ phone?: unknown, timezone?: unknown, notificationPreferences?: unknown }} data
+ * @returns {UserValidationResult}
+ */
+export function validateProfileUpdate(data) {
+  const results = [];
+
+  if (data.phone !== undefined) {
+    results.push(validatePhone(data.phone));
+  }
+
+  if (data.timezone !== undefined) {
+    results.push(validateTimezone(data.timezone));
+  }
+
+  if (data.notificationPreferences !== undefined) {
+    results.push(validatePreferences(data.notificationPreferences));
+  }
+
+  return mergeValidationResults(results);
+}

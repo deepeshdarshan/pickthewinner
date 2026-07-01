@@ -1,0 +1,8 @@
+{
+  "name": "pickthewinner",
+  "private": true,
+  "description": "PickTheWinner static web app",
+  "scripts": {
+    "start": "serve ."
+  }
+}

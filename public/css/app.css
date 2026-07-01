@@ -1,0 +1,80 @@
+/**
+ * PickTheWinner — Global application styles
+ */
+
+@import url('variables.css');
+@import url('layout.css');
+@import url('components.css');
+@import url('utilities.css');
+
+/* Form overrides */
+.form-control,
+.form-select {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-color: var(--ptw-color-border);
+  color: var(--ptw-color-text-primary);
+  border-radius: var(--ptw-radius-md);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-color: var(--ptw-color-primary-blue);
+  color: var(--ptw-color-text-primary);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ptw-color-primary-blue) 25%, transparent);
+}
+
+.form-floating > label {
+  color: var(--ptw-color-text-muted);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--ptw-color-text-secondary);
+}
+
+.invalid-feedback {
+  color: var(--ptw-color-danger);
+}
+
+.valid-feedback {
+  color: var(--ptw-color-success);
+}
+
+/* Modal overrides */
+.modal-content {
+  background-color: var(--ptw-color-bg-secondary);
+  border: 1px solid var(--ptw-color-border);
+  border-radius: var(--ptw-radius-lg);
+  color: var(--ptw-color-text-primary);
+}
+
+.modal-header {
+  border-bottom-color: var(--ptw-color-border);
+}
+
+.modal-footer {
+  border-top-color: var(--ptw-color-border);
+}
+
+/* Dropdown overrides */
+.dropdown-menu {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-color: var(--ptw-color-border);
+}
+
+.dropdown-item {
+  color: var(--ptw-color-text-secondary);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--ptw-color-bg-secondary);
+  color: var(--ptw-color-text-primary);
+}
+
+/* Focus visibility */
+:focus-visible {
+  outline: 2px solid var(--ptw-color-primary-blue);
+  outline-offset: 2px;
+}
