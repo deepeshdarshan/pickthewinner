@@ -40,27 +40,29 @@ function renderLoginMarkup() {
   const isAdmin = activeMode === 'admin';
 
   return `
-    <div class="container ptw-page-content">
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-5">
-          <div class="text-center mb-4">
-            <i class="bi bi-trophy-fill ptw-login__logo" aria-hidden="true"></i>
-            <h1 class="h3 mt-3 mb-1">${appSettings.appName}</h1>
-            <p class="ptw-text-muted mb-0">Predict football tournaments with your friends.</p>
-          </div>
-
-          <div class="card ptw-card">
-            <div class="card-body p-4">
-              ${isAdmin ? renderAdminForm() : renderContestantForm()}
+    <div class="ptw-login-page">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-8 col-lg-5">
+            <div class="text-center mb-4">
+              <i class="bi bi-trophy-fill ptw-login__logo" aria-hidden="true"></i>
+              <h1 class="h3 mt-3 mb-1">${appSettings.appName}</h1>
+              <p class="ptw-text-muted mb-0">Predict matches with your friends.</p>
             </div>
-          </div>
 
-          <p class="text-center ptw-text-muted small mt-4 mb-0">
-            ${isAdmin
-              ? `<a href="/login" data-route class="ptw-link">← Back to Contestant Login</a>`
-              : `<a href="/login?mode=admin" data-route class="ptw-link">Admin Login</a>`
-            }
-          </p>
+            <div class="card ptw-card">
+              <div class="card-body p-4">
+                ${isAdmin ? renderAdminForm() : renderContestantForm()}
+              </div>
+            </div>
+
+            <p class="text-center ptw-text-muted small mt-4 mb-0">
+              ${isAdmin
+                ? `<a href="/login" data-route class="ptw-link">← Back to Contestant Login</a>`
+                : `<a href="/login?mode=admin" data-route class="ptw-link">Admin Login</a>`
+              }
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -73,7 +75,7 @@ function renderLoginMarkup() {
 function renderContestantForm() {
   return `
     <div class="d-grid gap-3">
-      <button type="button" class="btn btn-light btn-lg" id="ptw-google-login">
+      <button type="button" class="btn btn-ptw-google btn-lg" id="ptw-google-login">
         <i class="bi bi-google me-2" aria-hidden="true"></i>
         Continue with Google
       </button>

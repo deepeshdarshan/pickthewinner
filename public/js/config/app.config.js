@@ -42,7 +42,7 @@ export const firebaseConfig = {
 export const appSettings = Object.freeze({
   appName: 'PickTheWinner',
   appTagline: 'Powered by Ernakulam Jilla Yuvavedi',
-  version: '1.0.0image.png',
+  version: '1.0.0',
   defaultRoute: '/',
   timezone: 'Asia/Kolkata',
   timezoneLabel: 'IST (GMT+05:30)',

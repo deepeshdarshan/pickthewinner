@@ -72,6 +72,32 @@ h6 {
   padding-inline: var(--ptw-space-4);
 }
 
+.ptw-body-wrapper:has(.ptw-login-page) {
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.ptw-main:has(.ptw-login-page) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.ptw-login-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: var(--ptw-space-4);
+  animation: ptw-fade-in var(--ptw-transition-base) ease-out;
+}
+
 .ptw-page-content {
   animation: ptw-fade-in var(--ptw-transition-base) ease-out;
 }

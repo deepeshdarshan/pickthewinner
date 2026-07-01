@@ -20,15 +20,17 @@ export function renderFooter() {
             <p class="ptw-footer__copyright mb-0">
               &copy; ${year} ${appSettings.appName}. All rights reserved.
             </p>
-            <p class="ptw-footer__version mb-0">v${appSettings.version}</p>
           </div>
 
           <nav class="ptw-footer__links" aria-label="Footer links">
-            <a href="#" class="ptw-footer__link" aria-disabled="true">Privacy</a>
-            <a href="#" class="ptw-footer__link" aria-disabled="true">Terms</a>
+            <a href="#" class="ptw-footer__link" aria-disabled="true">Terms of Service</a>
           </nav>
 
-          <p class="ptw-footer__tagline mb-0">${appSettings.appTagline}</p>
+          <div class="ptw-footer__meta">
+            <p class="ptw-footer__version mb-0">v${appSettings.version}</p>
+            <p class="ptw-footer__timezone mb-0">|</p>
+            <p class="ptw-footer__tagline mb-0">${appSettings.appTagline}</p>
+          </div>
         </div>
       </div>
     </footer>
