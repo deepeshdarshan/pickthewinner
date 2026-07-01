@@ -41,8 +41,31 @@
   color: var(--ptw-color-text-secondary);
 }
 
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--ptw-color-danger-text);
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  border-color: var(--ptw-color-danger-text);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ptw-color-danger-text) 30%, transparent);
+}
+
 .invalid-feedback {
-  color: var(--ptw-color-danger);
+  display: none;
+  color: var(--ptw-color-danger-text);
+  font-size: var(--ptw-font-size-sm);
+}
+
+.is-invalid ~ .invalid-feedback,
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.was-validated .form-select:invalid ~ .invalid-feedback {
+  display: block;
+}
+
+.form-label .text-danger {
+  color: var(--ptw-color-danger-text);
 }
 
 .valid-feedback {
