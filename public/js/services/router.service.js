@@ -114,7 +114,10 @@ export async function navigateTo(path, replace = false) {
     return;
   }
 
-  if (normalized === currentPath && !query && !replace) {
+  const currentSearch = window.location.search;
+  const targetSearch = query ? `?${query}` : '';
+
+  if (normalized === currentPath && targetSearch === currentSearch && !replace) {
     return;
   }
 
