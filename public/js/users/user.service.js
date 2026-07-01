@@ -54,6 +54,8 @@ import { ApplicationContext } from '../app/application-context.js';
  * @property {string} role
  * @property {string} provider
  * @property {string} status
+ * @property {string} district
+ * @property {string} pradeshikaSabha
  * @property {string} timezone
  * @property {NotificationPreferences} notificationPreferences
  * @property {UserStatistics} statistics
@@ -167,6 +169,8 @@ function normalizeUserDocument(uid, data) {
     role: data.role ?? USER_ROLES.CONTESTANT,
     provider: data.provider ?? USER_PROVIDERS.GOOGLE,
     status: data.status ?? USER_STATUS.ACTIVE,
+    district: data.district ?? '',
+    pradeshikaSabha: data.pradeshikaSabha ?? '',
     timezone: data.timezone ?? DEFAULT_TIMEZONE,
     notificationPreferences: {
       email: data.notificationPreferences?.email ?? DEFAULT_NOTIFICATION_PREFERENCES.email,
@@ -299,6 +303,8 @@ export async function createUser(uid, data) {
     ),
     provider,
     status: USER_STATUS.ACTIVE,
+    district: data.district ?? '',
+    pradeshikaSabha: data.pradeshikaSabha ?? '',
     timezone: data.timezone ?? DEFAULT_TIMEZONE,
     notificationPreferences: {
       ...DEFAULT_NOTIFICATION_PREFERENCES,

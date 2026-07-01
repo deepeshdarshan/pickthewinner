@@ -8,8 +8,7 @@ import { renderHtml } from '../../renderers/base.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderAvatar } from '../../shared/avatar/avatar.component.js';
 import { USER_MESSAGES } from '../user.constants.js';
-import { renderTimezoneField } from './shared-form.renderer.js';
-import { renderNotificationPreferences } from './preferences.renderer.js';
+import { renderLocationFields } from './location.renderer.js';
 
 /**
  * @returns {string}
@@ -65,7 +64,7 @@ export function renderCompleteProfileForm(authUser) {
       })}
 
       <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-md-8 col-lg-5">
           <div class="card ptw-card">
             <div class="card-body">
               <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded ptw-profile-summary">
@@ -98,25 +97,7 @@ export function renderCompleteProfileForm(authUser) {
                   <div class="invalid-feedback" id="ptw-profile-phone-error" role="alert"></div>
                 </div>
 
-                <div class="mb-3">
-                  <label for="ptw-profile-country" class="form-label">Country <span class="ptw-text-muted">(optional)</span></label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="ptw-profile-country"
-                    name="country"
-                    autocomplete="country-name"
-                    placeholder="e.g. India"
-                  >
-                </div>
-
-                <div class="mb-3">
-                  <label for="ptw-profile-timezone" class="form-label">Timezone <span class="text-danger">*</span></label>
-                  ${renderTimezoneField({ id: 'ptw-profile-timezone' })}
-                  <div class="invalid-feedback" id="ptw-profile-timezone-error" role="alert"></div>
-                </div>
-
-                ${renderNotificationPreferences()}
+                ${renderLocationFields()}
 
                 <div class="d-grid">
                   <button type="submit" class="btn btn-ptw-primary btn-lg" id="ptw-complete-profile-submit">

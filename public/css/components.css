@@ -317,6 +317,12 @@
   visibility: visible;
 }
 
+.ptw-loading-overlay > .text-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .ptw-loading-overlay__spinner {
   width: 3rem;
   height: 3rem;

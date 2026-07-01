@@ -19,9 +19,9 @@ import { validateCompleteProfileForm } from './user.validator.js';
 import {
   applyFormErrors,
   mountCompleteProfileLoading,
-  readNotificationPreferences,
   renderCompleteProfileForm,
 } from './user.renderer.js';
+import { bindDistrictPsCascade } from './renderers/location.renderer.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -96,6 +96,8 @@ function bindCompleteProfileForm(outlet, uid) {
     event.preventDefault();
     void handleCompleteProfileSubmit(form, uid);
   });
+
+  bindDistrictPsCascade(form);
 }
 
 /**
@@ -105,12 +107,13 @@ function bindCompleteProfileForm(outlet, uid) {
  */
 async function handleCompleteProfileSubmit(form, uid) {
   const phoneInput = form.querySelector('#ptw-profile-phone');
-  const timezoneInput = form.querySelector('#ptw-profile-timezone');
+  const districtInput = form.querySelector('#ptw-profile-district');
+  const psInput = form.querySelector('#ptw-profile-pradeshika-sabha');
 
   const payload = {
     phone: phoneInput instanceof HTMLInputElement ? phoneInput.value : '',
-    timezone: timezoneInput instanceof HTMLSelectElement ? timezoneInput.value : '',
-    notificationPreferences: readNotificationPreferences(form),
+    district: districtInput instanceof HTMLSelectElement ? districtInput.value : '',
+    pradeshikaSabha: psInput instanceof HTMLSelectElement ? psInput.value : '',
   };
 
   const validation = validateCompleteProfileForm(payload);
@@ -129,8 +132,8 @@ async function handleCompleteProfileSubmit(form, uid) {
 
     const profile = await createUser(uid, {
       phone: payload.phone.replace(/\D/g, ''),
-      timezone: payload.timezone,
-      notificationPreferences: payload.notificationPreferences,
+      district: payload.district,
+      pradeshikaSabha: payload.pradeshikaSabha,
       name: authUser?.displayName ?? authUser?.email?.split('@')[0] ?? '',
       email: authUser?.email ?? '',
       photoURL: authUser?.photoURL ?? '',

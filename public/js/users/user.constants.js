@@ -48,6 +48,10 @@ export const USER_VALIDATION_MESSAGES = Object.freeze({
   NAME_TOO_SHORT: 'Name must be at least 2 characters.',
   PHONE_REQUIRED: 'Phone number is required.',
   PHONE_INVALID: 'Phone number must be between 10 and 15 digits.',
+  DISTRICT_REQUIRED: 'District is required.',
+  DISTRICT_INVALID: 'Select a valid district.',
+  PRADESHIKA_SABHA_REQUIRED: 'Pradeshika Sabha is required.',
+  PRADESHIKA_SABHA_INVALID: 'Select a valid Pradeshika Sabha for the chosen district.',
   TIMEZONE_REQUIRED: 'Timezone is required.',
   TIMEZONE_INVALID: 'Select a valid timezone.',
 });

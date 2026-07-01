@@ -39,7 +39,7 @@ export const firebaseConfig = {
  */
 export const appSettings = Object.freeze({
   appName: 'PickTheWinner',
-  appTagline: 'Tournament Prediction Platform',
+  appTagline: 'Powered by Ernakulam Jilla Yuvavedi',
   version: '0.1.0',
   defaultRoute: '/',
   timezone: 'UTC',

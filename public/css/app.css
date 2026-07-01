@@ -24,6 +24,14 @@
   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ptw-color-primary-blue) 25%, transparent);
 }
 
+.form-control:disabled,
+.form-select:disabled {
+  background-color: var(--ptw-color-bg-secondary);
+  border-color: var(--ptw-color-border);
+  color: var(--ptw-color-text-muted);
+  opacity: 1;
+}
+
 .form-floating > label {
   color: var(--ptw-color-text-muted);
 }

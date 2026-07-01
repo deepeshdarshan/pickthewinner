@@ -39,7 +39,11 @@ export const UserDomain = {
       return false;
     }
 
-    return Boolean(profile.phone?.trim() && profile.timezone?.trim());
+    return Boolean(
+      profile.phone?.trim()
+      && profile.district?.trim()
+      && profile.pradeshikaSabha?.trim(),
+    );
   },
 
   /**

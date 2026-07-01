@@ -7,6 +7,7 @@ import {
   USER_VALIDATION_MESSAGES,
   TIMEZONE_OPTIONS,
 } from './user.constants.js';
+import { DISTRICT_WISE_PS_MAP } from './location.constants.js';
 
 /**
  * @typedef {Object} UserValidationResult
@@ -51,6 +52,51 @@ export function validatePhone(value) {
 
   if (digits.length < 10 || digits.length > 15) {
     errors.phone = USER_VALIDATION_MESSAGES.PHONE_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * Validates a district selection.
+ * @param {unknown} value
+ * @returns {UserValidationResult}
+ */
+export function validateDistrict(value) {
+  const errors = {};
+
+  if (typeof value !== 'string' || !value.trim()) {
+    errors.district = USER_VALIDATION_MESSAGES.DISTRICT_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(DISTRICT_WISE_PS_MAP, value)) {
+    errors.district = USER_VALIDATION_MESSAGES.DISTRICT_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * Validates a Pradeshika Sabha selection for a given district.
+ * @param {unknown} value
+ * @param {unknown} district
+ * @returns {UserValidationResult}
+ */
+export function validatePradeshikaSabha(value, district) {
+  const errors = {};
+
+  if (typeof value !== 'string' || !value.trim()) {
+    errors.pradeshikaSabha = USER_VALIDATION_MESSAGES.PRADESHIKA_SABHA_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  const psList = typeof district === 'string' ? DISTRICT_WISE_PS_MAP[district] : undefined;
+
+  if (!psList || !psList.includes(value)) {
+    errors.pradeshikaSabha = USER_VALIDATION_MESSAGES.PRADESHIKA_SABHA_INVALID;
     return { valid: false, errors };
   }
 
@@ -136,14 +182,14 @@ export function mergeValidationResults(results) {
 
 /**
  * Validates the complete-profile form payload.
- * @param {{ phone?: unknown, timezone?: unknown, notificationPreferences?: unknown }} data
+ * @param {{ phone?: unknown, district?: unknown, pradeshikaSabha?: unknown }} data
  * @returns {UserValidationResult}
  */
 export function validateCompleteProfileForm(data) {
   return mergeValidationResults([
     validatePhone(data.phone),
-    validateTimezone(data.timezone),
-    validatePreferences(data.notificationPreferences),
+    validateDistrict(data.district),
+    validatePradeshikaSabha(data.pradeshikaSabha, data.district),
   ]);
 }
 
