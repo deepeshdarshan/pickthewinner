@@ -9,7 +9,6 @@ import { getCachedProfile, loadCurrentUser } from './user.service.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { UserDomain } from '../domain/user.domain.js';
 import { Logger } from '../utils/logger.util.js';
-import { Logger } from '../utils/logger.util.js';
 
 /**
  * @typedef {Object} UserGuardResult

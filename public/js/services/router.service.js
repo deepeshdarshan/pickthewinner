@@ -310,6 +310,7 @@ async function loadRoute(route, path, outlet) {
   }
 }
 
+/**
  * @returns {string}
  */
 export function getDefaultGuestRoute() {

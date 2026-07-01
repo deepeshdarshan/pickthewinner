@@ -5,6 +5,8 @@
 
 import { createEventBus } from '../shared/events/event-bus.js';
 
+export { AUTH_EVENTS } from './authentication.constants.js';
+
 const bus = createEventBus('AuthEvents');
 
 /**
