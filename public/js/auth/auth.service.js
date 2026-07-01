@@ -10,7 +10,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
-import { auth } from '../firebase/firebase.js';
+import { auth, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { Logger } from '../utils/logger.util.js';
 import {
   AUTH_EVENTS,
@@ -155,6 +155,7 @@ export async function signInWithGoogle() {
     }
 
     currentUser = user;
+    await ensureFirestoreOnline();
     emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
     return user;
   } catch (error) {
@@ -163,6 +164,7 @@ export async function signInWithGoogle() {
     if (recoveredUser && isRecoverablePopupError(error)) {
       Logger.warn('[AuthService] Recovered Google sign-in after popup communication error.');
       currentUser = recoveredUser;
+      await ensureFirestoreOnline();
       emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user: recoveredUser });
       return recoveredUser;
     }
@@ -194,6 +196,7 @@ export async function signInWithAdminCredentials(email, password) {
     }
 
     currentUser = user;
+    await ensureFirestoreOnline();
     emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
     return user;
   } catch (error) {

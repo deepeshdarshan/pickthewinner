@@ -10,7 +10,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
-import { db } from '../firebase/firebase.js';
+import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { AUTH_PROVIDERS } from '../auth/authentication.constants.js';
 import {
@@ -206,6 +206,57 @@ function getUserDocRef(uid) {
 }
 
 /**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isTransientFirestoreError(error) {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  const code = String(/** @type {{ code: string }} */ (error).code);
+  return code === 'unavailable' || code === 'failed-precondition';
+}
+
+/**
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * Reads a user document with Firestore network recovery retries.
+ * @param {string} uid
+ * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
+ */
+async function fetchUserSnapshot(uid) {
+  const maxAttempts = 4;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await ensureFirestoreOnline();
+      return await getDoc(getUserDocRef(uid));
+    } catch (error) {
+      lastError = error;
+
+      if (!isTransientFirestoreError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+
+      Logger.warn(`[UserService] Retrying profile read (${attempt}/${maxAttempts})…`);
+      await delay(250 * attempt);
+    }
+  }
+
+  throw lastError;
+}
+
+/**
  * Creates a new user profile in Firestore.
  * @param {string} uid
  * @param {Partial<UserProfile> & { authProvider?: string }} data
@@ -241,7 +292,7 @@ export async function createUser(uid, data) {
   };
 
   const docRef = getUserDocRef(uid);
-  const existing = await getDoc(docRef);
+  const existing = await fetchUserSnapshot(uid);
 
   if (existing.exists()) {
     throw Object.assign(new Error('User already exists'), { code: 'already-exists' });
@@ -267,7 +318,7 @@ export async function createUser(uid, data) {
  * @returns {Promise<UserProfile|null>}
  */
 export async function getUser(uid) {
-  const snapshot = await getDoc(getUserDocRef(uid));
+  const snapshot = await fetchUserSnapshot(uid);
 
   if (!snapshot.exists()) {
     return null;

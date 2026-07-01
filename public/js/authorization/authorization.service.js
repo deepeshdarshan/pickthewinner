@@ -10,6 +10,7 @@
 
 import { isAuthenticated } from '../auth/auth.service.js';
 import { loadCurrentUser, getCachedProfile } from '../users/user.service.js';
+import { USER_ROUTES } from '../users/user.constants.js';
 import { findRouteByPath, normalizePath } from '../config/routes.js';
 import { Roles, AUTHORIZATION_ROUTES, AUTHORIZATION_MESSAGES } from './permission.constants.js';
 import { getPermissionsForRole } from './permission.service.js';
@@ -79,12 +80,16 @@ export const AuthorizationService = {
       return { role: null, permissions: new Set() };
     }
 
-    const profile = forceRefresh
-      ? await loadCurrentUser(true)
-      : getCachedProfile() ?? await loadCurrentUser();
+    try {
+      const profile = forceRefresh
+        ? await loadCurrentUser(true)
+        : getCachedProfile() ?? await loadCurrentUser();
 
-    const role = profile?.role ?? null;
-    applyAuthorizationState(role);
+      applyAuthorizationState(profile?.role ?? null);
+    } catch (error) {
+      Logger.error('[Authorization] Failed to resolve profile:', error);
+      applyAuthorizationState(null);
+    }
 
     return { role: cachedRole, permissions: this.getCurrentPermissions() };
   },
@@ -209,6 +214,10 @@ export const AuthorizationService = {
 
     if (this.hasRole(Roles.CONTESTANT)) {
       return '/dashboard';
+    }
+
+    if (isAuthenticated()) {
+      return USER_ROUTES.COMPLETE_PROFILE;
     }
 
     return '/';

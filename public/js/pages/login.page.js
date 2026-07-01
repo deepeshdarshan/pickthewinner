@@ -14,6 +14,7 @@ import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-ov
 import { navigateTo } from '../services/router.service.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
 import { getPostLoginDestination } from '../users/user.navigation.js';
+import { USER_ROUTES } from '../users/user.constants.js';
 import { Logger } from '../utils/logger.util.js';
 
 /** @type {'contestant'|'admin'} */
@@ -149,7 +150,15 @@ async function handleGoogleLogin() {
   try {
     const user = await signInWithGoogle();
     showSuccessToast(AUTH_MESSAGES.LOGIN_SUCCESS);
-    const destination = await getPostLoginDestination(user, 'google');
+
+    let destination = USER_ROUTES.COMPLETE_PROFILE;
+
+    try {
+      destination = await getPostLoginDestination(user, 'google');
+    } catch (error) {
+      Logger.warn('[Login] Profile lookup failed after Google sign-in; using complete-profile route.', error);
+    }
+
     await navigateTo(destination, true);
   } catch (error) {
     Logger.error('[Login] Google sign-in failed:', error);
@@ -185,7 +194,15 @@ async function handleAdminLogin(form) {
   try {
     const user = await signInWithAdminCredentials(email, password);
     showSuccessToast(AUTH_MESSAGES.LOGIN_SUCCESS);
-    const destination = await getPostLoginDestination(user, 'email_password');
+
+    let destination = USER_ROUTES.COMPLETE_PROFILE;
+
+    try {
+      destination = await getPostLoginDestination(user, 'email_password');
+    } catch (error) {
+      Logger.warn('[Login] Profile lookup failed after admin sign-in; using complete-profile route.', error);
+    }
+
     await navigateTo(destination, true);
   } catch (error) {
     Logger.error('[Login] Admin sign-in failed:', error);
