@@ -59,9 +59,9 @@ export async function canActivateRoleRoute(route) {
 }
 
 /**
- * Evaluates guest-only route access for authenticated users.
+ * @deprecated Use canActivateRoleRoute instead.
  * @param {import('../config/routes.js').RouteDefinition} route
- * @returns {Promise<RoleGuardResult>}
+ * @returns {Promise<import('./role.guard.js').RoleGuardResult>}
  */
 export async function canActivateGuestRoute(route) {
   return canActivateRoleRoute(route);

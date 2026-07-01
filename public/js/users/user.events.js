@@ -3,6 +3,8 @@
  * @module users/user.events
  */
 
+import { createEventBus } from '../shared/events/event-bus.js';
+
 /** @enum {string} */
 export const USER_EVENTS = Object.freeze({
   PROFILE_CREATED: 'PROFILE_CREATED',
@@ -12,25 +14,16 @@ export const USER_EVENTS = Object.freeze({
   PREFERENCES_UPDATED: 'PREFERENCES_UPDATED',
 });
 
-/** @type {Map<string, Set<Function>>} */
-const listeners = new Map();
+const bus = createEventBus('UserEvents');
 
 /**
  * Subscribes to a user event.
  * @param {string} event
  * @param {(detail?: unknown) => void} handler
- * @returns {() => void} Unsubscribe function.
+ * @returns {() => void}
  */
 export function onUserEvent(event, handler) {
-  if (!listeners.has(event)) {
-    listeners.set(event, new Set());
-  }
-
-  listeners.get(event).add(handler);
-
-  return () => {
-    listeners.get(event)?.delete(handler);
-  };
+  return bus.subscribe(event, handler);
 }
 
 /**
@@ -40,17 +33,7 @@ export function onUserEvent(event, handler) {
  * @returns {void}
  */
 export function emitUserEvent(event, detail) {
-  const handlers = listeners.get(event);
-
-  if (!handlers) {
-    return;
-  }
-
-  handlers.forEach((handler) => {
-    try {
-      handler(detail);
-    } catch (error) {
-      console.error('[UserEvents] Handler error for', event, error);
-    }
-  });
+  bus.publish(event, detail);
 }
+
+export { bus as userEventBus };

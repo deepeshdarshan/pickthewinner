@@ -68,6 +68,22 @@
 - [x] JSDoc documentation — module files documented
 - [x] Obsolete placeholder `pages/profile.page.js` removed (route uses `users/profile.page.js`)
 
+### Sprint 1 — Architecture Remediation (Foundation Stabilization)
+- [x] `utils/html.util.js` — `escapeHtml()` and `escapeUrl()` applied across renderers
+- [x] Centralized logging — all `console.*` replaced with `Logger`
+- [x] User renderer split into `users/renderers/` (profile, complete-profile, preferences, shared-form)
+- [x] `auth/actions/logout.action.js` — shared `performLogout()` workflow
+- [x] `shared/events/event-bus.js` — generic `createEventBus()` factory
+- [x] Domain layer — User, Tournament, Match, Prediction, Leaderboard domains
+- [x] `TournamentConfigurationService` — centralized tournament settings
+- [x] `app/application-context.js` — global session state store
+- [x] Dashboard aggregation services (Admin + Contestant)
+- [x] `shared/index.js` — shared UI library barrel
+- [x] `BaseFirestoreService` — reusable Firestore CRUD base class
+- [x] Route metadata standardized (`showInNavbar`, `showInMobileNav`, `requiresProfile`, `icon`)
+- [x] Security — fail-closed user guard, HTML escaping, ApplicationContext cleanup on logout
+- [x] Architecture documentation (`docs/architecture/`, `docs/engineering/`)
+
 ## Upcoming
 
 ### Module 06 — Tournament Module

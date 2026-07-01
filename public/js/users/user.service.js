@@ -24,6 +24,9 @@ import {
   FIRESTORE_USER_ERROR_MESSAGES,
 } from './user.constants.js';
 import { USER_EVENTS, emitUserEvent } from './user.events.js';
+import { Logger } from '../utils/logger.util.js';
+import { UserDomain } from '../domain/user.domain.js';
+import { ApplicationContext } from '../app/application-context.js';
 
 /**
  * @typedef {Object} NotificationPreferences
@@ -101,16 +104,12 @@ export function mapAuthProviderToUserProvider(authProvider) {
 }
 
 /**
- * Derives the user role from the auth provider.
+ * Derives the user role from the auth provider via domain rules.
  * @param {string} [authProvider]
  * @returns {string}
  */
 export function deriveRoleFromProvider(authProvider) {
-  if (authProvider === AUTH_PROVIDERS.EMAIL_PASSWORD) {
-    return USER_ROLES.ADMIN;
-  }
-
-  return USER_ROLES.CONTESTANT;
+  return UserDomain.suggestRoleForNewUser(authProvider);
 }
 
 /**
@@ -126,11 +125,11 @@ export function getUserErrorMessage(error) {
       return USER_MESSAGES.DUPLICATE_USER;
     }
 
-    console.error('[UserService] Firestore error:', code || error);
+    Logger.error('[UserService] Firestore error:', code || error);
     return FIRESTORE_USER_ERROR_MESSAGES[code] ?? USER_MESSAGES.GENERIC_ERROR;
   }
 
-  console.error('[UserService] Error:', error);
+  Logger.error('[UserService] Error:', error);
   return USER_MESSAGES.GENERIC_ERROR;
 }
 
@@ -148,6 +147,7 @@ export function getCachedProfile() {
  */
 export function clearProfileCache() {
   cachedProfile = null;
+  ApplicationContext.setProfile(null);
 }
 
 /**
@@ -297,9 +297,12 @@ export async function loadCurrentUser(forceRefresh = false) {
 
   if (profile) {
     cachedProfile = profile;
+    ApplicationContext.setProfile(profile);
+    ApplicationContext.setCurrentUser(getCurrentUser());
     emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
   } else {
     cachedProfile = null;
+    ApplicationContext.setProfile(null);
   }
 
   return profile;

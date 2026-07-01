@@ -589,6 +589,58 @@ These rules become mandatory acceptance criteria.
 
 ---
 
+## Knockout Match Prediction Rules
+
+BR-041
+
+Contestants predict the final score after Normal Time plus Extra Time.
+
+Penalty shootout goals are excluded.
+
+---
+
+BR-042
+
+If the predicted scores are unequal,
+
+the application shall not display Penalty Winner selection.
+
+---
+
+BR-043
+
+If the predicted scores are equal,
+
+the application shall display
+
+☐ Match decided by Penalty Shootout
+
+---
+
+BR-044
+
+If the contestant selects the checkbox,
+
+Penalty Winner selection becomes mandatory.
+
+---
+
+BR-045
+
+Penalty shootout scores shall never be stored.
+
+Only the winning team shall be stored.
+
+---
+
+BR-046
+
+A tied score without selecting a Penalty Winner is invalid for knockout matches.
+
+The prediction cannot be submitted.
+
+---
+
 # Related Documents
 
 Cross-reference

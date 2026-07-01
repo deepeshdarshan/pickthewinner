@@ -20,6 +20,7 @@ import {
   renderProfileEmpty,
   renderProfilePage,
 } from './user.renderer.js';
+import { Logger } from '../utils/logger.util.js';
 
 /**
  * Renders and initializes the profile page.
@@ -50,7 +51,7 @@ async function initProfilePage(outlet) {
     outlet.innerHTML = renderProfilePage(profile, authUser);
     bindProfileForm(outlet, profile.uid);
   } catch (error) {
-    console.error('[Profile] Failed to load:', error);
+    Logger.error('[Profile] Failed to load:', error);
     outlet.innerHTML = renderProfileEmpty(getUserErrorMessage(error));
     showErrorToast(getUserErrorMessage(error));
   } finally {
@@ -110,7 +111,7 @@ async function handleProfileUpdate(form, uid) {
 
     showSuccessToast(USER_MESSAGES.PROFILE_UPDATED);
   } catch (error) {
-    console.error('[Profile] Update failed:', error);
+    Logger.error('[Profile] Update failed:', error);
     showErrorToast(getUserErrorMessage(error));
   } finally {
     hideLoadingOverlay();

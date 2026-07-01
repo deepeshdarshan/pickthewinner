@@ -7,27 +7,12 @@ import { ROUTES } from '../config/routes.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
-
-/** @type {ReadonlySet<string>} */
-const MOBILE_NAV_PATHS = new Set([
-  AUTH_ROUTES.DASHBOARD,
-  '/leaderboard',
-  '/profile',
-]);
+import { escapeHtml } from '../utils/html.util.js';
 
 /**
  * @typedef {Object} MobileNavOptions
  * @property {string} [activePath]
  */
-
-/**
- * Returns authorized routes for the mobile bottom navigation.
- * @returns {import('../config/routes.js').RouteDefinition[]}
- */
-function getMobileNavRoutes() {
-  return AuthorizationService.getAuthorizedNavRoutes(ROUTES)
-    .filter((route) => MOBILE_NAV_PATHS.has(route.path));
-}
 
 /**
  * Renders the mobile bottom navigation bar.
@@ -42,7 +27,7 @@ export function renderMobileNav(options = {}) {
     return '';
   }
 
-  const routes = getMobileNavRoutes();
+  const routes = AuthorizationService.getAuthorizedMobileNavRoutes(ROUTES);
 
   if (routes.length === 0) {
     return '';
@@ -52,18 +37,18 @@ export function renderMobileNav(options = {}) {
     const isActive = activePath === route.path
       || (route.path !== '/' && activePath.startsWith(`${route.path}/`));
     const label = route.navLabel ?? route.title;
-    const icon = route.navIcon ?? 'bi-circle';
+    const icon = route.icon ?? route.navIcon ?? 'bi-circle';
 
     return `
       <a
         class="ptw-mobile-nav__item${isActive ? ' ptw-mobile-nav__item--active' : ''}"
-        href="${route.path}"
+        href="${escapeHtml(route.path)}"
         data-route
         aria-current="${isActive ? 'page' : 'false'}"
-        aria-label="${label}"
+        aria-label="${escapeHtml(label)}"
       >
-        <i class="bi ${icon}" aria-hidden="true"></i>
-        <span class="ptw-mobile-nav__label">${label}</span>
+        <i class="bi ${escapeHtml(icon)}" aria-hidden="true"></i>
+        <span class="ptw-mobile-nav__label">${escapeHtml(label)}</span>
       </a>
     `;
   }).join('');

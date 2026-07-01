@@ -6,20 +6,17 @@
 import { renderPageHeader } from '../components/page-header.component.js';
 import { AppContext } from '../app/app.context.js';
 import { appSettings } from '../config/app.config.js';
-import { AUTH_MESSAGES } from '../auth/authentication.constants.js';
-import { signOut } from '../auth/auth.service.js';
+import { performLogout } from '../auth/actions/logout.action.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
-import { navigateTo } from '../services/router.service.js';
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
-import { getAuthErrorMessage } from '../auth/auth.service.js';
-import { AUTH_ROUTES } from '../auth/authentication.constants.js';
-import { loadCurrentUser, updateUser } from '../users/user.service.js';
+import { loadCurrentUser, updateUser, getUserErrorMessage } from '../users/user.service.js';
 import { USER_MESSAGES } from '../users/user.constants.js';
-import { getUserErrorMessage } from '../users/user.service.js';
-import { TIMEZONE_OPTIONS } from '../users/user.constants.js';
 import { getLocalItem, setLocalItem } from '../utils/storage.util.js';
 import { STORAGE_KEYS } from '../config/application.constants.js';
 import { Logger } from '../utils/logger.util.js';
+import { renderTimezoneOptions } from '../users/renderers/shared-form.renderer.js';
+import { renderNotificationPreferences } from '../users/renderers/preferences.renderer.js';
+import { escapeHtml } from '../utils/html.util.js';
 
 /**
  * Renders the settings page.
@@ -58,14 +55,10 @@ async function initSettingsPage(outlet) {
  */
 function renderSettingsMarkup(profile, theme) {
   const timezone = profile?.timezone ?? AppContext.getTimezone();
-  const notifyEmail = profile?.notificationPreferences?.email ?? false;
-  const notifyBrowser = profile?.notificationPreferences?.browser ?? true;
-
-  const timezoneOptions = TIMEZONE_OPTIONS.map((option) => `
-    <option value="${option.value}"${option.value === timezone ? ' selected' : ''}>
-      ${option.label}
-    </option>
-  `).join('');
+  const preferences = profile?.notificationPreferences ?? {
+    email: false,
+    browser: true,
+  };
 
   return `
     <div class="container ptw-page-content">
@@ -101,21 +94,14 @@ function renderSettingsMarkup(profile, theme) {
                 <div class="mb-3">
                   <label for="ptw-settings-timezone" class="form-label">Timezone</label>
                   <select class="form-select" id="ptw-settings-timezone" name="timezone" required aria-required="true">
-                    ${timezoneOptions}
+                    ${renderTimezoneOptions(timezone)}
                   </select>
                 </div>
 
-                <fieldset class="mb-4">
-                  <legend class="form-label fs-6 mb-2">Notification Preferences</legend>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="ptw-settings-notify-email" name="notifyEmail"${notifyEmail ? ' checked' : ''}>
-                    <label class="form-check-label" for="ptw-settings-notify-email">Email notifications</label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="ptw-settings-notify-browser" name="notifyBrowser"${notifyBrowser ? ' checked' : ''}>
-                    <label class="form-check-label" for="ptw-settings-notify-browser">Browser notifications</label>
-                  </div>
-                </fieldset>
+                ${renderNotificationPreferences(preferences, {
+                  emailId: 'ptw-settings-notify-email',
+                  browserId: 'ptw-settings-notify-browser',
+                })}
 
                 <button type="submit" class="btn btn-ptw-primary">
                   <i class="bi bi-save me-2" aria-hidden="true"></i>
@@ -132,9 +118,9 @@ function renderSettingsMarkup(profile, theme) {
             <div class="card-body">
               <dl class="row mb-0">
                 <dt class="col-sm-4 ptw-text-muted">Application</dt>
-                <dd class="col-sm-8">${appSettings.appName}</dd>
+                <dd class="col-sm-8">${escapeHtml(appSettings.appName)}</dd>
                 <dt class="col-sm-4 ptw-text-muted">Version</dt>
-                <dd class="col-sm-8">${appSettings.version}</dd>
+                <dd class="col-sm-8">${escapeHtml(appSettings.version)}</dd>
               </dl>
             </div>
           </div>
@@ -179,7 +165,7 @@ function bindSettingsEvents(outlet, uid) {
   });
 
   logoutBtn?.addEventListener('click', () => {
-    void handleLogout();
+    void performLogout();
   });
 }
 
@@ -208,24 +194,6 @@ async function handleSavePreferences(form, uid) {
   } catch (error) {
     Logger.error('[Settings] Save failed:', error);
     showErrorToast(getUserErrorMessage(error));
-  } finally {
-    hideLoadingOverlay();
-  }
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function handleLogout() {
-  showLoadingOverlay(AUTH_MESSAGES.SIGNING_OUT);
-
-  try {
-    await signOut();
-    showSuccessToast(AUTH_MESSAGES.LOGOUT_SUCCESS);
-    await navigateTo(AUTH_ROUTES.LOGIN, true);
-  } catch (error) {
-    Logger.error('[Settings] Logout failed:', error);
-    showErrorToast(getAuthErrorMessage(error));
   } finally {
     hideLoadingOverlay();
   }

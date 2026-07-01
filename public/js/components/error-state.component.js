@@ -3,6 +3,8 @@
  * @module components/error-state.component
  */
 
+import { escapeHtml } from '../utils/html.util.js';
+
 /**
  * @typedef {Object} ErrorStateOptions
  * @property {string} title
@@ -26,9 +28,9 @@ export function renderErrorState(options) {
 
   return `
     <div class="ptw-error-state text-center" role="alert">
-      <i class="bi ${icon} ptw-error-state__icon" aria-hidden="true"></i>
-      <h3 class="ptw-error-state__title">${title}</h3>
-      <p class="ptw-error-state__message">${message}</p>
+      <i class="bi ${escapeHtml(icon)} ptw-error-state__icon" aria-hidden="true"></i>
+      <h3 class="ptw-error-state__title">${escapeHtml(title)}</h3>
+      <p class="ptw-error-state__message">${escapeHtml(message)}</p>
       ${actionHtml ? `<div class="ptw-error-state__action">${actionHtml}</div>` : ''}
     </div>
   `;

@@ -6,6 +6,7 @@
 import { getCurrentUser, isAuthenticated } from '../auth/auth.service.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { getCachedProfile } from '../users/user.service.js';
+import { ApplicationContext } from './application-context.js';
 import { appSettings } from '../config/app.config.js';
 import { getLocalItem } from '../utils/storage.util.js';
 import { STORAGE_KEYS } from '../config/application.constants.js';
@@ -35,7 +36,7 @@ export const AppContext = {
    * @returns {import('firebase/auth').User|null}
    */
   getUser() {
-    return getCurrentUser();
+    return ApplicationContext.getCurrentUser() ?? getCurrentUser();
   },
 
   /**
@@ -51,7 +52,7 @@ export const AppContext = {
    * @returns {import('../users/user.service.js').UserProfile|null}
    */
   getProfile() {
-    return getCachedProfile();
+    return ApplicationContext.getProfile() ?? getCachedProfile();
   },
 
   /**
@@ -139,6 +140,7 @@ export const AppContext = {
    */
   reset() {
     contextReady = false;
+    ApplicationContext.clear();
   },
 };
 

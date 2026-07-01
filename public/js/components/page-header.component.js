@@ -3,6 +3,8 @@
  * @module components/page-header.component
  */
 
+import { escapeHtml } from '../utils/html.util.js';
+
 /**
  * @typedef {Object} PageHeaderOptions
  * @property {string} title
@@ -21,8 +23,8 @@ export function renderPageHeader(options) {
   return `
     <header class="ptw-page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
       <div>
-        <h1 class="ptw-page-header__title">${title}</h1>
-        ${subtitle ? `<p class="ptw-page-header__subtitle">${subtitle}</p>` : ''}
+        <h1 class="ptw-page-header__title">${escapeHtml(title)}</h1>
+        ${subtitle ? `<p class="ptw-page-header__subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       ${actionsHtml ? `<div class="ptw-page-header__actions">${actionsHtml}</div>` : ''}
     </header>

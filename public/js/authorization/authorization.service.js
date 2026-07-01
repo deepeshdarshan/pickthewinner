@@ -18,6 +18,8 @@ import {
   emitAuthorizationEvent,
 } from './authorization.events.js';
 import { showWarningToast } from '../utils/toast.util.js';
+import { Logger } from '../utils/logger.util.js';
+import { ApplicationContext } from '../app/application-context.js';
 
 /** @type {string|null} */
 let cachedRole = null;
@@ -165,7 +167,9 @@ export const AuthorizationService = {
     const authenticated = isAuthenticated();
 
     return routes.filter((route) => {
-      if (!route.showInNav) {
+      const showInNavbar = route.showInNavbar ?? route.showInNav ?? false;
+
+      if (!showInNavbar) {
         return false;
       }
 
@@ -183,6 +187,15 @@ export const AuthorizationService = {
 
       return this.canAccessRoute(route);
     });
+  },
+
+  /**
+   * Returns routes visible in mobile navigation for the current user.
+   * @param {import('../config/routes.js').RouteDefinition[]} routes
+   * @returns {import('../config/routes.js').RouteDefinition[]}
+   */
+  getAuthorizedMobileNavRoutes(routes) {
+    return this.getAuthorizedNavRoutes(routes).filter((route) => route.showInMobileNav);
   },
 
   /**
@@ -226,7 +239,7 @@ export const AuthorizationService = {
    * @returns {void}
    */
   notifyAccessDenied(detail = {}) {
-    console.warn('[Authorization] Access denied:', detail);
+    Logger.warn('[Authorization] Access denied:', detail);
     emitAuthorizationEvent(AUTHORIZATION_EVENTS.ACCESS_DENIED, detail);
   },
 };
@@ -242,6 +255,7 @@ function applyAuthorizationState(role) {
   cachedRole = role;
   cachedPermissions = permissions;
   authorizationResolved = true;
+  ApplicationContext.setPermissions(permissions);
 
   if (previousRole !== role) {
     emitAuthorizationEvent(AUTHORIZATION_EVENTS.ROLE_CHANGED, { role });

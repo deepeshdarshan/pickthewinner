@@ -3,6 +3,8 @@
  * @module components/empty-state.component
  */
 
+import { escapeHtml } from '../utils/html.util.js';
+
 /**
  * @typedef {Object} EmptyStateOptions
  * @property {string} title
@@ -26,9 +28,9 @@ export function renderEmptyState(options) {
 
   return `
     <div class="ptw-empty-state text-center" role="status">
-      <i class="bi ${icon} ptw-empty-state__icon" aria-hidden="true"></i>
-      <h3 class="ptw-empty-state__title">${title}</h3>
-      <p class="ptw-empty-state__message">${message}</p>
+      <i class="bi ${escapeHtml(icon)} ptw-empty-state__icon" aria-hidden="true"></i>
+      <h3 class="ptw-empty-state__title">${escapeHtml(title)}</h3>
+      <p class="ptw-empty-state__message">${escapeHtml(message)}</p>
       ${actionHtml ? `<div class="ptw-empty-state__action">${actionHtml}</div>` : ''}
     </div>
   `;

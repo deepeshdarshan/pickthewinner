@@ -13,10 +13,14 @@ import { AUTH_ROUTES } from '../auth/authentication.constants.js';
  * @property {string} name - Route identifier used by the router.
  * @property {string} title - Document title suffix.
  * @property {string} pageModule - Dynamic import path for the page module.
- * @property {boolean} [showInNav] - Whether the route appears in navigation.
+ * @property {boolean} [showInNavbar] - Whether the route appears in desktop navigation.
+ * @property {boolean} [showInNav] - @deprecated Use showInNavbar.
+ * @property {boolean} [showInMobileNav] - Whether the route appears in mobile bottom navigation.
  * @property {string} [navLabel] - Display label in navigation.
- * @property {string} [navIcon] - Bootstrap Icons class name.
+ * @property {string} [icon] - Bootstrap Icons class name.
+ * @property {string} [navIcon] - @deprecated Use icon.
  * @property {boolean} [requiresAuth] - Requires authentication.
+ * @property {boolean} [requiresProfile] - Requires a completed Firestore profile.
  * @property {boolean} [guestOnly] - Only accessible to unauthenticated users.
  * @property {string|null} [requiredRole] - Required role for role-based routing.
  * @property {string[]} [roles] - Roles that may see this item in navigation.
@@ -29,8 +33,10 @@ export const ROUTES = Object.freeze([
     name: 'landing',
     title: 'Home',
     pageModule: '../pages/landing.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: false,
+    requiresProfile: false,
     guestOnly: false,
     requiredRole: null,
   },
@@ -39,10 +45,12 @@ export const ROUTES = Object.freeze([
     name: 'login',
     title: 'Sign In',
     pageModule: '../pages/login.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: false,
     navLabel: 'Sign In',
-    navIcon: 'bi-box-arrow-in-right',
+    icon: 'bi-box-arrow-in-right',
     requiresAuth: false,
+    requiresProfile: false,
     guestOnly: true,
     requiredRole: null,
     roles: ['guest'],
@@ -52,10 +60,12 @@ export const ROUTES = Object.freeze([
     name: 'dashboard',
     title: 'Dashboard',
     pageModule: '../pages/dashboard.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: true,
     navLabel: 'Dashboard',
-    navIcon: 'bi-grid',
+    icon: 'bi-grid',
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: null,
     roles: [USER_ROLES.CONTESTANT, USER_ROLES.ADMIN],
@@ -65,8 +75,10 @@ export const ROUTES = Object.freeze([
     name: 'predictions',
     title: 'Predictions',
     pageModule: '../pages/predictions.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: null,
     roles: [USER_ROLES.CONTESTANT],
@@ -76,10 +88,12 @@ export const ROUTES = Object.freeze([
     name: 'leaderboard',
     title: 'Leaderboard',
     pageModule: '../pages/leaderboard.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: true,
     navLabel: 'Leaderboard',
-    navIcon: 'bi-trophy',
+    icon: 'bi-trophy',
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: null,
     roles: [USER_ROLES.CONTESTANT, USER_ROLES.ADMIN],
@@ -89,10 +103,12 @@ export const ROUTES = Object.freeze([
     name: 'profile',
     title: 'Profile',
     pageModule: '../users/profile.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: true,
     navLabel: 'Profile',
-    navIcon: 'bi-person',
+    icon: 'bi-person',
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: null,
     roles: [USER_ROLES.CONTESTANT, USER_ROLES.ADMIN],
@@ -102,10 +118,12 @@ export const ROUTES = Object.freeze([
     name: 'settings',
     title: 'Settings',
     pageModule: '../pages/settings.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: false,
     navLabel: 'Settings',
-    navIcon: 'bi-gear',
+    icon: 'bi-gear',
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: null,
     roles: [USER_ROLES.CONTESTANT, USER_ROLES.ADMIN],
@@ -115,8 +133,10 @@ export const ROUTES = Object.freeze([
     name: 'complete-profile',
     title: 'Complete Profile',
     pageModule: '../users/complete-profile.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: true,
+    requiresProfile: false,
     guestOnly: false,
     requiredRole: null,
   },
@@ -125,10 +145,12 @@ export const ROUTES = Object.freeze([
     name: 'admin-dashboard',
     title: 'Admin',
     pageModule: '../pages/admin-dashboard.page.js',
-    showInNav: true,
+    showInNavbar: true,
+    showInMobileNav: false,
     navLabel: 'Admin',
-    navIcon: 'bi-shield-lock',
+    icon: 'bi-shield-lock',
     requiresAuth: true,
+    requiresProfile: true,
     guestOnly: false,
     requiredRole: USER_ROLES.ADMIN,
     roles: [USER_ROLES.ADMIN],
@@ -138,8 +160,10 @@ export const ROUTES = Object.freeze([
     name: 'access-denied',
     title: 'Access Denied',
     pageModule: '../pages/access-denied.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: false,
+    requiresProfile: false,
     guestOnly: false,
     requiredRole: null,
   },
@@ -148,8 +172,10 @@ export const ROUTES = Object.freeze([
     name: 'not-found',
     title: 'Not Found',
     pageModule: '../pages/not-found.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: false,
+    requiresProfile: false,
     guestOnly: false,
     requiredRole: null,
   },
@@ -158,12 +184,27 @@ export const ROUTES = Object.freeze([
     name: 'error',
     title: 'Error',
     pageModule: '../pages/error.page.js',
-    showInNav: false,
+    showInNavbar: false,
+    showInMobileNav: false,
     requiresAuth: false,
+    requiresProfile: false,
     guestOnly: false,
     requiredRole: null,
   },
 ]);
+
+/**
+ * Normalizes legacy route metadata for backwards compatibility.
+ * @param {RouteDefinition} route
+ * @returns {RouteDefinition}
+ */
+export function normalizeRouteMetadata(route) {
+  return {
+    ...route,
+    showInNavbar: route.showInNavbar ?? route.showInNav ?? false,
+    icon: route.icon ?? route.navIcon ?? 'bi-circle',
+  };
+}
 
 /**
  * Finds a route definition by pathname.
@@ -172,7 +213,8 @@ export const ROUTES = Object.freeze([
  */
 export function findRouteByPath(pathname) {
   const normalized = normalizePath(pathname);
-  return ROUTES.find((route) => route.path === normalized);
+  const route = ROUTES.find((item) => item.path === normalized);
+  return route ? normalizeRouteMetadata(route) : undefined;
 }
 
 /**
@@ -194,29 +236,5 @@ export function normalizePath(pathname) {
  * @returns {RouteDefinition[]}
  */
 export function getProtectedRoutes() {
-  return ROUTES.filter((route) => route.requiresAuth);
-}
-
-/**
- * Returns routes visible in navigation for a given role.
- * @param {string|null} role
- * @param {boolean} authenticated
- * @returns {RouteDefinition[]}
- */
-export function getNavRoutesForRole(role, authenticated) {
-  return ROUTES.filter((route) => {
-    if (!route.showInNav) {
-      return false;
-    }
-
-    if (!authenticated) {
-      return route.roles?.includes('guest') ?? false;
-    }
-
-    if (!route.roles?.length) {
-      return true;
-    }
-
-    return role ? route.roles.includes(role) : false;
-  });
+  return ROUTES.filter((route) => route.requiresAuth).map(normalizeRouteMetadata);
 }

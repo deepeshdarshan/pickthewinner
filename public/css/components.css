@@ -89,6 +89,11 @@
   font-weight: var(--ptw-font-weight-medium);
 }
 
+.ptw-avatar__image,
+.ptw-navbar__avatar img {
+  object-fit: cover;
+}
+
 .ptw-navbar__avatar {
   display: inline-flex;
   align-items: center;

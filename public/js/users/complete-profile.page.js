@@ -22,6 +22,7 @@ import {
   readNotificationPreferences,
   renderCompleteProfileForm,
 } from './user.renderer.js';
+import { Logger } from '../utils/logger.util.js';
 
 /**
  * Renders and initializes the complete-profile page.
@@ -60,7 +61,7 @@ async function initCompleteProfilePage(outlet) {
     outlet.innerHTML = renderCompleteProfileForm(authUser);
     bindCompleteProfileForm(outlet, authUser.uid);
   } catch (error) {
-    console.error('[CompleteProfile] Failed to initialize:', error);
+    Logger.error('[CompleteProfile] Failed to initialize:', error);
     showErrorToast(getUserErrorMessage(error));
   }
 }
@@ -129,7 +130,7 @@ async function handleCompleteProfileSubmit(form, uid) {
       : AUTH_ROUTES.DASHBOARD;
     await navigateTo(destination, true);
   } catch (error) {
-    console.error('[CompleteProfile] Create failed:', error);
+    Logger.error('[CompleteProfile] Create failed:', error);
     showErrorToast(getUserErrorMessage(error));
   } finally {
     hideLoadingOverlay();

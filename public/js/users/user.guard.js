@@ -5,8 +5,10 @@
 
 import { isAuthenticated } from '../auth/auth.service.js';
 import { USER_ROUTES } from './user.constants.js';
-import { loadCurrentUser } from './user.service.js';
+import { getCachedProfile, loadCurrentUser } from './user.service.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
+import { UserDomain } from '../domain/user.domain.js';
+import { Logger } from '../utils/logger.util.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -27,25 +29,34 @@ export async function canActivateUserRoute(route) {
   }
 
   const isCompleteProfileRoute = route.path === USER_ROUTES.COMPLETE_PROFILE;
+  const requiresProfile = route.requiresProfile ?? route.requiresAuth;
 
-  if (!route.requiresAuth && !isCompleteProfileRoute) {
+  if (!requiresProfile && !isCompleteProfileRoute) {
     return { allowed: true };
   }
 
-  let profile = null;
+  let profile = getCachedProfile();
 
-  try {
-    profile = await loadCurrentUser();
-  } catch (error) {
-    Logger.error('[UserGuard] Failed to load profile:', error);
-    return { allowed: true };
+  if (!profile) {
+    try {
+      profile = await loadCurrentUser();
+    } catch (error) {
+      Logger.error('[UserGuard] Failed to load profile:', error);
+      return {
+        allowed: false,
+        redirectTo: '/error',
+        replace: true,
+      };
+    }
   }
 
-  if (!profile && route.requiresAuth && !isCompleteProfileRoute) {
+  const profileComplete = UserDomain.isProfileComplete(profile);
+
+  if (!profileComplete && requiresProfile && !isCompleteProfileRoute) {
     return { allowed: false, redirectTo: USER_ROUTES.COMPLETE_PROFILE, replace: true };
   }
 
-  if (profile && isCompleteProfileRoute) {
+  if (profileComplete && isCompleteProfileRoute) {
     await AuthorizationService.resolve();
     return {
       allowed: false,

@@ -6,6 +6,7 @@
 import { AUTH_EVENTS, onAuthEvent } from '../auth/authentication.events.js';
 import { USER_EVENTS, onUserEvent } from '../users/user.events.js';
 import { AuthorizationService } from './authorization.service.js';
+import { ApplicationContext } from '../app/application-context.js';
 import {
   AUTHORIZATION_EVENTS,
   onAuthorizationEvent,
@@ -34,9 +35,13 @@ export async function initAuthorizationModule() {
 
   unsubscribeLogout = onAuthEvent(AUTH_EVENTS.LOGOUT, () => {
     AuthorizationService.clearCache();
+    ApplicationContext.clear();
   });
 
-  unsubscribeProfileLoaded = onUserEvent(USER_EVENTS.PROFILE_LOADED, () => {
+  unsubscribeProfileLoaded = onUserEvent(USER_EVENTS.PROFILE_LOADED, (detail) => {
+    if (detail && typeof detail === 'object' && 'profile' in detail) {
+      ApplicationContext.setProfile(/** @type {{ profile: import('../users/user.service.js').UserProfile }} */ (detail).profile);
+    }
     void AuthorizationService.resolve(true);
   });
 

@@ -3,7 +3,7 @@
  * @module app/app.events
  */
 
-import { Logger } from '../utils/logger.util.js';
+import { createEventBus } from '../shared/events/event-bus.js';
 
 /** @enum {string} */
 export const APP_EVENTS = Object.freeze({
@@ -20,25 +20,16 @@ export const APP_EVENTS = Object.freeze({
   CONTEXT_READY: 'app:context-ready',
 });
 
-/** @type {Map<string, Set<Function>>} */
-const listeners = new Map();
+const bus = createEventBus('AppEvents');
 
 /**
  * Subscribes to an application event.
  * @param {string} event
  * @param {(detail?: unknown) => void} handler
- * @returns {() => void} Unsubscribe function.
+ * @returns {() => void}
  */
 export function onAppEvent(event, handler) {
-  if (!listeners.has(event)) {
-    listeners.set(event, new Set());
-  }
-
-  listeners.get(event).add(handler);
-
-  return () => {
-    listeners.get(event)?.delete(handler);
-  };
+  return bus.subscribe(event, handler);
 }
 
 /**
@@ -48,17 +39,7 @@ export function onAppEvent(event, handler) {
  * @returns {void}
  */
 export function emitAppEvent(event, detail) {
-  const handlers = listeners.get(event);
-
-  if (!handlers) {
-    return;
-  }
-
-  handlers.forEach((handler) => {
-    try {
-      handler(detail);
-    } catch (err) {
-      Logger.error('[AppEvents] Handler error for', event, err);
-    }
-  });
+  bus.publish(event, detail);
 }
+
+export { bus as appEventBus };

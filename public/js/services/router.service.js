@@ -310,16 +310,6 @@ async function loadRoute(route, path, outlet) {
   }
 }
 
-/**
- * Returns routes visible in navigation.
- * @returns {typeof ROUTES}
- */
-export function getNavRoutes() {
-  return ROUTES.filter((route) => route.showInNav);
-}
-
-/**
- * Resolves the default route for unauthenticated startup.
  * @returns {string}
  */
 export function getDefaultGuestRoute() {

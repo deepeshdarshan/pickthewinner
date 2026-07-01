@@ -3,27 +3,18 @@
  * @module auth/authentication.events
  */
 
-import { Logger } from '../utils/logger.util.js';
+import { createEventBus } from '../shared/events/event-bus.js';
 
-/** @type {Map<string, Set<Function>>} */
-const listeners = new Map();
+const bus = createEventBus('AuthEvents');
 
 /**
  * Subscribes to an authentication event.
  * @param {string} event
  * @param {(detail?: unknown) => void} handler
- * @returns {() => void} Unsubscribe function.
+ * @returns {() => void}
  */
 export function onAuthEvent(event, handler) {
-  if (!listeners.has(event)) {
-    listeners.set(event, new Set());
-  }
-
-  listeners.get(event).add(handler);
-
-  return () => {
-    listeners.get(event)?.delete(handler);
-  };
+  return bus.subscribe(event, handler);
 }
 
 /**
@@ -33,17 +24,7 @@ export function onAuthEvent(event, handler) {
  * @returns {void}
  */
 export function emitAuthEvent(event, detail) {
-  const handlers = listeners.get(event);
-
-  if (!handlers) {
-    return;
-  }
-
-  handlers.forEach((handler) => {
-    try {
-      handler(detail);
-    } catch (err) {
-      Logger.error('[AuthEvents] Handler error for', event, err);
-    }
-  });
+  bus.publish(event, detail);
 }
+
+export { bus as authEventBus };

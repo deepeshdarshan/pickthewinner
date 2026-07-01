@@ -13,6 +13,8 @@ import { loadCurrentUser } from '../users/user.service.js';
 import { Logger } from '../utils/logger.util.js';
 import { APP_EVENTS, emitAppEvent } from './app.events.js';
 import { AppContext, initAppContext } from './app.context.js';
+import { ApplicationContext } from './application-context.js';
+import { getCurrentUser } from '../auth/auth.service.js';
 
 /**
  * Runs the application startup sequence in the correct order.
@@ -33,6 +35,8 @@ export async function runStartup() {
     try {
       await loadCurrentUser();
       await AuthorizationService.resolve();
+      ApplicationContext.setCurrentUser(getCurrentUser());
+      ApplicationContext.setProfile(AppContext.getProfile());
       AppContext.markReady();
       Logger.info('User context ready.');
     } catch (err) {
