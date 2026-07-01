@@ -161,6 +161,7 @@ async function handleGoogleLogin() {
       Logger.warn('[Login] Profile lookup failed after Google sign-in; using complete-profile route.', error);
     }
 
+    hideLoadingOverlay();
     await navigateTo(destination, true);
   } catch (error) {
     Logger.error('[Login] Google sign-in failed:', error);
@@ -205,6 +206,7 @@ async function handleAdminLogin(form) {
       Logger.warn('[Login] Profile lookup failed after admin sign-in; using complete-profile route.', error);
     }
 
+    hideLoadingOverlay();
     await navigateTo(destination, true);
   } catch (error) {
     Logger.error('[Login] Admin sign-in failed:', error);

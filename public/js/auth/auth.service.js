@@ -38,6 +38,9 @@ let authUnsubscribe = null;
 /** @type {boolean} */
 let signInInProgress = false;
 
+/** @type {string|null} */
+let loginEventEmittedForUid = null;
+
 /**
  * Synchronizes the cached user with Firebase Auth.
  * @returns {import('firebase/auth').User|null}
@@ -123,16 +126,47 @@ export function waitForAuthReady() {
       }
 
       if (user && !previousUser) {
+        if (pendingLoginEventEmitted(user.uid)) {
+          return;
+        }
+
         emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
       } else if (!user && previousUser && !signInInProgress) {
         emitAuthEvent(AUTH_EVENTS.LOGOUT);
       } else if (user && previousUser && user.uid !== previousUser.uid) {
+        if (pendingLoginEventEmitted(user.uid)) {
+          return;
+        }
+
         emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
       }
     });
   });
 
   return authReadyPromise;
+}
+
+/**
+ * Records that login success was already emitted for a user.
+ * @param {string} uid
+ * @returns {void}
+ */
+function markLoginEventEmitted(uid) {
+  loginEventEmittedForUid = uid;
+}
+
+/**
+ * Consumes a pending login-success emit for onAuthStateChanged deduplication.
+ * @param {string} uid
+ * @returns {boolean}
+ */
+function pendingLoginEventEmitted(uid) {
+  if (loginEventEmittedForUid !== uid) {
+    return false;
+  }
+
+  loginEventEmittedForUid = null;
+  return true;
 }
 
 /**
@@ -157,6 +191,7 @@ export async function signInWithGoogle() {
 
     currentUser = user;
     await ensureFirestoreOnline();
+    markLoginEventEmitted(user.uid);
     emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
     return user;
   } catch (error) {
@@ -166,6 +201,7 @@ export async function signInWithGoogle() {
       Logger.warn('[AuthService] Recovered Google sign-in after popup communication error.');
       currentUser = recoveredUser;
       await ensureFirestoreOnline();
+      markLoginEventEmitted(recoveredUser.uid);
       emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user: recoveredUser });
       return recoveredUser;
     }
@@ -198,6 +234,7 @@ export async function signInWithAdminCredentials(email, password) {
 
     currentUser = user;
     await ensureFirestoreOnline();
+    markLoginEventEmitted(user.uid);
     emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
     return user;
   } catch (error) {

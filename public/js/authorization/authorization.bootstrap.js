@@ -58,7 +58,7 @@ export async function initAuthorizationModule() {
   });
 
   onAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, () => {
-    void AuthorizationService.resolve(true);
+    void AuthorizationService.resolve(false);
   });
 
   onAuthorizationEvent(AUTHORIZATION_EVENTS.ACCESS_DENIED, (detail) => {

@@ -7,6 +7,7 @@ import { AUTH_EVENTS, onAuthEvent } from '../auth/authentication.events.js';
 import { Logger } from '../utils/logger.util.js';
 import {
   clearProfileCache,
+  getCachedProfile,
   loadCurrentUser,
   updateLastLogin,
 } from './user.service.js';
@@ -53,11 +54,14 @@ async function handleSessionRestored() {
 
 /**
  * Ensures profile cache is warm after login.
+ * Skips network reads for new users — complete-profile handles that flow.
  * @returns {Promise<void>}
  */
 async function handleLoginSuccess() {
   try {
-    await loadCurrentUser(true);
+    if (getCachedProfile()) {
+      await loadCurrentUser(true);
+    }
   } catch (error) {
     Logger.error('[UserBootstrap] Login handling failed:', error);
   }

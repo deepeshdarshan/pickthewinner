@@ -7,7 +7,7 @@ import {
   doc,
   getDoc,
   getDocFromCache,
-  setDoc,
+  runTransaction,
   updateDoc,
   serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
@@ -66,6 +66,15 @@ import { ApplicationContext } from '../app/application-context.js';
 
 /** @type {UserProfile|null} */
 let cachedProfile = null;
+
+/** @type {number} */
+const FIRESTORE_READ_DEADLINE_MS = 10000;
+
+/** @type {Promise<unknown>} */
+let firestoreWriteChain = Promise.resolve();
+
+/** @type {Promise<UserProfile|null>|null} */
+let loadCurrentUserInFlight = null;
 
 /** Fields contestants may not update via the client.
  * @type {ReadonlySet<string>}
@@ -150,6 +159,7 @@ export function getCachedProfile() {
  */
 export function clearProfileCache() {
   cachedProfile = null;
+  loadCurrentUserInFlight = null;
   ApplicationContext.setProfile(null);
 }
 
@@ -214,7 +224,19 @@ function getUserDocRef(uid) {
  * @param {unknown} error
  * @returns {boolean}
  */
+function isFirestoreSdkConflictError(error) {
+  return error instanceof Error && error.message.includes('Target ID already exists');
+}
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
 function isTransientFirestoreError(error) {
+  if (isFirestoreSdkConflictError(error)) {
+    return true;
+  }
+
   if (typeof error !== 'object' || error === null || !('code' in error)) {
     return false;
   }
@@ -234,23 +256,43 @@ function delay(ms) {
 }
 
 /**
- * @param {import('firebase/firestore').DocumentReference} ref
- * @param {number} timeoutMs
- * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
+ * Runs Firestore writes one at a time to avoid SDK async-queue conflicts.
+ * @template T
+ * @param {() => Promise<T>} operation
+ * @returns {Promise<T>}
  */
-function getDocWithTimeout(ref, timeoutMs) {
-  return Promise.race([
-    getDoc(ref),
-    new Promise((_, reject) => {
-      window.setTimeout(() => {
-        reject(Object.assign(new Error('Firestore read timed out'), { code: 'unavailable' }));
-      }, timeoutMs);
-    }),
-  ]);
+function runSerializedFirestoreWrite(operation) {
+  const result = firestoreWriteChain.then(operation);
+  firestoreWriteChain = result.catch(() => {});
+  return result;
 }
 
 /**
- * Reads a user document — cache first, then server with a short timeout.
+ * @param {import('firebase/firestore').DocumentReference} ref
+ * @param {number} [deadlineMs]
+ * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
+ */
+async function getDocWithDeadline(ref, deadlineMs = FIRESTORE_READ_DEADLINE_MS) {
+  let timerId;
+
+  try {
+    return await Promise.race([
+      getDoc(ref),
+      new Promise((_, reject) => {
+        timerId = window.setTimeout(() => {
+          reject(Object.assign(new Error('Firestore read timed out'), { code: 'unavailable' }));
+        }, deadlineMs);
+      }),
+    ]);
+  } finally {
+    if (timerId) {
+      window.clearTimeout(timerId);
+    }
+  }
+}
+
+/**
+ * Reads a user document — cache first, then server with one retry.
  * @param {string} uid
  * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
  */
@@ -266,17 +308,90 @@ async function fetchUserSnapshot(uid) {
   await ensureFirestoreOnline();
 
   try {
-    return await getDocWithTimeout(ref, 2000);
-  } catch (firstError) {
-    if (!isTransientFirestoreError(firstError)) {
-      throw firstError;
+    return await getDocWithDeadline(ref);
+  } catch (error) {
+    if (!isTransientFirestoreError(error)) {
+      throw error;
     }
 
-    Logger.warn('[UserService] Firestore slow/unreachable — one quick retry…');
-    await delay(300);
+    Logger.warn('[UserService] Firestore read failed — one retry…');
+    await delay(500);
     await ensureFirestoreOnline();
-    return getDocWithTimeout(ref, 2000);
+    return getDocWithDeadline(ref);
   }
+}
+
+/**
+ * Builds a profile from the create payload when a post-write read is unavailable.
+ * @param {string} uid
+ * @param {import('firebase/firestore').DocumentData} userDoc
+ * @returns {UserProfile}
+ */
+function buildProfileFromCreatePayload(uid, userDoc) {
+  return normalizeUserDocument(uid, {
+    uid: userDoc.uid,
+    name: userDoc.name,
+    email: userDoc.email,
+    phone: userDoc.phone,
+    photoURL: userDoc.photoURL,
+    role: userDoc.role,
+    provider: userDoc.provider,
+    status: userDoc.status,
+    district: userDoc.district,
+    pradeshikaSabha: userDoc.pradeshikaSabha,
+    timezone: userDoc.timezone,
+    notificationPreferences: userDoc.notificationPreferences,
+    statistics: userDoc.statistics,
+    createdAt: null,
+    updatedAt: null,
+    lastLogin: null,
+  });
+}
+
+/**
+ * Creates a user document only when it does not already exist.
+ * @param {import('firebase/firestore').DocumentReference} docRef
+ * @param {import('firebase/firestore').DocumentData} userDoc
+ * @returns {Promise<import('firebase/firestore').DocumentSnapshot|null>}
+ */
+async function createUserDocumentIfAbsent(docRef, userDoc) {
+  return runSerializedFirestoreWrite(async () => {
+    await ensureFirestoreOnline();
+
+    const runCreateTransaction = () => runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(docRef);
+
+      if (snapshot.exists()) {
+        throw Object.assign(new Error('User already exists'), { code: 'already-exists' });
+      }
+
+      transaction.set(docRef, userDoc);
+    });
+
+    try {
+      await runCreateTransaction();
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'code' in error
+        && String(/** @type {{ code: string }} */ (error).code) === 'already-exists') {
+        throw error;
+      }
+
+      if (!isTransientFirestoreError(error)) {
+        throw error;
+      }
+
+      Logger.warn('[UserService] Firestore create failed — one retry…');
+      await delay(500);
+      await ensureFirestoreOnline();
+      await runCreateTransaction();
+    }
+
+    try {
+      return await getDocFromCache(docRef);
+    } catch {
+      return null;
+    }
+  });
 }
 
 /**
@@ -317,24 +432,57 @@ export async function createUser(uid, data) {
   };
 
   const docRef = getUserDocRef(uid);
-  const existing = await fetchUserSnapshot(uid);
+  const snapshot = await createUserDocumentIfAbsent(docRef, userDoc);
 
-  if (existing.exists()) {
-    throw Object.assign(new Error('User already exists'), { code: 'already-exists' });
-  }
-
-  await setDoc(docRef, userDoc);
-
-  const profile = await getUser(uid);
-
-  if (!profile) {
-    throw Object.assign(new Error('User not found after create'), { code: 'not-found' });
-  }
+  const profile = snapshot?.exists()
+    ? normalizeUserDocument(uid, snapshot.data())
+    : buildProfileFromCreatePayload(uid, userDoc);
 
   cachedProfile = profile;
   emitUserEvent(USER_EVENTS.PROFILE_CREATED, { profile });
 
   return profile;
+}
+
+/**
+ * Creates or updates a profile from the complete-profile onboarding form.
+ * Existing complete profiles are returned as-is; incomplete profiles are updated.
+ * @param {string} uid
+ * @param {Partial<UserProfile> & { authProvider?: string }} data
+ * @returns {Promise<UserProfile>}
+ */
+export async function completeUserProfile(uid, data) {
+  try {
+    return await createUser(uid, data);
+  } catch (error) {
+    if (typeof error !== 'object' || error === null || !('code' in error)
+      || String(/** @type {{ code: string }} */ (error).code) !== 'already-exists') {
+      throw error;
+    }
+
+    const existing = await getUser(uid);
+
+    if (!existing) {
+      throw error;
+    }
+
+    cachedProfile = existing;
+    ApplicationContext.setProfile(existing);
+    emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile: existing });
+
+    if (UserDomain.isProfileComplete(existing)) {
+      return existing;
+    }
+
+    return updateUser(uid, {
+      phone: data.phone ?? existing.phone,
+      district: data.district ?? existing.district,
+      pradeshikaSabha: data.pradeshikaSabha ?? existing.pradeshikaSabha,
+      name: data.name ?? existing.name,
+      email: data.email ?? existing.email,
+      photoURL: data.photoURL ?? existing.photoURL,
+    });
+  }
 }
 
 /**
@@ -378,19 +526,35 @@ export async function loadCurrentUser(forceRefresh = false) {
     return cachedProfile;
   }
 
-  const profile = await getUser(firebaseUser.uid);
-
-  if (profile) {
-    cachedProfile = profile;
-    ApplicationContext.setProfile(profile);
-    ApplicationContext.setCurrentUser(getCurrentUser());
-    emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
-  } else {
-    cachedProfile = null;
-    ApplicationContext.setProfile(null);
+  if (loadCurrentUserInFlight) {
+    return loadCurrentUserInFlight;
   }
 
-  return profile;
+  const loadPromise = (async () => {
+    const profile = await getUser(firebaseUser.uid);
+
+    if (profile) {
+      cachedProfile = profile;
+      ApplicationContext.setProfile(profile);
+      ApplicationContext.setCurrentUser(getCurrentUser());
+      emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
+    } else {
+      cachedProfile = null;
+      ApplicationContext.setProfile(null);
+    }
+
+    return profile;
+  })();
+
+  loadCurrentUserInFlight = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    if (loadCurrentUserInFlight === loadPromise) {
+      loadCurrentUserInFlight = null;
+    }
+  }
 }
 
 /**

@@ -9,12 +9,15 @@ import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
 import { navigateTo } from '../services/router.service.js';
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
-import { USER_MESSAGES, USER_ROLES } from './user.constants.js';
+import { USER_MESSAGES } from './user.constants.js';
+import { UserDomain } from '../domain/user.domain.js';
 import {
-  createUser,
+  completeUserProfile,
+  getCachedProfile,
   getUserErrorMessage,
   loadCurrentUser,
 } from './user.service.js';
+import { getDashboardRouteForProfile } from './user.navigation.js';
 import { validateCompleteProfileForm } from './user.validator.js';
 import {
   applyFormErrors,
@@ -52,32 +55,20 @@ async function initCompleteProfilePage(outlet) {
     return;
   }
 
-  outlet.innerHTML = renderCompleteProfileForm(authUser);
-  bindCompleteProfileForm(outlet, authUser.uid);
-
-  // Background check — redirect returning users without blocking the form.
-  void redirectIfProfileExists();
-}
-
-/**
- * Redirects to the dashboard when a Firestore profile already exists.
- * @returns {Promise<void>}
- */
-async function redirectIfProfileExists() {
   try {
-    const existingProfile = await loadCurrentUser();
+    const profile = getCachedProfile() ?? await loadCurrentUser();
 
-    if (!existingProfile) {
+    if (profile && UserDomain.isProfileComplete(profile)) {
+      await AuthorizationService.resolve(true);
+      await navigateTo(getDashboardRouteForProfile(profile), true);
       return;
     }
-
-    const destination = existingProfile.role === USER_ROLES.ADMIN
-      ? AUTH_ROUTES.ADMIN
-      : '/predictions';
-    await navigateTo(destination, true);
   } catch (error) {
-    Logger.warn('[CompleteProfile] Could not verify existing profile:', error);
+    Logger.warn('[CompleteProfile] Profile lookup failed; showing onboarding form.', error);
   }
+
+  outlet.innerHTML = renderCompleteProfileForm(authUser);
+  bindCompleteProfileForm(outlet, authUser.uid);
 }
 
 /**
@@ -130,7 +121,7 @@ async function handleCompleteProfileSubmit(form, uid) {
     const authUser = getCurrentUser();
     const authProvider = resolveAuthProvider(authUser);
 
-    const profile = await createUser(uid, {
+    const profile = await completeUserProfile(uid, {
       phone: payload.phone.replace(/\D/g, ''),
       district: payload.district,
       pradeshikaSabha: payload.pradeshikaSabha,
@@ -142,10 +133,7 @@ async function handleCompleteProfileSubmit(form, uid) {
 
     showSuccessToast(USER_MESSAGES.PROFILE_CREATED);
     await AuthorizationService.resolve(true);
-    const destination = profile.role === USER_ROLES.ADMIN
-      ? AUTH_ROUTES.ADMIN
-      : '/predictions';
-    await navigateTo(destination, true);
+    await navigateTo(getDashboardRouteForProfile(profile), true);
   } catch (error) {
     Logger.error('[CompleteProfile] Create failed:', error);
     showErrorToast(getUserErrorMessage(error));

@@ -10,6 +10,41 @@ import { showErrorToast } from '../utils/toast.util.js';
 /** @type {boolean} */
 let initialized = false;
 
+/** @type {number} */
+let lastGlobalErrorToastAt = 0;
+
+/** @type {number} */
+const GLOBAL_ERROR_TOAST_DEBOUNCE_MS = 4000;
+
+/**
+ * @param {unknown} reason
+ * @returns {boolean}
+ */
+function isFirestoreInternalError(reason) {
+  const message = reason instanceof Error ? reason.message : String(reason ?? '');
+  return message.includes('INTERNAL ASSERTION FAILED');
+}
+
+/**
+ * @param {unknown} reason
+ * @returns {void}
+ */
+function notifyGlobalError(reason) {
+  if (isFirestoreInternalError(reason)) {
+    Logger.error('Firestore internal error (toast suppressed):', reason);
+    return;
+  }
+
+  const now = Date.now();
+
+  if (now - lastGlobalErrorToastAt < GLOBAL_ERROR_TOAST_DEBOUNCE_MS) {
+    return;
+  }
+
+  lastGlobalErrorToastAt = now;
+  showErrorToast(MESSAGES.GENERIC_ERROR);
+}
+
 /**
  * Initializes global error handling listeners.
  * @returns {void}
@@ -23,12 +58,12 @@ export function initGlobalErrorHandler() {
 
   window.addEventListener('error', (event) => {
     Logger.error('Unhandled error:', event.error ?? event.message);
-    showErrorToast(MESSAGES.GENERIC_ERROR);
+    notifyGlobalError(event.error ?? event.message);
   });
 
   window.addEventListener('unhandledrejection', (event) => {
     Logger.error('Unhandled promise rejection:', event.reason);
-    showErrorToast(MESSAGES.GENERIC_ERROR);
+    notifyGlobalError(event.reason);
   });
 }
 

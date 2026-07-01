@@ -4,33 +4,39 @@
  */
 
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { UserDomain } from '../domain/user.domain.js';
 import { USER_ROLES, USER_ROUTES } from './user.constants.js';
-import { getCachedProfile } from './user.service.js';
+import { getCachedProfile, loadCurrentUser } from './user.service.js';
+
+/**
+ * @typedef {import('./user.service.js').UserProfile} UserProfile
+ */
+
+/**
+ * Returns the dashboard route for a user profile.
+ * @param {UserProfile} profile
+ * @returns {string}
+ */
+export function getDashboardRouteForProfile(profile) {
+  if (profile.role === USER_ROLES.ADMIN) {
+    return AUTH_ROUTES.ADMIN;
+  }
+
+  return '/predictions';
+}
 
 /**
  * Resolves the destination route after a successful sign-in.
- *
- * Uses only the in-memory profile cache to avoid a redundant Firestore read
- * right after popup sign-in (when the Firestore client may be briefly offline).
- * If the cache is empty the guards on the destination route will do the
- * profile check and redirect appropriately.
- *
  * @param {import('firebase/auth').User} _firebaseUser
  * @param {string} [_authProvider]
  * @returns {Promise<string>}
  */
 export async function getPostLoginDestination(_firebaseUser, _authProvider) {
-  const cached = getCachedProfile();
+  const profile = getCachedProfile() ?? await loadCurrentUser();
 
-  if (cached) {
-    if (cached.role === USER_ROLES.ADMIN) {
-      return AUTH_ROUTES.ADMIN;
-    }
-
-    return '/predictions';
+  if (!profile || !UserDomain.isProfileComplete(profile)) {
+    return USER_ROUTES.COMPLETE_PROFILE;
   }
 
-  // No cache yet — the user.guard on /complete-profile will redirect to
-  // /predictions or /admin once the profile is loaded.
-  return USER_ROUTES.COMPLETE_PROFILE;
+  return getDashboardRouteForProfile(profile);
 }

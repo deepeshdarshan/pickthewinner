@@ -4,7 +4,6 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
-import { escapeHtml } from '../../utils/html.util.js';
 import { TIMEZONE_OPTIONS, DEFAULT_TIMEZONE, APP_TIMEZONE_LABEL } from '../user.constants.js';
 
 /**

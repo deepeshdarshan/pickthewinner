@@ -3,6 +3,9 @@
   "private": true,
   "description": "PickTheWinner static web app",
   "scripts": {
-    "start": "serve ."
+    "start": "serve . -l tcp://127.0.0.1:3000 --no-port-switching"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
   }
 }

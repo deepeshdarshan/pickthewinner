@@ -324,12 +324,14 @@
   z-index: var(--ptw-z-loading);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity var(--ptw-transition-base), visibility var(--ptw-transition-base);
 }
 
 .ptw-loading-overlay.is-visible {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .ptw-loading-overlay > .text-center {
