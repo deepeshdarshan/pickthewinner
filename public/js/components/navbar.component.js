@@ -6,6 +6,7 @@
 import { ROUTES } from '../config/routes.js';
 import { appSettings } from '../config/app.config.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
+import { Roles } from '../authorization/permission.constants.js';
 import { AppContext } from '../app/app.context.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
@@ -90,6 +91,7 @@ function renderAuthenticatedNavbar(options) {
   const displayName = AppContext.getDisplayName();
   const email = AppContext.getEmail();
   const photoURL = AppContext.getPhotoURL();
+  const isAdmin = AuthorizationService.hasRole(Roles.ADMIN);
   const avatarMarkup = renderAvatar({
     photoURL,
     className: 'ptw-navbar__avatar',
@@ -171,11 +173,13 @@ function renderAuthenticatedNavbar(options) {
                 <i class="bi bi-person me-2" aria-hidden="true"></i>Profile
               </a>
             </li>
+            ${isAdmin ? `
             <li>
               <a class="dropdown-item" href="/settings" data-route>
                 <i class="bi bi-gear me-2" aria-hidden="true"></i>Settings
               </a>
             </li>
+            ` : ''}
             <li><hr class="dropdown-divider"></li>
             <li>
               <button type="button" class="dropdown-item" id="ptw-navbar-logout">

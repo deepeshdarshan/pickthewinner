@@ -27,10 +27,10 @@ export async function getPostLoginDestination(_firebaseUser, _authProvider) {
       return AUTH_ROUTES.ADMIN;
     }
 
-    return AUTH_ROUTES.DASHBOARD;
+    return '/predictions';
   }
 
   // No cache yet — the user.guard on /complete-profile will redirect to
-  // /dashboard or /admin once the profile is loaded.
+  // /predictions or /admin once the profile is loaded.
   return USER_ROUTES.COMPLETE_PROFILE;
 }

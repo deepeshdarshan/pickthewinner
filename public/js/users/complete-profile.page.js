@@ -73,7 +73,7 @@ async function redirectIfProfileExists() {
 
     const destination = existingProfile.role === USER_ROLES.ADMIN
       ? AUTH_ROUTES.ADMIN
-      : AUTH_ROUTES.DASHBOARD;
+      : '/predictions';
     await navigateTo(destination, true);
   } catch (error) {
     Logger.warn('[CompleteProfile] Could not verify existing profile:', error);
@@ -144,7 +144,7 @@ async function handleCompleteProfileSubmit(form, uid) {
     await AuthorizationService.resolve(true);
     const destination = profile.role === USER_ROLES.ADMIN
       ? AUTH_ROUTES.ADMIN
-      : AUTH_ROUTES.DASHBOARD;
+      : '/predictions';
     await navigateTo(destination, true);
   } catch (error) {
     Logger.error('[CompleteProfile] Create failed:', error);

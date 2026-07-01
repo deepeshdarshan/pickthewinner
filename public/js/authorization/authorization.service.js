@@ -213,7 +213,7 @@ export const AuthorizationService = {
     }
 
     if (this.hasRole(Roles.CONTESTANT)) {
-      return '/dashboard';
+      return '/predictions';
     }
 
     if (isAuthenticated()) {

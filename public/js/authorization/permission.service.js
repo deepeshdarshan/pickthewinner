@@ -11,10 +11,8 @@ const ALL_PERMISSIONS = new Set(Object.values(Permissions));
 
 /** @type {Readonly<Set<string>>} */
 const CONTESTANT_PERMISSIONS = new Set([
-  Permissions.VIEW_DASHBOARD,
   Permissions.VIEW_PROFILE,
   Permissions.EDIT_PROFILE,
-  Permissions.VIEW_LEADERBOARD,
   Permissions.SUBMIT_PREDICTION,
   Permissions.EDIT_PREDICTION,
 ]);
