@@ -35,12 +35,24 @@ let authReadyPromise = null;
 /** @type {(() => void)|null} */
 let authUnsubscribe = null;
 
+/** @type {boolean} */
+let signInInProgress = false;
+
+/**
+ * Synchronizes the cached user with Firebase Auth.
+ * @returns {import('firebase/auth').User|null}
+ */
+function syncCurrentUser() {
+  currentUser = auth.currentUser;
+  return currentUser;
+}
+
 /**
  * Returns whether a user is currently authenticated.
  * @returns {boolean}
  */
 export function isAuthenticated() {
-  return currentUser !== null;
+  return (currentUser ?? auth.currentUser) !== null;
 }
 
 /**
@@ -48,7 +60,7 @@ export function isAuthenticated() {
  * @returns {import('firebase/auth').User|null}
  */
 export function getCurrentUser() {
-  return currentUser;
+  return currentUser ?? auth.currentUser;
 }
 
 /**
@@ -56,11 +68,13 @@ export function getCurrentUser() {
  * @returns {string|null}
  */
 export function getCurrentAuthProvider() {
-  if (!currentUser) {
+  const user = getCurrentUser();
+
+  if (!user) {
     return null;
   }
 
-  const providerId = currentUser.providerData?.[0]?.providerId;
+  const providerId = user.providerData?.[0]?.providerId;
 
   if (providerId === 'password') {
     return AUTH_PROVIDERS.EMAIL_PASSWORD;
@@ -85,7 +99,13 @@ export function waitForAuthReady() {
     }
 
     authUnsubscribe = onAuthStateChanged(auth, (user) => {
-      const previousUser = currentUser;
+      const previousUser = currentUser ?? auth.currentUser;
+
+      if (!user && signInInProgress && auth.currentUser) {
+        currentUser = auth.currentUser;
+        return;
+      }
+
       currentUser = user;
 
       if (isFirstAuthState) {
@@ -103,7 +123,7 @@ export function waitForAuthReady() {
 
       if (user && !previousUser) {
         emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
-      } else if (!user && previousUser) {
+      } else if (!user && previousUser && !signInInProgress) {
         emitAuthEvent(AUTH_EVENTS.LOGOUT);
       } else if (user && previousUser && user.uid !== previousUser.uid) {
         emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
@@ -122,13 +142,35 @@ export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
+  signInInProgress = true;
+
   try {
     const result = await signInWithPopup(auth, provider);
-    currentUser = result.user;
-    return result.user;
+    const user = result.user ?? syncCurrentUser();
+
+    if (!user) {
+      throw Object.assign(new Error('Google sign-in did not return a user.'), {
+        code: 'auth/no-user',
+      });
+    }
+
+    currentUser = user;
+    emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
+    return user;
   } catch (error) {
+    const recoveredUser = syncCurrentUser();
+
+    if (recoveredUser && isRecoverablePopupError(error)) {
+      Logger.warn('[AuthService] Recovered Google sign-in after popup communication error.');
+      currentUser = recoveredUser;
+      emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user: recoveredUser });
+      return recoveredUser;
+    }
+
     emitAuthEvent(AUTH_EVENTS.LOGIN_FAILED, { error });
     throw error;
+  } finally {
+    signInInProgress = false;
   }
 }
 
@@ -139,13 +181,26 @@ export async function signInWithGoogle() {
  * @returns {Promise<import('firebase/auth').User>}
  */
 export async function signInWithAdminCredentials(email, password) {
+  signInInProgress = true;
+
   try {
     const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-    currentUser = result.user;
-    return result.user;
+    const user = result.user ?? syncCurrentUser();
+
+    if (!user) {
+      throw Object.assign(new Error('Admin sign-in did not return a user.'), {
+        code: 'auth/no-user',
+      });
+    }
+
+    currentUser = user;
+    emitAuthEvent(AUTH_EVENTS.LOGIN_SUCCESS, { user });
+    return user;
   } catch (error) {
     emitAuthEvent(AUTH_EVENTS.LOGIN_FAILED, { error });
     throw error;
+  } finally {
+    signInInProgress = false;
   }
 }
 
@@ -184,5 +239,22 @@ export function destroyAuthListener() {
   authInitialized = false;
   isFirstAuthState = true;
   authReadyPromise = null;
+  signInInProgress = false;
   currentUser = null;
+}
+
+/**
+ * Returns whether a popup sign-in error can be recovered from Firebase Auth state.
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isRecoverablePopupError(error) {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+
+  const code = String(/** @type {{ code: string }} */ (error).code);
+  return code === 'auth/popup-closed-by-user'
+    || code === 'auth/cancelled-popup-request'
+    || code === 'auth/popup-blocked';
 }
