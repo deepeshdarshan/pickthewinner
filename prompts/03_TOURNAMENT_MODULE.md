@@ -1,191 +1,137 @@
 # Task: Implement Tournament Management Module
 
-## Before You Begin
+## Objective
 
-Read the following documentation completely before making any changes:
+Implement the complete Tournament Management module for PickTheWinner.
+
+This module is responsible for creating, configuring, publishing, archiving and managing tournaments.
+
+The Tournament Module acts as the master configuration for all matches, prediction rules, scoring rules and tournament behaviour.
+
+Do NOT implement placeholder code.
+
+Build production-ready, maintainable code following the documented architecture.
+
+---
+
+# Before You Begin
+
+Read ALL project documentation before making any changes.
+
+Mandatory:
 
 - README.md
-- docs/*
-- design/*
-- prompts/*
+- docs/product/*
+- docs/product/requirements/*
+- docs/architecture/*
+- docs/engineering/*
+- docs/design/*
 - .cursor/rules/*
+- AGENTS.md (if available)
 
 Treat these documents as the single source of truth.
 
-Do not introduce functionality that contradicts the documentation.
+Do not contradict documented business rules.
 
 ---
 
-# Objective
+# Architecture Requirements
 
-Implement the Tournament Management module.
+Follow
 
-This module allows administrators to create, edit, archive and configure tournaments.
-
-The module must be generic and reusable.
-
-Never hardcode FIFA, football, IPL or any sport-specific logic.
-
-Future tournaments should be configurable without changing application code.
-
----
-
-# Technology
-
-- HTML5
+- Feature-based architecture
+- ES Modules
 - Bootstrap 5
-- Vanilla JavaScript (ES Modules)
+- Vanilla JavaScript
+- Firebase Firestore
 - Firebase Authentication
-- Cloud Firestore
+- Service Layer
+- Renderer Layer
+- Validation Layer
+
+Never access Firestore directly from page modules.
 
 ---
 
-# User Permissions
+# Module Responsibilities
 
-Only users with
+The Tournament module is responsible for
 
-role = "admin"
-
-can access this module.
-
-Contestants must never access Tournament Management.
-
-Enforce both:
-
-- UI restrictions
-- Firestore Security Rules
-
----
-
-# Firestore Collection
-
-Collection
-
-tournaments
-
-Document Example
-
-{
-id,
-name,
-shortName,
-description,
-sport,
-tournamentType,
-season,
-timezone,
-status,
-registrationOpen,
-predictionLockMinutes,
-visibility,
-startDate,
-endDate,
-logoUrl,
-bannerUrl,
-createdBy,
-createdAt,
-updatedAt
-}
-
-Use server timestamps.
+- Tournament CRUD
+- Tournament configuration
+- Tournament lifecycle
+- Tournament visibility
+- Registration period
+- Prediction configuration
+- Scoring configuration
+- Tournament status
+- Tournament settings
 
 ---
 
-# Tournament Status
+# Tournament Lifecycle
 
-Allowed values only
+Support the following states.
 
 DRAFT
 
+Tournament is being configured.
+
+Invisible to contestants.
+
+---
+
 REGISTRATION_OPEN
+
+Contestants may register.
+
+Tournament still hidden.
+
+---
+
+PUBLISHED
+
+Tournament becomes visible.
+
+Matches may be published.
+
+Prediction windows may open.
+
+---
 
 LIVE
 
+Tournament has started.
+
+Predictions follow configured lock rules.
+
+---
+
 COMPLETED
+
+Tournament finished.
+
+Leaderboard becomes final.
+
+Read-only.
+
+---
 
 ARCHIVED
 
-Do not create additional states.
+Historical.
+
+Read-only.
+
+Hidden from default lists.
 
 ---
 
-# Tournament Types
+# Tournament Fields
 
-Support
+Every tournament should support
 
-GROUP_STAGE
-
-KNOCKOUT
-
-GROUP_AND_KNOCKOUT
-
-LEAGUE
-
-CUSTOM
-
-Store as constants.
-
----
-
-# Supported Sports
-
-Initially support
-
-Football
-
-Cricket
-
-Basketball
-
-Other
-
-Do not hardcode football-only values.
-
----
-
-# Tournament List Page
-
-Create
-
-Tournament List
-
-Features
-
-Search
-
-Sort
-
-Pagination
-
-Status Badge
-
-Visibility Badge
-
-Actions
-
-Create
-
-Edit
-
-Archive
-
-Delete (soft delete only)
-
-Clone (future placeholder)
-
-Responsive
-
-Desktop table
-
-Mobile cards
-
----
-
-# Tournament Form
-
-Fields
-
-Tournament Name *
+Tournament Name
 
 Short Name
 
@@ -193,231 +139,457 @@ Description
 
 Sport
 
-Tournament Type
-
 Season
+
+Tournament Type
 
 Timezone
 
-Start Date
+Country
 
-End Date
+Logo
 
-Prediction Lock Minutes
+Banner
+
+Status
 
 Visibility
 
-Registration Open
+Registration Start
 
-Logo URL
+Registration End
 
-Banner URL
+Prediction Lock Minutes
 
-Validation
+Scoring Configuration
 
-All required fields
+Created By
 
-Date validation
+Created At
 
-Unique tournament name
+Updated By
 
-No invalid status
+Updated At
+
+Archived
+
+Active
 
 ---
 
-# Tournament Details Page
+# Tournament Visibility
+
+Support
+
+Visible
+
+Hidden
+
+Archived
+
+Only published and visible tournaments appear for contestants.
+
+Administrators can always view all tournaments.
+
+---
+
+# Tournament Type
+
+Support
+
+Knockout
+
+League
+
+Hybrid
+
+The tournament type determines match behaviour.
+
+---
+
+# Match Behaviour Configuration
+
+Every tournament should define
+
+Can matches end in draw?
+
+Boolean
+
+Example
+
+League
+
+true
+
+Knockout
+
+false
+
+This property controls prediction behaviour.
+
+Do NOT hardcode Round of 16.
+
+Use configuration.
+
+---
+
+# Prediction Configuration
+
+Each tournament configures
+
+Prediction Lock Minutes
+
+Default
+
+10 minutes
+
+Configurable
+
+1
+
+5
+
+10
+
+15
+
+20
+
+30
+
+60
+
+Predictions automatically close before kickoff.
+
+---
+
+# Knockout Match Behaviour
+
+If
+
+canEndInDraw == false
+
+Contestants predict
+
+Final Score after Normal Time + Extra Time
+
+NOT penalty shootout score.
+
+---
+
+Prediction Form
+
+Initially
+
+Brazil
+
+[  ]
+
+Spain
+
+[  ]
+
+---
+
+If
+
+Brazil Score != Spain Score
+
+Prediction complete.
+
+No penalty section displayed.
+
+---
+
+If
+
+Brazil Score == Spain Score
 
 Display
 
-General Information
+☐ Match decided by Penalty Shootout
 
-Statistics (placeholder)
+---
 
-Number of Matches
+If checked
 
-Number of Contestants
+Display
 
-Number of Predictions
+Penalty Winner
 
-Current Status
+( ) Brazil
 
-Settings
+( ) Spain
 
-No business logic yet.
+---
+
+Do NOT collect
+
+Penalty shootout goals.
+
+Only collect
+
+Winning Team.
+
+---
+
+Validation
+
+Equal score
+
++
+
+Penalty unchecked
+
+↓
+
+Validation Error
+
+Cannot save prediction.
+
+---
+
+Equal score
+
++
+
+Penalty checked
+
++
+
+Winner selected
+
+↓
+
+Prediction valid.
+
+---
+
+Different scores
+
+↓
+
+Penalty section hidden.
+
+---
+
+Database Fields
+
+Prediction document must contain
+
+homeScore
+
+awayScore
+
+isPenaltyShootout
+
+penaltyWinner
+
+Never store
+
+Penalty shootout scores.
+
+---
+
+# Scoring Configuration
+
+Tournament administrator configures
+
+Correct Winner Points
+
+Exact Score Points
+
+Bonus Points
+
+Tie-breaker Rules
+
+Future scoring extensions.
+
+Hardcoded values are prohibited.
+
+---
+
+# Registration Configuration
+
+Support
+
+Registration Opens
+
+Registration Closes
+
+Contestants cannot register after close.
+
+---
+
+# Leaderboard Configuration
+
+Support
+
+Tournament leaderboard
+
+Historical leaderboard
+
+Ranking strategy
+
+Tie-breaker strategy
+
+Automatic recalculation
 
 ---
 
 # Tournament Settings
 
-Administrator can configure
-
-Prediction Lock Minutes
-
-Default Match Points
+Support
 
 Timezone
 
+Prediction Lock
+
 Visibility
 
-Registration Open
+Registration
 
-Leaderboard Visibility
+Notifications
 
-Prediction Editing
+Theme (future)
 
-Maximum Contestants (optional)
+Logo
 
-Store configuration inside tournament document.
+Banner
 
-Never hardcode.
-
----
-
-# Validation
-
-Create
-
-TournamentValidator
-
-Validation must be independent of UI.
-
-Return validation results only.
-
-Never manipulate the DOM.
+Sponsor Logo (future)
 
 ---
 
-# Services
+# User Experience
+
+Administrator
+
+Create Tournament
+
+↓
+
+Configure Tournament
+
+↓
+
+Save Draft
+
+↓
+
+Publish Tournament
+
+↓
+
+Create Matches
+
+↓
+
+Publish Matches
+
+↓
+
+Tournament Live
+
+---
+
+Contestant
+
+View Published Tournament
+
+↓
+
+Predict Matches
+
+↓
+
+View Leaderboard
+
+---
+
+# Validation Rules
+
+Tournament Name required
+
+Season required
+
+Timezone required
+
+Prediction Lock required
+
+Scoring Configuration required
+
+Only one tournament may be Active.
+
+Archived tournaments cannot be edited.
+
+Completed tournaments become read-only.
+
+---
+
+# Security
+
+Only Administrators
+
+Create Tournament
+
+Update Tournament
+
+Delete Tournament
+
+Archive Tournament
+
+Publish Tournament
+
+Contestants
+
+Read Published Tournament only.
+
+---
+
+# Firestore
 
 Create
 
 TournamentService
 
-Responsibilities
-
-Load tournaments
-
-Create tournament
-
-Update tournament
-
-Archive tournament
-
-Soft delete tournament
-
-Get active tournament
-
-Never manipulate the UI.
-
----
-
-# Renderer
-
-Create
+TournamentValidator
 
 TournamentRenderer
 
-Responsibilities
-
-Render list
-
-Render cards
-
-Render details
-
-Render empty state
-
-Render loading state
-
-No Firestore calls.
-
----
-
-# Page Controller
-
-Create
+TournamentRepository (if repository pattern exists)
 
 TournamentPage
 
-Responsibilities
+Separate
 
-Event wiring
+Business Logic
 
-Calling services
+Rendering
 
-Calling renderers
+Validation
 
-Navigation
-
-No business calculations.
+Firestore Access
 
 ---
 
-# Constants
+# Responsive Design
 
-Create
+Support
 
-TournamentConstants
+Desktop
 
-Store
+Tablet
 
-Statuses
+Mobile
 
-Sports
+Cards
 
-Tournament Types
+Tables
 
-Collection Names
+Forms
 
-Routes
-
-Never hardcode strings.
-
----
-
-# Firestore Rules
-
-Only admins can
-
-Create
-
-Update
-
-Delete
-
-Archive
-
-Contestants can only read
-
-Visible tournaments
-
-Active tournaments
-
----
-
-# UI Requirements
-
-Follow
-
-design/DESIGN_SYSTEM.md
-
-Use
-
-Bootstrap Cards
-
-Bootstrap Forms
-
-Bootstrap Tables
-
-Bootstrap Badges
-
-Bootstrap Icons
-
-Dark Theme
-
-Responsive
-
-No inline CSS.
+Bootstrap only.
 
 ---
 
@@ -425,66 +597,74 @@ No inline CSS.
 
 Keyboard navigation
 
-Visible focus
-
 ARIA labels
 
-Semantic HTML
+Visible focus
 
----
-
-# Error Handling
-
-Display friendly error messages.
-
-Log errors using Logger.
-
-Never swallow exceptions.
-
----
-
-# JSDoc
-
-Every exported function must include JSDoc.
+Screen reader friendly
 
 ---
 
 # Deliverables
 
-Create
+Implement
 
-TournamentService
+✓ Tournament CRUD
 
-TournamentValidator
+✓ Tournament Lifecycle
 
-TournamentRenderer
+✓ Visibility Management
 
-TournamentPage
+✓ Registration Management
 
-TournamentConstants
+✓ Prediction Configuration
 
-Tournament List UI
+✓ Knockout Configuration
 
-Tournament Form UI
+✓ Penalty Shootout Workflow Support
 
-Tournament Details UI
+✓ Scoring Configuration
 
-Firestore Integration
+✓ Validation
 
-Responsive Layout
+✓ Firestore Integration
 
-Loading States
+✓ Responsive UI
 
-Empty States
+✓ Accessibility
 
-Error Handling
+✓ Unit Tests
 
-The module must be production-ready and reusable.
+✓ Documentation Updates
 
-Do not implement Matches.
+---
 
-Do not implement Predictions.
+# Acceptance Criteria
 
-Do not implement Leaderboards.
+The implementation is complete only when
 
-This module only manages tournament metadata and configuration.
+✓ Administrators can create tournaments.
+
+✓ Administrators can configure prediction rules.
+
+✓ Administrators can configure scoring.
+
+✓ Administrators can publish tournaments.
+
+✓ Contestants only see published tournaments.
+
+✓ Knockout tournaments require a winner.
+
+✓ Equal predicted scores display the Penalty Shootout workflow.
+
+✓ Penalty shootout scores are never collected.
+
+✓ Penalty winner becomes mandatory when required.
+
+✓ League tournaments allow draw predictions.
+
+✓ Tournament settings drive behaviour instead of hardcoded rules.
+
+Do not implement placeholder functionality.
+
+Build production-ready code that follows the documented architecture.
