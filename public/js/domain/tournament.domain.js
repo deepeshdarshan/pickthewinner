@@ -168,6 +168,19 @@ export const TournamentDomain = {
   },
 
   /**
+   * Draft tournaments may be deactivated while still unpublished.
+   * @param {{ status?: string, archived?: boolean, active?: boolean }} tournament
+   * @returns {boolean}
+   */
+  canDeactivateTournament(tournament) {
+    if (this.isTournamentArchived(tournament) || !tournament.active) {
+      return false;
+    }
+
+    return (tournament.status ?? TOURNAMENT_STATUS.DRAFT) === TOURNAMENT_STATUS.DRAFT;
+  },
+
+  /**
    * @param {string} status
    * @param {boolean} [archived]
    * @returns {boolean}

@@ -159,21 +159,22 @@ function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
     }
   }
 
-  if (
-    TournamentDomain.canSetActiveTournament(tournament)
-  ) {
+  if (TournamentDomain.canSetActiveTournament(tournament)) {
     actions.push(renderActionButton('set-active', 'Set Active', 'btn-outline-success'));
+  } else if (TournamentDomain.canDeactivateTournament(tournament)) {
+    actions.push(renderActionButton('set-inactive', 'Inactive', 'btn-outline-secondary'));
   } else if (
     tournament.active
+    && TournamentDomain.isActiveStateLocked(tournament)
     && tournament.status !== TOURNAMENT_STATUS.ARCHIVED
     && tournament.status !== TOURNAMENT_STATUS.COMPLETED
     && !tournament.archived
   ) {
-    const title = TournamentDomain.isActiveStateLocked(tournament)
-      ? 'Published tournaments stay active and cannot be deactivated.'
-      : 'This tournament is active and cannot be deactivated manually.';
-
-    actions.push(renderDisabledActionButton('Inactive', title, 'btn-outline-secondary'));
+    actions.push(renderDisabledActionButton(
+      'Inactive',
+      'Published tournaments stay active and cannot be deactivated.',
+      'btn-outline-secondary',
+    ));
   }
 
   if (TournamentDomain.canArchiveTournament(tournament.status)) {

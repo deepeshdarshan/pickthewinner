@@ -66,11 +66,17 @@ async function renderListView(outlet) {
     subtitle: 'Published matches available for prediction',
   })}
         ${matches.length === 0
-    ? renderEmptyState({
+    ? `
+        <div class="card ptw-card">
+          <div class="card-body">
+            ${renderEmptyState({
       title: 'No Matches',
       message: 'No published matches are available right now.',
       icon: 'bi-flag',
-    })
+    })}
+          </div>
+        </div>
+      `
     : `<div class="ptw-match-cards">${matches.map((match) => renderMatchCard({
       match,
       showPrediction: true,
@@ -157,7 +163,15 @@ function renderLoadingState() {
 function renderErrorState(message) {
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
-      ${renderEmptyState({ title: 'Matches', message, icon: 'bi-flag' })}
+      ${renderContestantPageHeader({
+    title: 'Upcoming Matches',
+    subtitle: 'Published matches available for prediction',
+  })}
+      <div class="card ptw-card">
+        <div class="card-body">
+          ${renderEmptyState({ title: 'Matches', message, icon: 'bi-flag' })}
+        </div>
+      </div>
     </div>
   `;
 }

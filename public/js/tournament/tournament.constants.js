@@ -114,6 +114,7 @@ export const LIFECYCLE_ACTIONS = Object.freeze({
   RESTORE: 'restore',
   DELETE: 'delete',
   SET_ACTIVE: 'set_active',
+  SET_INACTIVE: 'set_inactive',
 });
 
 /** @type {Readonly<Record<string, string>>} */
@@ -127,6 +128,8 @@ export const TOURNAMENT_VALIDATION_MESSAGES = Object.freeze({
   CANNOT_EDIT: 'This tournament cannot be edited in its current state.',
   LIFECYCLE_INVALID: 'This lifecycle action is not allowed for the current tournament state.',
   ALREADY_ACTIVE: 'This tournament is already active.',
+  NOT_ACTIVE: 'This tournament is not active.',
+  CANNOT_DEACTIVATE_PUBLISHED: 'Published tournaments cannot be deactivated.',
   CANNOT_COMPLETE_INCOMPLETE_MATCHES: 'Cannot complete this tournament until all visible matches are marked completed or have published results.',
   VISIBILITY_INVALID: 'Select a valid visibility option.',
 });
@@ -150,6 +153,7 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
   DELETED: 'Tournament deleted permanently.',
   DELETING: 'Deleting tournament…',
   ACTIVE_SET: 'Active tournament updated.',
+  INACTIVE_SET: 'Tournament marked as inactive.',
   CREATE_FAILED: 'Unable to create tournament. Please try again.',
   UPDATE_FAILED: 'Unable to update tournament. Please try again.',
   LOAD_FAILED: 'Unable to load tournaments. Please try again.',
@@ -161,6 +165,7 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
   CONFIRM_GO_LIVE: 'Mark this tournament as live?',
   CONFIRM_COMPLETE: 'Mark this tournament as completed? It will become read-only.',
   CONFIRM_SET_ACTIVE: 'Set this as the active tournament? Only one tournament can be active.',
+  CONFIRM_SET_INACTIVE: 'Mark this tournament as inactive? It will no longer be the active tournament.',
   CONFIRM_DELETE: 'Delete this tournament permanently? This action is irreversible and cannot be undone.',
   CONFIRM_RESTORE: 'Restore this tournament? It will become available for management again.',
   CANNOT_DELETE_ACTIVE: 'Cannot delete the active tournament. Set another tournament as active first.',

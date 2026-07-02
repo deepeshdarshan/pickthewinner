@@ -143,6 +143,8 @@ describe('TournamentDomain', () => {
 
     assert.equal(TournamentDomain.canSetActiveTournament(draftInactive), true);
     assert.equal(TournamentDomain.canSetActiveTournament(draftActive), false);
+    assert.equal(TournamentDomain.canDeactivateTournament(draftActive), true);
+    assert.equal(TournamentDomain.canDeactivateTournament(publishedActive), false);
     assert.equal(TournamentDomain.isActiveStateLocked(draftActive), false);
     assert.equal(TournamentDomain.isActiveStateLocked(publishedActive), true);
   });

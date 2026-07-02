@@ -326,6 +326,13 @@ export function validateLifecycleAction(action, tournament) {
           : TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
       }
       break;
+    case LIFECYCLE_ACTIONS.SET_INACTIVE:
+      if (!TournamentDomain.canDeactivateTournament(tournament)) {
+        errors.lifecycle = !tournament.active
+          ? TOURNAMENT_VALIDATION_MESSAGES.NOT_ACTIVE
+          : TOURNAMENT_VALIDATION_MESSAGES.CANNOT_DEACTIVATE_PUBLISHED;
+      }
+      break;
     default:
       errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
   }

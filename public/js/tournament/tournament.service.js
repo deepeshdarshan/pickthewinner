@@ -952,6 +952,53 @@ export async function setActiveTournament(id, uid) {
 }
 
 /**
+ * @param {string} id
+ * @param {string} uid
+ * @returns {Promise<Tournament>}
+ */
+export async function deactivateTournament(id, uid) {
+  const existing = await getTournamentById(id, { forceRefresh: true });
+
+  if (!existing) {
+    throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
+  }
+
+  const validation = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_INACTIVE, existing);
+
+  if (!validation.valid) {
+    throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
+  }
+
+  return runSerializedFirestoreWrite(async () => {
+    await ensureFirestoreOnline();
+
+    await updateDoc(getTournamentDocRef(id), {
+      active: false,
+      updatedAt: serverTimestamp(),
+      updatedBy: uid,
+    });
+
+    const tournament = normalizeTournamentDocument(id, {
+      ...existing,
+      active: false,
+      updatedBy: uid,
+      updatedAt: new Date(),
+    });
+
+    if (activeTournamentCache?.id === id) {
+      activeTournamentCache = null;
+      ApplicationContext.setTournament(null);
+    }
+
+    cacheTournament(tournament);
+    adminListCache = null;
+    contestantListCache = null;
+    emitTournamentEvent(TOURNAMENT_EVENTS.ACTIVE_TOURNAMENT_CHANGED, null);
+    return tournament;
+  });
+}
+
+/**
  * Loads the active tournament into application context.
  * @returns {Promise<Tournament|null>}
  */

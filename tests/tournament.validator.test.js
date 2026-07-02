@@ -126,4 +126,21 @@ describe('TournamentValidator', () => {
     assert.equal(result.valid, false);
     assert.equal(result.errors.lifecycle, TOURNAMENT_VALIDATION_MESSAGES.ALREADY_ACTIVE);
   });
+
+  it('allows set inactive only for active draft tournaments', () => {
+    const allowed = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_INACTIVE, {
+      status: TOURNAMENT_STATUS.DRAFT,
+      active: true,
+      archived: false,
+    });
+    const blocked = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_INACTIVE, {
+      status: TOURNAMENT_STATUS.PUBLISHED,
+      active: true,
+      archived: false,
+    });
+
+    assert.equal(allowed.valid, true);
+    assert.equal(blocked.valid, false);
+    assert.equal(blocked.errors.lifecycle, TOURNAMENT_VALIDATION_MESSAGES.CANNOT_DEACTIVATE_PUBLISHED);
+  });
 });

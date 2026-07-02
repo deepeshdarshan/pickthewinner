@@ -25,6 +25,7 @@ import {
   listTournamentsForAdmin,
   publishTournament,
   setActiveTournament,
+  deactivateTournament,
   updateTournament,
 } from './tournament.service.js';
 import {
@@ -105,12 +106,17 @@ async function renderListView(outlet) {
 /**
  * @param {HTMLElement} outlet
  * @param {string} tournamentId
- * @param {boolean} forceReadOnly
+ * @param {boolean} [forceReadOnly]
+ * @param {{ refresh?: boolean }} [options]
  * @returns {Promise<void>}
  */
-async function renderEditView(outlet, tournamentId, forceReadOnly = false) {
-  mountTournamentListLoading(outlet);
-  showLoadingOverlay(TOURNAMENT_MESSAGES.LOADING_TOURNAMENT);
+async function renderEditView(outlet, tournamentId, forceReadOnly = false, options = {}) {
+  const { refresh = false } = options;
+
+  if (!refresh) {
+    mountTournamentListLoading(outlet);
+    showLoadingOverlay(TOURNAMENT_MESSAGES.LOADING_TOURNAMENT);
+  }
 
   try {
     const [tournament, matches] = await Promise.all([
@@ -143,7 +149,9 @@ async function renderEditView(outlet, tournamentId, forceReadOnly = false) {
     outlet.innerHTML = renderTournamentNotFound(getTournamentErrorMessage(error));
     showErrorToast(getTournamentErrorMessage(error));
   } finally {
-    hideLoadingOverlay();
+    if (!refresh) {
+      hideLoadingOverlay();
+    }
   }
 }
 
@@ -223,7 +231,7 @@ function bindLifecycleActions(outlet, tournament) {
       const action = button.getAttribute('data-ptw-lifecycle');
 
       if (action) {
-        void handleLifecycleAction(action, tournament.id);
+        void handleLifecycleAction(action, tournament.id, outlet);
       }
     });
   });
@@ -232,9 +240,10 @@ function bindLifecycleActions(outlet, tournament) {
 /**
  * @param {string} action
  * @param {string} tournamentId
+ * @param {HTMLElement} outlet
  * @returns {Promise<void>}
  */
-async function handleLifecycleAction(action, tournamentId) {
+async function handleLifecycleAction(action, tournamentId, outlet) {
   const authUser = getCurrentUser();
 
   if (!authUser) {
@@ -274,12 +283,16 @@ async function handleLifecycleAction(action, tournamentId) {
         await setActiveTournament(tournamentId, authUser.uid);
         showSuccessToast(TOURNAMENT_MESSAGES.ACTIVE_SET);
         break;
+      case 'set-inactive':
+        await deactivateTournament(tournamentId, authUser.uid);
+        showSuccessToast(TOURNAMENT_MESSAGES.INACTIVE_SET);
+        break;
       default:
         showErrorToast(TOURNAMENT_MESSAGES.GENERIC_ERROR);
         return;
     }
 
-    await navigateTo(`${TOURNAMENT_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(tournamentId)}`);
+    await renderEditView(outlet, tournamentId, false, { refresh: true });
   } catch (error) {
     Logger.error('[TournamentAdmin] Lifecycle action failed:', error);
     showErrorToast(getTournamentErrorMessage(error));
@@ -327,6 +340,13 @@ async function confirmLifecycleAction(action) {
         message: TOURNAMENT_MESSAGES.CONFIRM_SET_ACTIVE,
         confirmLabel: 'Set Active',
         confirmClass: 'btn-success',
+      });
+    case 'set-inactive':
+      return showConfirmationModal({
+        title: 'Mark Tournament Inactive',
+        message: TOURNAMENT_MESSAGES.CONFIRM_SET_INACTIVE,
+        confirmLabel: 'Inactive',
+        confirmClass: 'btn-secondary',
       });
     default:
       return true;
