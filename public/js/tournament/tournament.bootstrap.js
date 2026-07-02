@@ -7,6 +7,7 @@ import { AUTH_EVENTS, onAuthEvent } from '../auth/authentication.events.js';
 import { Logger } from '../utils/logger.util.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { TournamentConfigurationService } from './configuration/TournamentConfigurationService.js';
+import { ApplicationContext } from '../app/application-context.js';
 import {
   clearTournamentCache,
   loadActiveTournamentIntoContext,
@@ -19,6 +20,9 @@ let unsubscribeLogout = null;
 /** @type {(() => void)|null} */
 let unsubscribeActiveChanged = null;
 
+/** @type {(() => void)|null} */
+let unsubscribeTournamentUpdated = null;
+
 /**
  * Initializes tournament module listeners and loads active tournament context.
  * @returns {Promise<void>}
@@ -26,6 +30,7 @@ let unsubscribeActiveChanged = null;
 export async function initTournamentModule() {
   unsubscribeLogout?.();
   unsubscribeActiveChanged?.();
+  unsubscribeTournamentUpdated?.();
 
   unsubscribeLogout = onAuthEvent(AUTH_EVENTS.LOGOUT, () => {
     clearTournamentCache();
@@ -36,6 +41,26 @@ export async function initTournamentModule() {
     if (detail && typeof detail === 'object') {
       void TournamentConfigurationService.load(
         /** @type {{ id?: string }} */ (detail).id ?? null,
+      );
+    }
+  });
+
+  unsubscribeTournamentUpdated = onTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_UPDATED, (detail) => {
+    if (!detail || typeof detail !== 'object') {
+      return;
+    }
+
+    const tournament = /** @type {{ id?: string, active?: boolean, configuration?: Record<string, unknown> }} */ (detail);
+    const activeTournament = ApplicationContext.getTournament();
+    const isActiveTournament = Boolean(tournament.active)
+      || (activeTournament && typeof activeTournament === 'object'
+        && 'id' in activeTournament
+        && activeTournament.id === tournament.id);
+
+    if (isActiveTournament && tournament.id) {
+      void TournamentConfigurationService.load(
+        tournament.id,
+        tournament.configuration ?? null,
       );
     }
   });
@@ -75,8 +100,10 @@ async function handleSessionTournamentLoad() {
 export function destroyTournamentModule() {
   unsubscribeLogout?.();
   unsubscribeActiveChanged?.();
+  unsubscribeTournamentUpdated?.();
   unsubscribeLogout = null;
   unsubscribeActiveChanged = null;
+  unsubscribeTournamentUpdated = null;
   clearTournamentCache();
   TournamentConfigurationService.clearCache();
 }

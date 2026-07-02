@@ -148,6 +148,12 @@ export const TOURNAMENT_STATUS_LABELS = Object.freeze({
 });
 
 /** @type {Readonly<Record<string, string>>} */
+export const LEADERBOARD_MESSAGES = Object.freeze({
+  UNAVAILABLE: 'The tournament organizer has not yet made the leaderboard available.',
+  DASHBOARD_PENDING: 'Leaderboard will become available once enabled by the tournament organizer.',
+});
+
+/** @type {Readonly<Record<string, string>>} */
 export const TOURNAMENT_VISIBILITY_LABELS = Object.freeze({
   [TOURNAMENT_VISIBILITY.VISIBLE]: 'Visible',
   [TOURNAMENT_VISIBILITY.HIDDEN]: 'Hidden',
@@ -164,6 +170,7 @@ export function createDefaultConfiguration() {
     canEndInDraw: false,
     requiresWinner: true,
     winnerResolution: 'regulation',
+    leaderboardVisible: false,
     tieBreaker: { ...DEFAULT_TIE_BREAKER_CONFIG },
     scoringConfiguration: {},
   };

@@ -75,6 +75,7 @@ export function renderTournamentFormPage(tournament = null, options = {}) {
           ${renderIdentitySection(data, defaults, readOnly)}
           ${renderBrandingSection(data, readOnly)}
           ${renderScoringConfigurationSection(scoringConfig, readOnly)}
+          ${renderVisibilitySettingsSection(config, readOnly)}
           ${renderConfigurationSection(config, readOnly)}
         </div>
         ${readOnly ? '' : renderFormActions(isCreate)}
@@ -174,6 +175,37 @@ function renderScoringConfigurationSection(scoringConfig, readOnly) {
       helpText: 'Award these points when the contestant correctly predicts the winner of the penalty shootout. This field only applies to knockout matches that proceed to penalties.',
     },
   )}
+      </div>
+    </section>
+  `;
+}
+
+/**
+ * @param {Record<string, unknown>} config
+ * @param {boolean} readOnly
+ * @returns {string}
+ */
+function renderVisibilitySettingsSection(config, readOnly) {
+  const leaderboardVisible = Boolean(config.leaderboardVisible);
+
+  return `
+    <section class="card ptw-card ptw-tournament-form__section" aria-labelledby="ptw-tournament-visibility-heading">
+      <div class="card-header">
+        <h2 class="h5 mb-0" id="ptw-tournament-visibility-heading">Visibility Settings</h2>
+      </div>
+      <div class="card-body ptw-tournament-form__grid">
+        <div class="ptw-tournament-form__field ptw-tournament-form__field--full ptw-tournament-form__field--switch">
+          ${renderSwitchField({
+    id: 'ptw-tournament-leaderboardVisible',
+    name: 'leaderboardVisible',
+    label: 'Make Leaderboard Visible to Contestants',
+    checked: leaderboardVisible,
+    readOnly,
+  })}
+          <p class="form-text mb-0">
+            When enabled, contestants can view the tournament leaderboard. When disabled, only administrators can access the leaderboard.
+          </p>
+        </div>
       </div>
     </section>
   `;
@@ -414,6 +446,9 @@ export function readTournamentForm(form) {
       requiresWinner: form.querySelector('[name="requiresWinner"]') instanceof HTMLInputElement
         ? /** @type {HTMLInputElement} */ (form.querySelector('[name="requiresWinner"]')).checked
         : true,
+      leaderboardVisible: form.querySelector('[name="leaderboardVisible"]') instanceof HTMLInputElement
+        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="leaderboardVisible"]')).checked
+        : false,
       winnerResolution: 'regulation',
       scoringConfiguration: {
         correctMatchScorePoints: matchScoreRaw === '' || matchScoreRaw === null

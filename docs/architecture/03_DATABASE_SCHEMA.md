@@ -37,6 +37,7 @@ No hardcoded point defaults. Legacy tournaments without these fields must be upd
 | `requiresWinner` | Boolean | Whether knockout matches require a winner |
 | `winnerResolution` | String | Winner resolution strategy (e.g. `regulation`) |
 | `tieBreaker` | Object | Leaderboard tie-breaker strategy |
+| `leaderboardVisible` | Boolean | Whether contestants may view the tournament leaderboard (default `false`) |
 
 ### Example Tournament Document (configuration excerpt)
 
@@ -49,6 +50,7 @@ No hardcoded point defaults. Legacy tournaments without these fields must be upd
     "canEndInDraw": false,
     "requiresWinner": true,
     "winnerResolution": "regulation",
+    "leaderboardVisible": false,
     "tieBreaker": {
       "strategy": "totalPoints",
       "secondary": "correctWinnerPredictions"
@@ -67,4 +69,4 @@ The `scoringConfiguration` object may be extended with additional integer fields
 
 ## Access Pattern
 
-`TournamentConfigurationService` is the only approved read path for `configuration.scoringConfiguration` values at runtime.
+`TournamentConfigurationService` is the only approved read path for `configuration.scoringConfiguration` and `configuration.leaderboardVisible` values at runtime.

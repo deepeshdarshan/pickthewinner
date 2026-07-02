@@ -8,7 +8,8 @@ import { AuthorizationService } from '../authorization/authorization.service.js'
 import { USER_ROLES } from '../users/user.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { getActiveTournament, listTournamentsForContestant } from '../tournament/tournament.service.js';
-import { TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
+import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
+import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 
 /**
  * @typedef {Object} ContestantDashboardDto
@@ -20,6 +21,9 @@ import { TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
  * @property {string} emptyStateTitle
  * @property {string} emptyStateMessage
  * @property {string} tournamentsPath
+ * @property {boolean} leaderboardVisible
+ * @property {string} leaderboardPath
+ * @property {string} leaderboardPendingMessage
  * @property {{ name: string, season: string }|null} activeTournament
  */
 
@@ -41,6 +45,9 @@ export const ContestantDashboardService = {
     const activeTournament = await getActiveTournament();
     const activeTournamentCount = visibleTournaments.length;
 
+    await TournamentConfigurationService.load();
+    const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
+
     return {
       displayName: escapeHtml(displayName),
       role,
@@ -50,6 +57,9 @@ export const ContestantDashboardService = {
       emptyStateTitle: 'No Active Tournaments',
       emptyStateMessage: 'Once a tournament is published, you can begin submitting predictions.',
       tournamentsPath: TOURNAMENT_ROUTES.CONTESTANT_LIST,
+      leaderboardVisible,
+      leaderboardPath: '/leaderboard',
+      leaderboardPendingMessage: LEADERBOARD_MESSAGES.DASHBOARD_PENDING,
       activeTournament: activeTournament
         ? { name: activeTournament.name, season: activeTournament.season }
         : null,

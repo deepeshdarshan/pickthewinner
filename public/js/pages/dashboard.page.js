@@ -41,12 +41,21 @@ async function initDashboard(outlet) {
  * @returns {string}
  */
 function renderContestantDashboard(data) {
+  const leaderboardCard = data.leaderboardVisible
+    ? renderLeaderboardSummaryCard(data)
+    : renderLeaderboardPendingCard(data);
+
   return `
     <div class="container-fluid px-3 px-lg-4 ptw-page-content">
       ${renderPageHeader({
         title: 'Dashboard',
         subtitle: 'Your predictions and upcoming matches',
       })}
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-6">
+          ${leaderboardCard}
+        </div>
+      </div>
       <div class="card ptw-card">
         <div class="card-body">
           <div class="ptw-dashboard-welcome mb-4">
@@ -59,6 +68,43 @@ function renderContestantDashboard(data) {
             icon: 'bi-calendar-event',
           })}
         </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * @param {import('../dashboard/ContestantDashboardService.js').ContestantDashboardDto} data
+ * @returns {string}
+ */
+function renderLeaderboardPendingCard(data) {
+  return `
+    <div class="card ptw-card h-100">
+      <div class="card-header">
+        <h2 class="h6 mb-0">Leaderboard</h2>
+      </div>
+      <div class="card-body">
+        <p class="ptw-text-muted mb-0">${escapeHtml(data.leaderboardPendingMessage)}</p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * @param {import('../dashboard/ContestantDashboardService.js').ContestantDashboardDto} data
+ * @returns {string}
+ */
+function renderLeaderboardSummaryCard(data) {
+  return `
+    <div class="card ptw-card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center gap-2">
+        <h2 class="h6 mb-0">Leaderboard</h2>
+        <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(data.leaderboardPath)}" data-route>
+          View Full Leaderboard
+        </a>
+      </div>
+      <div class="card-body">
+        <p class="ptw-text-muted mb-0">Tournament rankings will appear here once scoring begins.</p>
       </div>
     </div>
   `;

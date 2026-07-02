@@ -12,6 +12,7 @@ import { Logger } from '../utils/logger.util.js';
 import { canActivate } from '../auth/auth.guard.js';
 import { canActivateUserRoute } from '../users/user.guard.js';
 import { canActivateRoleRoute } from '../authorization/role.guard.js';
+import { canActivateLeaderboardRoute } from '../leaderboard/leaderboard.guard.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { AUTHORIZATION_ROUTES } from '../authorization/permission.constants.js';
 import { isAuthenticated } from '../auth/auth.service.js';
@@ -63,7 +64,7 @@ export function isRouterReady() {
  * @returns {Promise<GuardEvaluation>}
  */
 export async function evaluateRouteGuards(route) {
-  const guards = [canActivate, canActivateUserRoute, canActivateRoleRoute];
+  const guards = [canActivate, canActivateUserRoute, canActivateRoleRoute, canActivateLeaderboardRoute];
 
   for (const guard of guards) {
     const result = await guard(route);

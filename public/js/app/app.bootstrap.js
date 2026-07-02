@@ -16,6 +16,7 @@ import { Logger } from '../utils/logger.util.js';
 import { runStartup } from './app.startup.js';
 import { APP_EVENTS, onAppEvent } from './app.events.js';
 import { getCurrentPath } from '../services/router.service.js';
+import { TOURNAMENT_EVENTS, onTournamentEvent } from '../tournament/tournament.events.js';
 
 /**
  * Bootstraps the single-page application.
@@ -66,4 +67,6 @@ function registerShellRefreshHandlers() {
   onUserEvent(USER_EVENTS.PROFILE_UPDATED, refreshShell);
   onAuthorizationEvent(AUTHORIZATION_EVENTS.ROLE_CHANGED, refreshShell);
   onAppEvent(APP_EVENTS.CONTEXT_READY, refreshShell);
+  onTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_UPDATED, refreshShell);
+  onTournamentEvent(TOURNAMENT_EVENTS.ACTIVE_TOURNAMENT_CHANGED, refreshShell);
 }

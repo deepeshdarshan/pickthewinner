@@ -97,8 +97,26 @@ export const TournamentConfigurationService = {
       requiresWinner: true,
       canEndInDraw: false,
       winnerResolution: 'regulation',
+      leaderboardVisible: false,
       scoringConfiguration: {},
     };
+  },
+
+  /**
+   * @returns {boolean}
+   */
+  isLeaderboardVisible() {
+    const config = cachedConfiguration ?? this.getDefaultConfiguration();
+    return Boolean(config.leaderboardVisible);
+  },
+
+  /**
+   * @param {unknown} value
+   * @returns {void}
+   */
+  setLeaderboardVisibility(value) {
+    const base = cachedConfiguration ?? this.getDefaultConfiguration();
+    cachedConfiguration = { ...base, leaderboardVisible: Boolean(value) };
   },
 
   /**
