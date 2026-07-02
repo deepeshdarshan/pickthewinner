@@ -15,23 +15,23 @@ export const LEADERBOARD_EVENTS = Object.freeze({
   SEARCH_CHANGED: 'leaderboard:search_changed',
 });
 
-const leaderboardEventBus = createEventBus('leaderboard');
+const bus = createEventBus('LeaderboardEvents');
 
 /**
  * @param {string} event
- * @param {unknown} data
- * @returns {void}
+ * @param {(detail?: unknown) => void} handler
+ * @returns {() => void}
  */
-export function emitLeaderboardEvent(event, data) {
-  leaderboardEventBus.emit(event, data);
+export function onLeaderboardEvent(event, handler) {
+  return bus.subscribe(event, handler);
 }
 
 /**
  * @param {string} event
- * @param {Function} handler
- * @returns {Function}
+ * @param {unknown} [detail]
+ * @returns {void}
  */
-export function onLeaderboardEvent(event, handler) {
-  return leaderboardEventBus.on(event, handler);
+export function emitLeaderboardEvent(event, detail) {
+  bus.publish(event, detail);
 }
 

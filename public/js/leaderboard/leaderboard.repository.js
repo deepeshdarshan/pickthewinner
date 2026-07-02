@@ -11,7 +11,6 @@ import {
   getDocs,
   getDoc,
   doc,
-  limit as firestoreLimit,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { FIRESTORE_COLLECTIONS } from '../config/application.constants.js';
@@ -167,23 +166,29 @@ class LeaderboardRepository extends BaseFirestoreService {
 
   /**
    * Lists all matches for a tournament.
+   * Avoids composite index by filtering in memory instead of using where + orderBy.
    * @param {string} tournamentId
    * @returns {Promise<Array<Record<string, unknown>>>}
    */
   async listMatchesByTournament(tournamentId) {
     try {
       await ensureFirestoreOnline();
+
+      // Query with orderBy only (no composite index required)
       const q = query(
         collection(db, FIRESTORE_COLLECTIONS.MATCHES),
-        where('tournamentId', '==', tournamentId),
         orderBy('kickoffUtc', 'asc'),
       );
 
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+
+      // Filter by tournamentId in memory
+      return snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter((match) => match.tournamentId === tournamentId);
     } catch (error) {
       Logger.error('[LeaderboardRepository] listMatchesByTournament failed:', tournamentId, error);
       throw error;
