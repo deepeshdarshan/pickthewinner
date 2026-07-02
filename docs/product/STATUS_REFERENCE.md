@@ -81,7 +81,7 @@ Contestant visibility is determined by `TournamentDomain.isTournamentVisibleToCo
 - Tournament becomes visible to contestants (when visibility = Visible).
 - Administrators can publish matches within the tournament.
 - Prediction windows on matches can open according to tournament configuration (`predictionOpenHoursBeforeKickoff`, `predictionLockMinutes`).
-- Tournament may be marked as the **active** tournament (only one active tournament at a time).
+- If no other tournament is currently active, publishing automatically sets this tournament as **active** (only one active tournament at a time). Otherwise administrators must use **Set Active** manually.
 
 **Contestant UI**
 

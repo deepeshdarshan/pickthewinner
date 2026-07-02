@@ -557,11 +557,18 @@ export async function publishTournament(id, uid) {
     throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
   }
 
-  const tournament = await transitionTournamentStatus(id, uid, STATUS.PUBLISHED, {
+  let tournament = await transitionTournamentStatus(id, uid, STATUS.PUBLISHED, {
     visibility: VISIBILITY.VISIBLE,
   });
 
   emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_PUBLISHED, tournament);
+
+  const activeTournament = await getActiveTournament();
+
+  if (!activeTournament) {
+    tournament = await setActiveTournament(id, uid);
+  }
+
   return tournament;
 }
 

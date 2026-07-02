@@ -252,10 +252,15 @@ async function handleLifecycleAction(action, tournamentId) {
 
   try {
     switch (action) {
-      case 'publish':
-        await publishTournament(tournamentId, authUser.uid);
-        showSuccessToast(TOURNAMENT_MESSAGES.PUBLISHED);
+      case 'publish': {
+        const published = await publishTournament(tournamentId, authUser.uid);
+        showSuccessToast(
+          published.active
+            ? TOURNAMENT_MESSAGES.PUBLISHED_AND_ACTIVATED
+            : TOURNAMENT_MESSAGES.PUBLISHED,
+        );
         break;
+      }
       case 'go-live':
         await goLive(tournamentId, authUser.uid);
         showSuccessToast(TOURNAMENT_MESSAGES.WENT_LIVE);
