@@ -64,12 +64,34 @@ export const SCORING_POINTS_MIN = 0;
 /** @type {Readonly<number>} */
 export const SCORING_POINTS_MAX = 100;
 
+/** @type {Readonly<number>} */
+export const PREDICTION_LOCK_MINUTES_MIN = 1;
+
+/** @type {Readonly<number>} */
+export const PREDICTION_LOCK_MINUTES_MAX = 60;
+
+/** @type {Readonly<number>} */
+export const DEFAULT_PREDICTION_LOCK_MINUTES = 10;
+
+/** @type {Readonly<number>} */
+export const PREDICTION_OPEN_HOURS_MIN = 1;
+
+/** @type {Readonly<number>} */
+export const PREDICTION_OPEN_HOURS_MAX = 168;
+
+/** @type {Readonly<number>} */
+export const DEFAULT_PREDICTION_OPEN_HOURS = 48;
+
 /** @type {Readonly<Record<string, string>>} */
 export const SCORING_VALIDATION_MESSAGES = Object.freeze({
   MATCH_SCORE_POINTS_REQUIRED: 'Points for correct match score are required.',
   MATCH_SCORE_POINTS_INVALID: 'Match score points must be a whole number between 0 and 100.',
   PENALTY_WINNER_POINTS_REQUIRED: 'Points for correct penalty shootout winner are required.',
   PENALTY_WINNER_POINTS_INVALID: 'Penalty winner points must be a whole number between 0 and 100.',
+  PREDICTION_LOCK_MINUTES_REQUIRED: 'Prediction lock minutes are required.',
+  PREDICTION_LOCK_MINUTES_INVALID: 'Prediction lock minutes must be between 1 and 60.',
+  PREDICTION_OPEN_HOURS_REQUIRED: 'Prediction open hours are required.',
+  PREDICTION_OPEN_HOURS_INVALID: 'Prediction open hours must be between 1 and 168.',
 });
 
 /** @type {ReadonlySet<string>} */
@@ -171,6 +193,8 @@ export function createDefaultConfiguration() {
     requiresWinner: true,
     winnerResolution: 'regulation',
     leaderboardVisible: false,
+    predictionLockMinutes: DEFAULT_PREDICTION_LOCK_MINUTES,
+    predictionOpenHoursBeforeKickoff: DEFAULT_PREDICTION_OPEN_HOURS,
     tieBreaker: { ...DEFAULT_TIE_BREAKER_CONFIG },
     scoringConfiguration: {},
   };

@@ -7,6 +7,10 @@ import { TournamentDomain, TOURNAMENT_STATUS, TOURNAMENT_VISIBILITY } from '../d
 import {
   DEFAULT_TOURNAMENT_TIMEZONE,
   LIFECYCLE_ACTIONS,
+  PREDICTION_LOCK_MINUTES_MAX,
+  PREDICTION_LOCK_MINUTES_MIN,
+  PREDICTION_OPEN_HOURS_MAX,
+  PREDICTION_OPEN_HOURS_MIN,
   SCORING_POINTS_MAX,
   SCORING_POINTS_MIN,
   SCORING_VALIDATION_MESSAGES,
@@ -200,6 +204,65 @@ export function validateScoringConfiguration(scoringConfiguration) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {TournamentValidationResult}
+ */
+export function validatePredictionLockMinutes(value) {
+  const errors = {};
+
+  if (value === null || value === undefined || value === '') {
+    errors.predictionLockMinutes = SCORING_VALIDATION_MESSAGES.PREDICTION_LOCK_MINUTES_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  const numeric = typeof value === 'number' ? value : Number(value);
+
+  if (!Number.isInteger(numeric) || numeric < PREDICTION_LOCK_MINUTES_MIN || numeric > PREDICTION_LOCK_MINUTES_MAX) {
+    errors.predictionLockMinutes = SCORING_VALIDATION_MESSAGES.PREDICTION_LOCK_MINUTES_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * @param {unknown} value
+ * @returns {TournamentValidationResult}
+ */
+export function validatePredictionOpenHours(value) {
+  const errors = {};
+
+  if (value === null || value === undefined || value === '') {
+    errors.predictionOpenHoursBeforeKickoff = SCORING_VALIDATION_MESSAGES.PREDICTION_OPEN_HOURS_REQUIRED;
+    return { valid: false, errors };
+  }
+
+  const numeric = typeof value === 'number' ? value : Number(value);
+
+  if (!Number.isInteger(numeric) || numeric < PREDICTION_OPEN_HOURS_MIN || numeric > PREDICTION_OPEN_HOURS_MAX) {
+    errors.predictionOpenHoursBeforeKickoff = SCORING_VALIDATION_MESSAGES.PREDICTION_OPEN_HOURS_INVALID;
+    return { valid: false, errors };
+  }
+
+  return { valid: true, errors };
+}
+
+/**
+ * @param {unknown} configuration
+ * @returns {TournamentValidationResult}
+ */
+export function validatePredictionConfiguration(configuration) {
+  const config = /** @type {Record<string, unknown>} */ (
+    configuration && typeof configuration === 'object' ? configuration : {}
+  );
+
+  return mergeValidationResults([
+    validatePredictionLockMinutes(config.predictionLockMinutes),
+    validatePredictionOpenHours(config.predictionOpenHoursBeforeKickoff),
+  ]);
+}
+
+/**
  * Validates tournament create payload.
  * @param {Record<string, unknown>} data
  * @returns {TournamentValidationResult}
@@ -212,6 +275,7 @@ export function validateCreatePayload(data) {
     validateTimezone(configuration.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE),
     validateMatchBehaviour(configuration.canEndInDraw, configuration.requiresWinner),
     validateScoringConfiguration(configuration.scoringConfiguration),
+    validatePredictionConfiguration(configuration),
   ]);
 }
 

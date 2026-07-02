@@ -102,8 +102,15 @@
 - [x] Scoring Configuration section — UI, Firestore persistence, validation, `TournamentConfigurationService` getters
 
 ### Module 07 — Match Module
-- [ ] Match lifecycle states
-- [ ] Match management (admin)
+- [x] Teams and Venues master data admin CRUD
+- [x] Match lifecycle states (draft through archived)
+- [x] Match management admin UI (`/admin/matches`)
+- [x] Contestant published match browsing (`/matches`)
+- [x] Tournament configuration inheritance via `TournamentConfigurationService`
+- [x] Result publication and scoring engine integration
+- [x] Prediction comparison UI for contestants
+- [x] Firestore security rules for matches, teams, venues, audit logs
+- [x] Unit tests for match domain, validator, and scoring domain
 
 ### Module 08 — Prediction Engine
 - [ ] Score predictions with penalty winner on draws

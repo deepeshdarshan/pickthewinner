@@ -32,9 +32,30 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    match /matches/{matchId} {
+    match /teams/{teamId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
+    }
+
+    match /venues/{venueId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    function isContestantVisibleMatch(data) {
+      return data.visible == true
+        && data.status in ['published', 'prediction_open', 'prediction_locked', 'live', 'completed', 'result_published'];
+    }
+
+    match /matches/{matchId} {
+      allow read: if isAdmin() || (isSignedIn() && isContestantVisibleMatch(resource.data));
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
     }
 
     match /predictions/{predictionId} {

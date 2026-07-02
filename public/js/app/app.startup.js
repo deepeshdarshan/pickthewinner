@@ -8,6 +8,8 @@ import { initSession } from '../auth/session.service.js';
 import { isAuthenticated, getCurrentUser, isAdminAuthUser } from '../auth/auth.service.js';
 import { initUserModule } from '../users/user.bootstrap.js';
 import { initTournamentModule } from '../tournament/tournament.bootstrap.js';
+import { initMasterDataModule } from '../master-data/master-data.bootstrap.js';
+import { initMatchModule } from '../match/match.bootstrap.js';
 import { initAuthorizationModule } from '../authorization/authorization.bootstrap.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { ensureAdminProfile, loadCurrentUser } from '../users/user.service.js';
@@ -30,6 +32,8 @@ export async function runStartup() {
 
   await initUserModule();
   await initTournamentModule();
+  await initMasterDataModule();
+  await initMatchModule();
   await initAuthorizationModule();
 
   if (isAuthenticated()) {

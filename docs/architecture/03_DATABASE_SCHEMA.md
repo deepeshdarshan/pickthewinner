@@ -37,6 +37,8 @@ No hardcoded point defaults. Legacy tournaments without these fields must be upd
 | `requiresWinner` | Boolean | Whether knockout matches require a winner |
 | `winnerResolution` | String | Winner resolution strategy (e.g. `regulation`) |
 | `tieBreaker` | Object | Leaderboard tie-breaker strategy |
+| `predictionLockMinutes` | Integer | Minutes before kickoff when predictions lock (1–60, default 10) |
+| `predictionOpenHoursBeforeKickoff` | Integer | Hours before kickoff when predictions open (1–168, default 48) |
 | `leaderboardVisible` | Boolean | Whether contestants may view the tournament leaderboard (default `false`) |
 
 ### Example Tournament Document (configuration excerpt)
@@ -70,3 +72,69 @@ The `scoringConfiguration` object may be extended with additional integer fields
 ## Access Pattern
 
 `TournamentConfigurationService` is the only approved read path for `configuration.scoringConfiguration` and `configuration.leaderboardVisible` values at runtime.
+
+## Teams Collection
+
+**Collection:** `teams`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | String | Team name |
+| `shortName` | String | Optional short name |
+| `country` | String | Country |
+| `flagUrl` | String | Flag or logo URL |
+| `sport` | String | Sport category |
+| `active` | Boolean | Whether selectable in match forms |
+
+## Venues Collection
+
+**Collection:** `venues`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | String | Venue name |
+| `city` | String | City |
+| `country` | String | Country |
+| `capacity` | Integer | Optional capacity |
+| `active` | Boolean | Whether selectable in match forms |
+
+## Matches Collection
+
+**Collection:** `matches`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tournamentId` | String | Parent tournament reference |
+| `matchNumber` | Integer | Unique within tournament |
+| `round` | String | Tournament round |
+| `homeTeamId` | String | Home team reference |
+| `awayTeamId` | String | Away team reference |
+| `venueId` | String | Venue reference |
+| `kickoffUtc` | Timestamp | Kickoff stored in UTC |
+| `status` | String | Lifecycle status |
+| `visible` | Boolean | Contestant visibility flag |
+| `result` | Object | Official result subdocument |
+| `scoringStatus` | String | Scoring completion state |
+
+Tournament configuration is never duplicated on match documents. Runtime reads use `TournamentConfigurationService`.
+
+### `result` subdocument
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `homeScore` | Integer | Score after normal + extra time |
+| `awayScore` | Integer | Score after normal + extra time |
+| `winnerResolution` | String | `normal_time_extra_time` or `penalties` |
+| `winningTeamId` | String | Winning team reference |
+| `notes` | String | Optional admin notes |
+| `published` | Boolean | Whether result is official |
+| `publishedAt` | Timestamp | Publication time |
+| `publishedBy` | String | Admin user ID |
+
+Penalty shootout goals are never stored.
+
+## Audit Logs Collection
+
+**Collection:** `audit_logs`
+
+Append-only administrative audit trail for result publication, scoring, and manual prediction window changes.

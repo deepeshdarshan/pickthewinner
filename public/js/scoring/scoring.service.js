@@ -1,0 +1,105 @@
+/**
+ * @fileoverview Scoring engine — evaluates predictions after result publication.
+ * @module scoring/scoring.service
+ */
+
+import {
+  collection,
+  doc,
+  setDoc,
+  serverTimestamp,
+  updateDoc,
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
+import { FIRESTORE_COLLECTIONS } from '../config/application.constants.js';
+import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { matchRepository } from '../match/match.repository.js';
+import { normalizeMatchDocument } from '../match/match.service.js';
+import {
+  listPredictionsByMatch,
+  updatePrediction,
+  resetPredictionScores,
+} from '../prediction/prediction.repository.js';
+import { ScoringDomain } from './scoring.domain.js';
+import { SCORING_EVENTS, emitScoringEvent } from './scoring.events.js';
+import { writeAuditLog } from '../audit/audit.service.js';
+import { Logger } from '../utils/logger.util.js';
+
+export const ScoringEngine = {
+  /**
+   * @param {string} matchId
+   * @returns {Promise<void>}
+   */
+  async scoreMatch(matchId) {
+    await ensureFirestoreOnline();
+
+    const data = await matchRepository.getById(matchId, false);
+
+    if (!data) {
+      throw new Error('Match not found.');
+    }
+
+    const match = normalizeMatchDocument(matchId, data);
+    const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
+
+    await TournamentConfigurationService.load(match.tournamentId);
+
+    const scoringConfig = {
+      correctMatchScorePoints: TournamentConfigurationService.getCorrectMatchScorePoints(),
+      correctPenaltyWinnerPoints: TournamentConfigurationService.getCorrectPenaltyWinnerPoints(),
+    };
+
+    const predictions = await listPredictionsByMatch(matchId);
+    const leaderboard = new Map();
+
+    for (const prediction of predictions) {
+      const evaluation = ScoringDomain.evaluatePrediction(
+        prediction,
+        {
+          ...result,
+          homeTeamId: match.homeTeamId,
+          awayTeamId: match.awayTeamId,
+        },
+        scoringConfig,
+      );
+
+      await updatePrediction(prediction.id, {
+        calculatedPoints: evaluation.totalPoints,
+        scoringBreakdown: evaluation.breakdown,
+        scored: true,
+        scoredAt: serverTimestamp(),
+      });
+
+      const userId = String(prediction.userId ?? '');
+      leaderboard.set(userId, (leaderboard.get(userId) ?? 0) + evaluation.totalPoints);
+    }
+
+    await setDoc(doc(db, FIRESTORE_COLLECTIONS.LEADERBOARD_CACHE, match.tournamentId), {
+      tournamentId: match.tournamentId,
+      matchId,
+      totals: Object.fromEntries(leaderboard),
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    await matchRepository.update(matchId, { scoringStatus: 'completed' });
+
+    await writeAuditLog({
+      action: 'scoring_completed',
+      entityType: 'match',
+      entityId: matchId,
+      details: { predictionsScored: predictions.length },
+    });
+
+    emitScoringEvent(SCORING_EVENTS.SCORING_COMPLETED, { matchId, tournamentId: match.tournamentId });
+    Logger.info('[ScoringEngine] Scoring completed for match', matchId);
+  },
+
+  /**
+   * @param {string} matchId
+   * @returns {Promise<void>}
+   */
+  async resetMatchScores(matchId) {
+    await resetPredictionScores(matchId);
+    await matchRepository.update(matchId, { scoringStatus: null });
+  },
+};

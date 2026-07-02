@@ -11,11 +11,14 @@ export const USER_ROLES = Object.freeze({
 
 /** @enum {string} */
 export const MATCH_STATES = Object.freeze({
-  HIDDEN: 'hidden',
-  OPEN: 'open',
-  LOCKED: 'locked',
+  DRAFT: 'draft',
+  SCHEDULED: 'scheduled',
+  PUBLISHED: 'published',
+  PREDICTION_OPEN: 'prediction_open',
+  PREDICTION_LOCKED: 'prediction_locked',
   LIVE: 'live',
   COMPLETED: 'completed',
+  RESULT_PUBLISHED: 'result_published',
   ARCHIVED: 'archived',
 });
 
@@ -23,10 +26,13 @@ export const MATCH_STATES = Object.freeze({
 export const FIRESTORE_COLLECTIONS = Object.freeze({
   USERS: 'users',
   TOURNAMENTS: 'tournaments',
+  TEAMS: 'teams',
+  VENUES: 'venues',
   MATCHES: 'matches',
   PREDICTIONS: 'predictions',
   SETTINGS: 'settings',
   LEADERBOARD_CACHE: 'leaderboard_cache',
+  AUDIT_LOGS: 'audit_logs',
 });
 
 /** @enum {string} */

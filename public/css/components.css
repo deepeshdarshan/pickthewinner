@@ -1394,3 +1394,110 @@
 .ptw-table tbody tr:last-child td {
   border-bottom: none;
 }
+
+/* Master data admin forms */
+.ptw-team-form-page,
+.ptw-venue-form-page {
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-inline: var(--ptw-space-3);
+  padding-bottom: var(--ptw-space-6);
+}
+
+.ptw-team-form__grid,
+.ptw-venue-form__grid {
+  display: grid;
+  gap: var(--ptw-space-4);
+}
+
+@media (min-width: 768px) {
+  .ptw-team-form__grid,
+  .ptw-venue-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ptw-team-form__field--switch,
+  .ptw-venue-form__field--switch {
+    grid-column: 1 / -1;
+  }
+}
+
+.ptw-team-flag,
+.ptw-searchable-select__thumb {
+  object-fit: cover;
+  border-radius: var(--ptw-radius-sm);
+}
+
+.ptw-searchable-select {
+  position: relative;
+}
+
+.ptw-searchable-select__dropdown {
+  position: absolute;
+  z-index: 20;
+  width: 100%;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin-top: var(--ptw-space-1);
+  border: 1px solid var(--ptw-color-border);
+  border-radius: var(--ptw-radius-md);
+  background: var(--ptw-color-bg-secondary);
+  box-shadow: var(--ptw-shadow-md);
+}
+
+.ptw-searchable-select__option {
+  border: none;
+  background: transparent;
+  color: var(--ptw-color-text-primary);
+  text-align: left;
+}
+
+.ptw-searchable-select__option:hover,
+.ptw-searchable-select__option:focus {
+  background: var(--ptw-color-bg-tertiary);
+}
+
+/* Match module */
+.ptw-match-form-page,
+.ptw-match-list-page {
+  width: 100%;
+  max-width: 56rem;
+  margin-inline: auto;
+  padding-bottom: var(--ptw-space-6);
+}
+
+.ptw-match-form__grid {
+  display: grid;
+  gap: var(--ptw-space-4);
+}
+
+@media (min-width: 768px) {
+  .ptw-match-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ptw-match-filters {
+  position: sticky;
+  top: var(--ptw-space-3);
+  z-index: 5;
+}
+
+.ptw-match-fab {
+  position: fixed;
+  right: var(--ptw-space-4);
+  bottom: calc(var(--ptw-mobile-nav-height, 4rem) + var(--ptw-space-4));
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--ptw-shadow-lg);
+  z-index: 10;
+}
+
+.ptw-match-card .ptw-countdown {
+  margin-top: var(--ptw-space-2);
+}

@@ -256,6 +256,22 @@ function renderConfigurationSection(config, readOnly) {
     readOnly,
   })}
         </div>
+        ${renderTextField('predictionLockMinutes', 'Prediction Lock (minutes before kickoff)', config.predictionLockMinutes ?? 10, {
+    required: true,
+    readOnly,
+    type: 'number',
+    min: 1,
+    max: 60,
+    halfWidth: true,
+  })}
+        ${renderTextField('predictionOpenHoursBeforeKickoff', 'Prediction Opens (hours before kickoff)', config.predictionOpenHoursBeforeKickoff ?? 48, {
+    required: true,
+    readOnly,
+    type: 'number',
+    min: 1,
+    max: 168,
+    halfWidth: true,
+  })}
       </div>
     </section>
   `;
@@ -431,6 +447,8 @@ export function readTournamentForm(form) {
   const formData = new FormData(form);
   const matchScoreRaw = formData.get('correctMatchScorePoints');
   const penaltyWinnerRaw = formData.get('correctPenaltyWinnerPoints');
+  const lockMinutesRaw = formData.get('predictionLockMinutes');
+  const openHoursRaw = formData.get('predictionOpenHoursBeforeKickoff');
 
   return {
     name: formData.get('name'),
@@ -449,6 +467,12 @@ export function readTournamentForm(form) {
       leaderboardVisible: form.querySelector('[name="leaderboardVisible"]') instanceof HTMLInputElement
         ? /** @type {HTMLInputElement} */ (form.querySelector('[name="leaderboardVisible"]')).checked
         : false,
+      predictionLockMinutes: lockMinutesRaw === '' || lockMinutesRaw === null
+        ? null
+        : Number(lockMinutesRaw),
+      predictionOpenHoursBeforeKickoff: openHoursRaw === '' || openHoursRaw === null
+        ? null
+        : Number(openHoursRaw),
       winnerResolution: 'regulation',
       scoringConfiguration: {
         correctMatchScorePoints: matchScoreRaw === '' || matchScoreRaw === null

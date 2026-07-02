@@ -98,6 +98,8 @@ export const TournamentConfigurationService = {
       canEndInDraw: false,
       winnerResolution: 'regulation',
       leaderboardVisible: false,
+      predictionLockMinutes: 10,
+      predictionOpenHoursBeforeKickoff: 48,
       scoringConfiguration: {},
     };
   },
@@ -184,6 +186,34 @@ export const TournamentConfigurationService = {
   getCorrectPenaltyWinnerPoints() {
     const scoring = this.getScoringConfiguration();
     return resolveScoringPoints(scoring.correctPenaltyWinnerPoints);
+  },
+
+  /**
+   * @returns {number}
+   */
+  getPredictionLockMinutes() {
+    const config = cachedConfiguration ?? this.getDefaultConfiguration();
+    const value = Number(config.predictionLockMinutes ?? 10);
+
+    if (!Number.isInteger(value) || value < 1 || value > 60) {
+      throw new Error('Prediction lock configuration is incomplete');
+    }
+
+    return value;
+  },
+
+  /**
+   * @returns {number}
+   */
+  getPredictionOpenHoursBeforeKickoff() {
+    const config = cachedConfiguration ?? this.getDefaultConfiguration();
+    const value = Number(config.predictionOpenHoursBeforeKickoff ?? 48);
+
+    if (!Number.isInteger(value) || value < 1 || value > 168) {
+      throw new Error('Prediction open hours configuration is incomplete');
+    }
+
+    return value;
   },
 
   /**
