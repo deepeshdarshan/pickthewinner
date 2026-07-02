@@ -3,6 +3,8 @@
  * @module components/countdown.component
  */
 
+import { startCountdown, formatCountdown } from '../utils/countdown.util.js';
+
 /**
  * @typedef {Object} CountdownOptions
  * @property {string} targetDate - ISO date string for the countdown target.
@@ -38,3 +40,40 @@ export function mountCountdown(container, options) {
   container.innerHTML = renderCountdown(options);
   return container.querySelector('.ptw-countdown');
 }
+
+/**
+ * Initializes all countdown timers on the page.
+ * @param {HTMLElement} [container=document.body] - Container to search for countdowns
+ * @returns {Array<() => void>} Array of cleanup functions to stop countdowns
+ */
+export function initializeCountdowns(container = document.body) {
+  const countdowns = container.querySelectorAll('[data-ptw-countdown-value]');
+  const cleanupFunctions = [];
+
+  countdowns.forEach((element) => {
+    const countdownContainer = element.closest('.ptw-countdown');
+    if (!countdownContainer) {
+      return;
+    }
+
+    const targetDate = countdownContainer.getAttribute('data-target');
+    if (!targetDate) {
+      return;
+    }
+
+    const cleanup = startCountdown(targetDate, (parts) => {
+      if (parts.expired) {
+        element.textContent = 'Expired';
+        element.classList.add('text-danger');
+      } else {
+        element.textContent = formatCountdown(parts);
+        element.classList.remove('text-danger');
+      }
+    });
+
+    cleanupFunctions.push(cleanup);
+  });
+
+  return cleanupFunctions;
+}
+

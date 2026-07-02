@@ -8,6 +8,7 @@ import { renderPageHeader } from '../components/page-header.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
 import { renderMatchCard } from '../match/match-card.component.js';
+import { initializeCountdowns } from '../components/countdown.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getTournamentById } from '../tournament/tournament.service.js';
@@ -97,6 +98,7 @@ async function initTournamentDetailPage(outlet, tournamentId) {
 
     outlet.innerHTML = renderTournamentDetailPage(tournament, matches, predictionsMap);
     attachEventHandlers(outlet);
+    initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[TournamentDetailPage] Failed to load:', error);
     outlet.innerHTML = renderErrorState(error.message);

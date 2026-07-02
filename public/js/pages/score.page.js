@@ -7,6 +7,7 @@ import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-ov
 import { renderPageHeader } from '../components/page-header.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
+import { initializeCountdowns } from '../components/countdown.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getActiveTournament } from '../tournament/tournament.service.js';
@@ -115,6 +116,7 @@ async function initScorePage(outlet) {
         accuracy: totalCompleted > 0 ? Math.round((correctWinners / totalCompleted) * 100) : 0,
       },
     });
+    initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[ScorePage] Failed to load:', error);
     outlet.innerHTML = renderErrorState(error.message);

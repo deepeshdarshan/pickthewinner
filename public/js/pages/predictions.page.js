@@ -9,7 +9,9 @@ import { renderEmptyState } from '../components/empty-state.component.js';
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
+import { getTournamentById } from '../tournament/tournament.service.js';
 import { renderMatchCard } from '../match/match-card.component.js';
+import { initializeCountdowns } from '../components/countdown.component.js';
 import { renderPredictionForm, attachPredictionFormHandlers } from '../prediction/prediction-form.component.js';
 import {
   submitPrediction,
@@ -110,6 +112,7 @@ async function renderPredictionsListView(outlet) {
 
     outlet.innerHTML = renderPredictionsPage(matches, predictionsMap);
     attachPredictionsPageHandlers(outlet);
+    initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[PredictionsPage] Failed to load:', error);
     outlet.innerHTML = renderErrorState(error.message);

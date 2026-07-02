@@ -40,7 +40,7 @@ export function renderMatchCard(options) {
           <span class="badge bg-secondary me-2">${escapeHtml(match.round || 'TBD')}</span>
           ${statusBadge}
         </div>
-        ${kickoff ? renderCountdown(kickoff) : ''}
+        ${kickoff ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Time remaining' }) : ''}
       </div>
       <div class="card-body">
         <div class="row align-items-center g-3">
