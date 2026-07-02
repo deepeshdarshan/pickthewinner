@@ -47,6 +47,49 @@ export function formatDateDisplay(value, options = {}, locale = appSettings.loca
 }
 
 /**
+ * Formats a date with time for display (e.g., "Jul 15, 2026, 7:30 PM IST").
+ * @param {Date|string|number} value
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function formatDateTime(value, locale = appSettings.locale) {
+  const date = toDate(value);
+  if (!date) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
+/**
+ * Formats a date without time for display (e.g., "Jul 15, 2026").
+ * @param {Date|string|number} value
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function formatDate(value, locale = appSettings.locale) {
+  const date = toDate(value);
+  if (!date) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
+
+/**
  * Converts supported values to a Date instance.
  * @param {Date|string|number} value
  * @returns {Date|null}

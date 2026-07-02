@@ -21,7 +21,6 @@ import { MatchDomain } from '../domain/match.domain.js';
 /**
  * @typedef {Object} MatchListFilters
  * @property {string} [tournamentId]
- * @property {string} [round]
  * @property {string} [status]
  * @property {string} [date]
  * @property {string} [search]
@@ -118,10 +117,6 @@ class MatchRepository extends BaseFirestoreService {
         String(match.status ?? ''),
         Boolean(match.visible),
       ));
-    }
-
-    if (filters.round) {
-      matches = matches.filter((match) => match.round === filters.round);
     }
 
     if (filters.status) {

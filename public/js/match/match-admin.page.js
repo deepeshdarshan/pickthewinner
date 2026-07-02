@@ -402,14 +402,12 @@ function bindResultForm(outlet, match) {
 function bindListFilters(outlet, matches, tournaments) {
   const search = outlet.querySelector('#ptw-match-filter-search');
   const tournamentFilter = outlet.querySelector('#ptw-match-filter-tournament');
-  const roundFilter = outlet.querySelector('#ptw-match-filter-round');
   const statusFilter = outlet.querySelector('#ptw-match-filter-status');
   const dateFilter = outlet.querySelector('#ptw-match-filter-date');
 
   const apply = () => {
     const term = search instanceof HTMLInputElement ? search.value.trim().toLowerCase() : '';
     const tournamentId = tournamentFilter instanceof HTMLSelectElement ? tournamentFilter.value : '';
-    const round = roundFilter instanceof HTMLSelectElement ? roundFilter.value : '';
     const status = statusFilter instanceof HTMLSelectElement ? statusFilter.value : '';
     const date = dateFilter instanceof HTMLInputElement ? dateFilter.value : '';
 
@@ -423,7 +421,6 @@ function bindListFilters(outlet, matches, tournaments) {
 
       if (match) {
         if (tournamentId && match.tournamentId !== tournamentId) visible = false;
-        if (round && match.round !== round) visible = false;
         if (status && match.status !== status) visible = false;
         if (date) {
           const kickoff = match.kickoffUtc && typeof match.kickoffUtc === 'object' && 'toDate' in match.kickoffUtc
@@ -438,7 +435,7 @@ function bindListFilters(outlet, matches, tournaments) {
     });
   };
 
-  [search, tournamentFilter, roundFilter, statusFilter, dateFilter].forEach((element) => {
+  [search, tournamentFilter, statusFilter, dateFilter].forEach((element) => {
     element?.addEventListener('input', apply);
     element?.addEventListener('change', apply);
   });

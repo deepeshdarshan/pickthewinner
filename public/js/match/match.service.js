@@ -32,7 +32,7 @@ import { Logger } from '../utils/logger.util.js';
  * @property {string} id
  * @property {string} tournamentId
  * @property {number} matchNumber
- * @property {string} round
+ * @property {string} [round]
  * @property {string} homeTeamId
  * @property {string} awayTeamId
  * @property {import('firebase/firestore').Timestamp|Date|null} kickoffUtc
@@ -144,7 +144,6 @@ function buildFirestorePayload(payload) {
   return {
     tournamentId: String(payload.tournamentId ?? ''),
     matchNumber: Number(payload.matchNumber ?? 0),
-    round: String(payload.round ?? ''),
     homeTeamId: String(payload.homeTeamId ?? ''),
     awayTeamId: String(payload.awayTeamId ?? ''),
     kickoffUtc: toFirestoreTimestamp(payload.kickoffUtc),

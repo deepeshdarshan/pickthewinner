@@ -6,7 +6,7 @@
 import { renderPageHeader } from '../../components/page-header.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
-import { MATCH_ROUTES, MATCH_ROUNDS } from '../match.constants.js';
+import { MATCH_ROUTES } from '../match.constants.js';
 
 /**
  * @param {string} placeholder
@@ -91,19 +91,6 @@ export function renderMatchFormPage(options) {
     disabled: readOnly,
     optionsHtml: renderSelectOptionsHtml('Select tournament…', tournamentOptions, data.tournamentId ?? ''),
     errorId: 'ptw-match-tournamentId-error',
-  })}
-            ${renderIconSelectField({
-    id: 'ptw-match-round',
-    name: 'round',
-    label: 'Round',
-    icon: 'bi-diagram-3',
-    required: true,
-    disabled: readOnly,
-    optionsHtml: MATCH_ROUNDS.map((round) => {
-      const selected = round.value === data.round ? ' selected' : '';
-      return `<option value="${escapeHtml(round.value)}"${selected}>${escapeHtml(round.label)}</option>`;
-    }).join(''),
-    errorId: 'ptw-match-round-error',
   })}
             ${isCreate ? '' : renderIconInputField({
     id: 'ptw-match-matchNumber',
@@ -226,7 +213,6 @@ export function readMatchForm(form) {
 
   return {
     tournamentId: form.elements.namedItem('tournamentId')?.value ?? '',
-    round: form.elements.namedItem('round')?.value ?? '',
     homeTeamId: form.elements.namedItem('homeTeamId')?.value ?? '',
     awayTeamId: form.elements.namedItem('awayTeamId')?.value ?? '',
     kickoffUtc,

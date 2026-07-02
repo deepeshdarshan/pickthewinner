@@ -3,13 +3,12 @@ import assert from 'node:assert/strict';
 import { validateCreatePayload } from '../public/js/match/match.validator.js';
 
 describe('MatchValidator', () => {
-  it('requires tournament, teams, round, and kickoff', () => {
+  it('requires tournament, teams, and kickoff', () => {
     const result = validateCreatePayload({});
     assert.equal(result.valid, false);
     assert.ok(result.errors.tournamentId);
     assert.ok(result.errors.homeTeamId);
     assert.ok(result.errors.awayTeamId);
-    assert.ok(result.errors.round);
     assert.ok(result.errors.kickoffUtc);
   });
 
@@ -18,7 +17,6 @@ describe('MatchValidator', () => {
       tournamentId: 't1',
       homeTeamId: 'team-a',
       awayTeamId: 'team-a',
-      round: 'final',
       kickoffUtc: new Date(),
     });
 
@@ -32,7 +30,6 @@ describe('MatchValidator', () => {
       tournamentId: 't1',
       homeTeamId: 'team-a',
       awayTeamId: 'team-b',
-      round: 'final',
       kickoffUtc: new Date('2026-07-10T18:00:00+05:30'),
     });
 

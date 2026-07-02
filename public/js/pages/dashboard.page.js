@@ -7,6 +7,7 @@ import { renderPageHeader } from '../components/page-header.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
 import { renderCompactMatchCard } from '../match/match-card.component.js';
+import { renderCompactTournamentCard } from '../components/tournament-card.component.js';
 import { USER_ROLES } from '../users/user.constants.js';
 import { AdminDashboardService } from '../dashboard/AdminDashboardService.js';
 import { ContestantDashboardService } from '../dashboard/ContestantDashboardService.js';
@@ -153,21 +154,13 @@ function renderContestantDashboard(data) {
           <div class="card ptw-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h2 class="h5 mb-0">
-                <i class="bi bi-calendar-event me-2" aria-hidden="true"></i>
+                <i class="bi bi-trophy me-2" aria-hidden="true"></i>
                 Tournaments
               </h2>
               <a href="/tournaments" class="btn btn-sm btn-outline-primary" data-route>View All</a>
             </div>
             <div class="card-body">
-              ${data.tournaments.slice(0, 3).map((tournament) => `
-                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                  <div>
-                    <strong>${escapeHtml(tournament.name)}</strong>
-                    <div><small class="ptw-text-muted">${escapeHtml(tournament.season)}</small></div>
-                  </div>
-                  <span class="badge ${tournament.active ? 'bg-success' : 'bg-secondary'}">${tournament.status}</span>
-                </div>
-              `).join('')}
+              ${data.tournaments.slice(0, 3).map((tournament) => renderCompactTournamentCard(tournament)).join('')}
               ${data.tournaments.length === 0 ? '<p class="ptw-text-muted mb-0">No tournaments available</p>' : ''}
             </div>
           </div>

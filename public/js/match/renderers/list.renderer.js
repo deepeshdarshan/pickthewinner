@@ -11,9 +11,7 @@ import { escapeHtml } from '../../utils/html.util.js';
 import {
   MATCH_MESSAGES,
   MATCH_ROUTES,
-  MATCH_ROUNDS,
   MATCH_STATUS_LABELS,
-  getRoundLabel,
 } from '../match.constants.js';
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
 
@@ -69,7 +67,6 @@ export function renderMatchListPage(matches, options = {}) {
               <th scope="col">#</th>
               <th scope="col">Match</th>
               <th scope="col">Tournament</th>
-              <th scope="col">Round</th>
               <th scope="col">Kickoff</th>
               <th scope="col">Status</th>
               <th scope="col" class="text-end">Actions</th>
@@ -106,7 +103,6 @@ export function renderMatchListPage(matches, options = {}) {
  * @returns {string}
  */
 function renderFilters(tournaments) {
-  const roundOptions = MATCH_ROUNDS.map((round) => `<option value="${escapeHtml(round.value)}">${escapeHtml(round.label)}</option>`).join('');
   const statusOptions = Object.entries(MATCH_STATUS_LABELS)
     .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
     .join('');
@@ -128,13 +124,6 @@ function renderFilters(tournaments) {
             <select class="form-select" id="ptw-match-filter-tournament">
               <option value="">All</option>
               ${tournamentOptions}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ptw-match-filter-round">Round</label>
-            <select class="form-select" id="ptw-match-filter-round">
-              <option value="">All</option>
-              ${roundOptions}
             </select>
           </div>
           <div class="col-md-2">
@@ -167,7 +156,6 @@ function renderMatchRow(match) {
       <td>${match.matchNumber}</td>
       <td>${renderTeamsCell(match)}</td>
       <td>${escapeHtml(match.tournamentName ?? '')}</td>
-      <td>${escapeHtml(getRoundLabel(match.round))}</td>
       <td>${escapeHtml(formatKickoff(match))}</td>
       <td>${renderMatchStatusBadge(match.status)}</td>
       <td class="text-end">
@@ -193,7 +181,7 @@ function renderMatchCard(match) {
           ${renderMatchStatusBadge(match.status)}
         </div>
         <div class="small ptw-text-muted mb-2">
-          <div>${escapeHtml(match.tournamentName ?? '')} · ${escapeHtml(getRoundLabel(match.round))}</div>
+          <div>${escapeHtml(match.tournamentName ?? '')}</div>
           <div>${escapeHtml(formatKickoff(match))}</div>
         </div>
         ${kickoffIso ? renderCountdown({ targetDate: kickoffIso, label: 'Kickoff in', id: `ptw-countdown-${match.id}` }) : ''}

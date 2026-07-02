@@ -1605,6 +1605,42 @@
   font-weight: var(--ptw-font-weight-semibold);
 }
 
+/* Tournament Cards */
+.ptw-tournament-card {
+  transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
+}
+
+.ptw-tournament-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ptw-tournament-banner {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-bottom: 1px solid var(--ptw-color-border);
+}
+
+.ptw-tournament-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ptw-tournament-card .card-footer {
+  padding: var(--ptw-space-3);
+}
+
+.ptw-tournament-card .progress {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-radius: var(--ptw-radius-full);
+}
+
+.ptw-tournament-card .progress-bar {
+  border-radius: var(--ptw-radius-full);
+  transition: width 0.3s ease;
+}
+
 /* Prediction Form */
 #prediction-form input[type="number"] {
   font-size: 1.5rem;
