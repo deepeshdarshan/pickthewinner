@@ -48,6 +48,7 @@ A modern tournament prediction platform built with
 10 Results Module
 
 11 Leaderboard
+        ✔
 
 12 Statistics
 
