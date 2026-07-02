@@ -4,7 +4,8 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
-import { renderPageHeader } from '../components/page-header.component.js';
+import { renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
 import { initializeCountdowns } from '../components/countdown.component.js';
@@ -50,8 +51,8 @@ async function initScorePage(outlet) {
 
     if (!tournament) {
       outlet.innerHTML = `
-        <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-          ${renderPageHeader({
+        <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+          ${renderContestantPageHeader({
             title: 'My Score',
             subtitle: 'Your prediction results and points',
           })}
@@ -135,8 +136,8 @@ function renderScorePage(options) {
   const { tournament, completedMatches, pendingMatches, predictionsMap, stats } = options;
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-      ${renderPageHeader({
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      ${renderContestantPageHeader({
         title: 'My Score',
         subtitle: `${tournament.name} ${tournament.season}`,
       })}
@@ -294,7 +295,7 @@ function checkExactScore(prediction, match) {
  */
 function renderLoadingState() {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       <div class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -312,7 +313,7 @@ function renderLoadingState() {
  */
 function renderErrorState(message) {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       ${renderEmptyState({
         title: 'Error',
         message: message || 'Failed to load results',

@@ -29,7 +29,7 @@ export function getDashboardRouteForProfile(profile) {
     return AUTH_ROUTES.ADMIN;
   }
 
-  return CONTESTANT_ROUTES.PREDICTIONS;
+  return CONTESTANT_ROUTES.DASHBOARD;
 }
 
 /**

@@ -3,7 +3,8 @@
  * @module pages/page-placeholder
  */
 
-import { renderPageHeader } from '../components/page-header.component.js';
+import { renderPageHeader, renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.component.js';
 import { MESSAGES } from '../config/application.constants.js';
 
@@ -14,6 +15,7 @@ import { MESSAGES } from '../config/application.constants.js';
  * @property {string} icon
  * @property {string} [description]
  * @property {boolean} [wrapContainer=true]
+ * @property {'admin'|'contestant'} [shell='admin']
  */
 
 /**
@@ -28,10 +30,14 @@ export function renderPlaceholderPage(options) {
     icon,
     description = MESSAGES.COMING_SOON,
     wrapContainer = true,
+    shell = 'admin',
   } = options;
 
+  const headerRenderer = shell === 'contestant' ? renderContestantPageHeader : renderPageHeader;
+  const shellClasses = shell === 'contestant' ? CONTESTANT_PAGE_SHELL_CLASSES : ADMIN_PAGE_SHELL_CLASSES;
+
   const content = `
-    ${renderPageHeader({ title, subtitle })}
+    ${headerRenderer({ title, subtitle })}
     <div class="card ptw-card">
       <div class="card-body ptw-placeholder-card">
         <i class="bi ${icon}" aria-hidden="true"></i>
@@ -46,7 +52,7 @@ export function renderPlaceholderPage(options) {
   }
 
   return `
-    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
+    <div class="${shellClasses}">
       ${content}
     </div>
   `;

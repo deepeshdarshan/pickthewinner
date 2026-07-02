@@ -218,7 +218,7 @@ export const AuthorizationService = {
     }
 
     if (this.hasRole(Roles.CONTESTANT)) {
-      return CONTESTANT_ROUTES.PREDICTIONS;
+      return CONTESTANT_ROUTES.DASHBOARD;
     }
 
     if (isAuthenticated()) {

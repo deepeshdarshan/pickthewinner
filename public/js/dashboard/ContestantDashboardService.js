@@ -16,6 +16,36 @@ import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 
 /**
+ * @typedef {Object} ContestantActivityItem
+ * @property {string} id
+ * @property {string} type
+ * @property {string} message
+ * @property {string} timestampLabel
+ */
+
+/**
+ * @typedef {Object} ContestantQuickStats
+ * @property {number} tournamentsJoined
+ * @property {number} predictionsSubmitted
+ * @property {number} correctWinners
+ * @property {number} exactScores
+ * @property {number|null} accuracy
+ * @property {number} currentPoints
+ * @property {number|null} currentRank
+ * @property {number} lifetimePoints
+ */
+
+/**
+ * @typedef {Object} TournamentCardStats
+ * @property {string} tournamentId
+ * @property {number} totalMatches
+ * @property {number} predictionsSubmitted
+ * @property {number} completionPercentage
+ * @property {number} pointsEarned
+ * @property {number|null} currentRank
+ */
+
+/**
  * @typedef {Object} ContestantDashboardDto
  * @property {string} displayName
  * @property {string} role
@@ -30,8 +60,14 @@ import { getPredictionForUser } from '../prediction/prediction.service.js';
  * @property {string} leaderboardPendingMessage
  * @property {{ name: string, season: string, id: string }|null} activeTournament
  * @property {import('../tournament/tournament.service.js').Tournament[]} tournaments
+ * @property {Array<import('../tournament/tournament.service.js').Tournament & { stats: TournamentCardStats }>} tournamentCards
+ * @property {import('../match/match.service.js').EnrichedMatch|null} featuredMatch
+ * @property {Record<string, unknown>|null} featuredMatchPrediction
  * @property {import('../match/match.service.js').EnrichedMatch[]} upcomingMatches
+ * @property {Record<string, Record<string, unknown>|null>} upcomingPredictions
  * @property {{ total: number, submitted: number, pending: number }} predictionStats
+ * @property {ContestantQuickStats} quickStats
+ * @property {ContestantActivityItem[]} recentActivity
  */
 
 /**
@@ -53,11 +89,14 @@ export const ContestantDashboardService = {
   async getDashboardData() {
     await AuthorizationService.resolve();
 
+    const user = getCurrentUser();
     const profile = ApplicationContext.getProfile();
     const role = AuthorizationService.getCurrentRole() ?? USER_ROLES.CONTESTANT;
+    const authUser = ApplicationContext.getCurrentUser() ?? user;
     const displayName = profile?.name
-      || ApplicationContext.getCurrentUser()?.displayName
-      || 'User';
+      || authUser?.displayName
+      || authUser?.email?.split('@')[0]
+      || 'Contestant';
 
     const visibleTournaments = await listTournamentsForContestant();
     const activeTournament = await getActiveTournament();
@@ -66,22 +105,35 @@ export const ContestantDashboardService = {
     await TournamentConfigurationService.load();
     const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
 
-    // Get upcoming matches
     const allMatches = await listMatchesForContestant();
     const now = new Date();
     const upcomingMatches = allMatches
       .filter((match) => {
-        const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
+        const kickoff = toDate(match.kickoffUtc);
         return kickoff && kickoff > now;
       })
       .sort((a, b) => {
-        const aKickoff = a.kickoffUtc instanceof Date ? a.kickoffUtc : a.kickoffUtc?.toDate?.() ?? new Date(0);
-        const bKickoff = b.kickoffUtc instanceof Date ? b.kickoffUtc : b.kickoffUtc?.toDate?.() ?? new Date(0);
-        return aKickoff.getTime() - bKickoff.getTime();
+        const aKickoff = toDate(a.kickoffUtc)?.getTime() ?? 0;
+        const bKickoff = toDate(b.kickoffUtc)?.getTime() ?? 0;
+        return aKickoff - bKickoff;
       })
       .slice(0, 5);
 
-    // Get prediction stats
+    const featuredMatch = upcomingMatches[0] ?? null;
+    const upcomingPredictions = {};
+    let featuredMatchPrediction = null;
+
+    if (user) {
+      await Promise.all(upcomingMatches.map(async (match) => {
+        const prediction = await getPredictionForUser(match.id, user.uid);
+        upcomingPredictions[match.id] = prediction;
+      }));
+
+      if (featuredMatch) {
+        featuredMatchPrediction = upcomingPredictions[featuredMatch.id] ?? null;
+      }
+    }
+
     let predictionStats = { total: 0, submitted: 0, pending: 0 };
 
     if (user && activeTournament) {
@@ -90,16 +142,43 @@ export const ContestantDashboardService = {
       predictionStats = {
         total: tournamentMatches.length,
         submitted: summary.submitted,
-        pending: tournamentMatches.length - summary.submitted,
+        pending: Math.max(tournamentMatches.length - summary.submitted, 0),
       };
     }
+
+    const tournamentCards = user
+      ? await Promise.all(visibleTournaments.map(async (tournament) => ({
+        ...tournament,
+        stats: await ContestantDashboardService.getTournamentStats(tournament.id, user.uid),
+      })))
+      : visibleTournaments.map((tournament) => ({
+        ...tournament,
+        stats: {
+          tournamentId: tournament.id,
+          totalMatches: 0,
+          predictionsSubmitted: 0,
+          predictionsPending: 0,
+          completionPercentage: 0,
+          pointsEarned: 0,
+          currentRank: null,
+        },
+      }));
+
+    const quickStats = buildQuickStats({
+      tournamentsJoined: activeTournamentCount,
+      predictionStats,
+      allMatches,
+      userId: user?.uid ?? null,
+    });
+
+    const recentActivity = buildRecentActivity(allMatches, user?.uid ?? null);
 
     return {
       displayName: escapeHtml(displayName),
       role,
       hasActiveTournaments: activeTournamentCount > 0,
       activeTournamentCount,
-      welcomeMessage: `Welcome ${escapeHtml(displayName)}!`,
+      welcomeMessage: `Welcome back, ${escapeHtml(displayName)}!`,
       emptyStateTitle: 'No Active Tournaments',
       emptyStateMessage: 'Once a tournament is published, you can begin submitting predictions.',
       tournamentsPath: TOURNAMENT_ROUTES.CONTESTANT_LIST,
@@ -109,9 +188,15 @@ export const ContestantDashboardService = {
       activeTournament: activeTournament
         ? { name: activeTournament.name, season: activeTournament.season, id: activeTournament.id }
         : null,
-      tournaments: unentered,
+      tournaments: visibleTournaments,
+      tournamentCards,
+      featuredMatch,
+      featuredMatchPrediction,
       upcomingMatches,
+      upcomingPredictions,
       predictionStats,
+      quickStats,
+      recentActivity,
     };
   },
 
@@ -122,12 +207,13 @@ export const ContestantDashboardService = {
    * @returns {Promise<TournamentStats>}
    */
   async getTournamentStats(tournamentId, userId) {
-    const allMatches = await listMatchesForContestant({ tournamentId });
+    const allMatches = await listMatchesForContestant();
+    const tournamentMatches = allMatches.filter((match) => match.tournamentId === tournamentId);
     const summary = await getPredictionSummary(userId, tournamentId);
 
-    const totalMatches = allMatches.length;
+    const totalMatches = tournamentMatches.length;
     const predictionsSubmitted = summary.submitted;
-    const predictionsPending = totalMatches - predictionsSubmitted;
+    const predictionsPending = Math.max(totalMatches - predictionsSubmitted, 0);
     const completionPercentage = totalMatches > 0 ? Math.round((predictionsSubmitted / totalMatches) * 100) : 0;
 
     return {
@@ -136,8 +222,84 @@ export const ContestantDashboardService = {
       predictionsSubmitted,
       predictionsPending,
       completionPercentage,
-      pointsEarned: 0, // TODO: Calculate from scoring results
-      currentRank: null, // TODO: Fetch from leaderboard
+      pointsEarned: 0,
+      currentRank: null,
     };
   },
 };
+
+/**
+ * @param {unknown} value
+ * @returns {Date|null}
+ */
+function toDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof value.toDate === 'function') {
+    return value.toDate();
+  }
+
+  return null;
+}
+
+/**
+ * @param {{
+ *   tournamentsJoined: number,
+ *   predictionStats: { submitted: number },
+ *   allMatches: import('../match/match.service.js').EnrichedMatch[],
+ *   userId: string|null,
+ * }} input
+ * @returns {ContestantQuickStats}
+ */
+function buildQuickStats(input) {
+  const completedMatches = input.allMatches.filter((match) => match.result?.published);
+
+  return {
+    tournamentsJoined: input.tournamentsJoined,
+    predictionsSubmitted: input.predictionStats.submitted,
+    correctWinners: 0,
+    exactScores: 0,
+    accuracy: completedMatches.length > 0 ? null : null,
+    currentPoints: 0,
+    currentRank: null,
+    lifetimePoints: 0,
+  };
+}
+
+/**
+ * @param {import('../match/match.service.js').EnrichedMatch[]} matches
+ * @param {string|null} userId
+ * @returns {ContestantActivityItem[]}
+ */
+function buildRecentActivity(matches, userId) {
+  if (!userId) {
+    return [];
+  }
+
+  const published = matches
+    .filter((match) => match.result?.published)
+    .slice(0, 3)
+    .map((match, index) => ({
+      id: `result-${match.id}`,
+      type: 'result',
+      message: `Result published for ${match.homeTeam?.name ?? 'Home'} vs ${match.awayTeam?.name ?? 'Away'}.`,
+      timestampLabel: 'Recently',
+    }));
+
+  if (published.length > 0) {
+    return published;
+  }
+
+  return [{
+    id: 'welcome-activity',
+    type: 'info',
+    message: 'Submit predictions for upcoming matches to see activity here.',
+    timestampLabel: 'Now',
+  }];
+}

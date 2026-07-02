@@ -3,7 +3,8 @@
  * @module pages/leaderboard.page
  */
 
-import { renderPageHeader } from '../components/page-header.component.js';
+import { renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 
 /**
@@ -13,8 +14,8 @@ import { renderEmptyState } from '../components/empty-state.component.js';
  */
 export function render(outlet) {
   outlet.innerHTML = `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-      ${renderPageHeader({
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      ${renderContestantPageHeader({
         title: 'Leaderboard',
         subtitle: 'Tournament standings and rankings',
       })}

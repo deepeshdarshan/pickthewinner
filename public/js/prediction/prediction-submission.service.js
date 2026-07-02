@@ -27,7 +27,7 @@ const PREDICTIONS_COLLECTION = 'predictions';
  * @typedef {Object} PredictionPayload
  * @property {number} homeScore
  * @property {number} awayScore
- * @property {string|null} [penaltyWinner]
+ * @property {string|null} [predictedWinner]
  */
 
 /**
@@ -38,9 +38,9 @@ const PREDICTIONS_COLLECTION = 'predictions';
  * @property {string} tournamentId
  * @property {number} homeScore
  * @property {number} awayScore
- * @property {boolean} isPenaltyShootout
- * @property {string|null} penaltyWinner
+ * @property {string|null} predictedWinner
  * @property {boolean} locked
+ * @property {string} status
  * @property {import('firebase/firestore').Timestamp|Date|null} submittedAt
  * @property {import('firebase/firestore').Timestamp|Date|null} updatedAt
  */
@@ -48,10 +48,10 @@ const PREDICTIONS_COLLECTION = 'predictions';
 /**
  * Validates prediction payload.
  * @param {PredictionPayload} payload
- * @param {boolean} requireWinnerForDraw
+ * @param {boolean} requireWinnerSelectionForDrawPrediction
  * @returns {{ valid: boolean, errors: Record<string, string> }}
  */
-function validatePredictionPayload(payload, requireWinnerForDraw) {
+function validatePredictionPayload(payload, requireWinnerSelectionForDrawPrediction) {
   const errors = {};
 
   if (!Number.isInteger(payload.homeScore) || payload.homeScore < 0) {
@@ -64,16 +64,21 @@ function validatePredictionPayload(payload, requireWinnerForDraw) {
 
   const isDraw = payload.homeScore === payload.awayScore;
 
-  if (requireWinnerForDraw && isDraw && !payload.penaltyWinner) {
-    errors.penaltyWinner = 'Winner selection is required when predicting equal scores';
+  if (requireWinnerSelectionForDrawPrediction && isDraw && !payload.predictedWinner) {
+    errors.predictedWinner = 'Winner selection is required when predicting equal scores';
   }
 
-  if (!requireWinnerForDraw && payload.penaltyWinner) {
-    errors.penaltyWinner = 'Winner cannot be selected when draws are allowed';
+  if (!requireWinnerSelectionForDrawPrediction && payload.predictedWinner) {
+    errors.predictedWinner = 'Winner cannot be selected when draws are allowed';
   }
 
-  if (payload.penaltyWinner && !['HOME', 'AWAY'].includes(payload.penaltyWinner)) {
-    errors.penaltyWinner = 'Winner must be either HOME or AWAY';
+  if (payload.predictedWinner && !['HOME', 'AWAY'].includes(payload.predictedWinner)) {
+    errors.predictedWinner = 'Winner must be either HOME or AWAY';
+  }
+
+  // Winner selection should only be present when scores are equal
+  if (payload.predictedWinner && !isDraw) {
+    errors.predictedWinner = 'Winner selection is only valid when scores are equal';
   }
 
   return {
@@ -155,9 +160,9 @@ export async function getExistingPrediction(matchId, userId) {
     tournamentId: data.tournamentId || '',
     homeScore: Number(data.homeScore ?? 0),
     awayScore: Number(data.awayScore ?? 0),
-    isPenaltyShootout: Boolean(data.isPenaltyShootout),
-    penaltyWinner: data.penaltyWinner || null,
+    predictedWinner: data.predictedWinner || null,
     locked: Boolean(data.locked),
+    status: data.status || 'saved',
     submittedAt: data.submittedAt || null,
     updatedAt: data.updatedAt || null,
   };
@@ -190,9 +195,9 @@ export async function submitPrediction(matchId, payload) {
 
   // Load tournament configuration
   await TournamentConfigurationService.load(match.tournamentId);
-  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
+  const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
 
-  const validation = validatePredictionPayload(payload, requireWinnerForDraw);
+  const validation = validatePredictionPayload(payload, requireWinnerSelectionForDrawPrediction);
 
   if (!validation.valid) {
     const errorMessage = Object.values(validation.errors).join('. ');
@@ -215,9 +220,9 @@ export async function submitPrediction(matchId, payload) {
     tournamentId: match.tournamentId,
     homeScore: payload.homeScore,
     awayScore: payload.awayScore,
-    isPenaltyShootout: requireWinnerForDraw && isDraw,
-    penaltyWinner: (requireWinnerForDraw && isDraw) ? payload.penaltyWinner : null,
+    predictedWinner: (requireWinnerSelectionForDrawPrediction && isDraw) ? payload.predictedWinner : null,
     locked: false,
+    status: 'saved',
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -271,9 +276,9 @@ export async function updatePrediction(matchId, payload) {
 
   // Load tournament configuration
   await TournamentConfigurationService.load(match.tournamentId);
-  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
+  const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
 
-  const validation = validatePredictionPayload(payload, requireWinnerForDraw);
+  const validation = validatePredictionPayload(payload, requireWinnerSelectionForDrawPrediction);
 
   if (!validation.valid) {
     const errorMessage = Object.values(validation.errors).join('. ');
@@ -286,8 +291,8 @@ export async function updatePrediction(matchId, payload) {
   const updateData = {
     homeScore: payload.homeScore,
     awayScore: payload.awayScore,
-    isPenaltyShootout: requireWinnerForDraw && isDraw,
-    penaltyWinner: (requireWinnerForDraw && isDraw) ? payload.penaltyWinner : null,
+    predictedWinner: (requireWinnerSelectionForDrawPrediction && isDraw) ? payload.predictedWinner : null,
+    status: 'updated',
     updatedAt: serverTimestamp(),
   };
 

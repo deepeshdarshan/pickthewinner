@@ -197,8 +197,7 @@ export const TOURNAMENT_VISIBILITY_LABELS = Object.freeze({
 export function createDefaultConfiguration() {
   return {
     timezone: DEFAULT_TOURNAMENT_TIMEZONE,
-    canEndInDraw: false,
-    requiresWinner: true,
+    requireWinnerSelectionForDrawPrediction: false,
     winnerResolution: 'regulation',
     leaderboardVisible: false,
     predictionLockMinutes: DEFAULT_PREDICTION_LOCK_MINUTES,

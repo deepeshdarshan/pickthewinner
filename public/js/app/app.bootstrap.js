@@ -39,6 +39,7 @@ export async function bootstrapApplication() {
 
     await runStartup();
     registerShellRefreshHandlers();
+    updateAppShell(normalizePath(window.location.pathname));
     await initRouter(outlet);
 
     Logger.info('Application bootstrap complete.');

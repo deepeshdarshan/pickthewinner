@@ -16,22 +16,20 @@ describe('PredictionDomain winner selection workflow', () => {
     const result = PredictionDomain.validatePredictionScores({
       homeScore: 1,
       awayScore: 1,
-      isPenaltyShootout: false,
-      penaltyWinner: null,
-      requireWinnerForDraw: true,
+      predictedWinner: null,
+      requireWinnerSelectionForDrawPrediction: true,
     });
 
     assert.equal(result.valid, false);
-    assert.ok(result.errors.penalty);
+    assert.ok(result.errors.predictedWinner);
   });
 
   it('accepts equal scores with winner when required', () => {
     const result = PredictionDomain.validatePredictionScores({
       homeScore: 1,
       awayScore: 1,
-      isPenaltyShootout: true,
-      penaltyWinner: PENALTY_WINNER.HOME,
-      requireWinnerForDraw: true,
+      predictedWinner: PENALTY_WINNER.HOME,
+      requireWinnerSelectionForDrawPrediction: true,
     });
 
     assert.equal(result.valid, true);
@@ -41,21 +39,31 @@ describe('PredictionDomain winner selection workflow', () => {
     const result = PredictionDomain.validatePredictionScores({
       homeScore: 2,
       awayScore: 1,
-      isPenaltyShootout: false,
-      penaltyWinner: null,
-      requireWinnerForDraw: true,
+      predictedWinner: null,
+      requireWinnerSelectionForDrawPrediction: true,
     });
 
     assert.equal(result.valid, true);
+  });
+
+  it('rejects different scores with winner selection', () => {
+    const result = PredictionDomain.validatePredictionScores({
+      homeScore: 2,
+      awayScore: 1,
+      predictedWinner: PENALTY_WINNER.HOME,
+      requireWinnerSelectionForDrawPrediction: true,
+    });
+
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.predictedWinner);
   });
 
   it('accepts equal scores without winner when draws allowed', () => {
     const result = PredictionDomain.validatePredictionScores({
       homeScore: 1,
       awayScore: 1,
-      isPenaltyShootout: false,
-      penaltyWinner: null,
-      requireWinnerForDraw: false,
+      predictedWinner: null,
+      requireWinnerSelectionForDrawPrediction: false,
     });
 
     assert.equal(result.valid, true);

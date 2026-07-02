@@ -94,7 +94,7 @@ export const TournamentConfigurationService = {
     return {
       timezone: appSettings.timezone,
       tieBreaker: { ...DEFAULT_TIE_BREAKER },
-      requireWinnerForDraw: false,
+      requireWinnerSelectionForDrawPrediction: false,
       winnerResolution: 'regulation',
       leaderboardVisible: false,
       predictionLockMinutes: 10,
@@ -141,8 +141,13 @@ export const TournamentConfigurationService = {
    *
    * @returns {boolean}
    */
-  requireWinnerForDraw() {
+  requireWinnerSelectionForDrawPrediction() {
     const config = cachedConfiguration ?? this.getDefaultConfiguration();
+
+    // Check new field name first
+    if (config.requireWinnerSelectionForDrawPrediction !== undefined) {
+      return Boolean(config.requireWinnerSelectionForDrawPrediction);
+    }
 
     // Handle legacy configurations for backward compatibility
     if (config.requireWinnerForDraw !== undefined) {
@@ -160,6 +165,29 @@ export const TournamentConfigurationService = {
     }
 
     return false; // Default: league-style, draws allowed
+  },
+
+  /**
+   * @deprecated Use requireWinnerSelectionForDrawPrediction() instead
+   * @returns {boolean}
+   */
+  requireWinnerForDraw() {
+    return this.requireWinnerSelectionForDrawPrediction();
+  },
+
+  /**
+   * Returns whether match results require a winner (for knockout tournaments).
+   * This is used for match result validation, not prediction validation.
+   *
+   * When TRUE: Matches must have a winner (knockout style)
+   * When FALSE: Draws are valid results (league style)
+   *
+   * @returns {boolean}
+   */
+  requiresWinner() {
+    // For match results, this aligns with whether predictions require winner selection
+    // If predictions require winner selection for draws, the match type is knockout-style
+    return this.requireWinnerSelectionForDrawPrediction();
   },
 
   /**

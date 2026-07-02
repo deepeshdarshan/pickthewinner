@@ -1,5 +1,5 @@
 /**
- * @fileoverview Admin sidebar — persistent left navigation panel for admin pages.
+ * @fileoverview Application sidebar — persistent left navigation for admin and contestant shells.
  * @module components/sidebar.component
  */
 
@@ -7,71 +7,99 @@ import { appSettings } from '../config/app.config.js';
 import { AppContext } from '../app/app.context.js';
 import { performLogout } from '../auth/actions/logout.action.js';
 import { renderAppLogo } from '../shared/logo/logo.component.js';
+import { renderAvatar } from '../shared/avatar/avatar.component.js';
+import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { escapeHtml } from '../utils/html.util.js';
+import {
+  ADMIN_ACCOUNT_LINKS,
+  ADMIN_NAV_SECTIONS,
+  CONTESTANT_ACCOUNT_LINKS,
+  CONTESTANT_NAV_SECTIONS,
+  isAdminShellPath,
+  isContestantShellPath,
+  normalizeShellPath,
+} from './sidebar-nav.config.js';
 
-/** @type {ReadonlySet<string>} */
-const ADMIN_SHELL_EXACT_PATHS = new Set(['/admin', '/settings', '/leaderboard', '/profile']);
-
-/** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }> }>} */
-const ADMIN_NAV_SECTIONS = Object.freeze([
-  { type: 'item', path: '/admin', label: 'Overview', icon: 'bi-house' },
-  {
-    type: 'group',
-    label: 'Tournament Management',
-    icon: 'bi-calendar-event',
-    children: [
-      { path: '/admin/tournaments', label: 'All Tournaments' },
-      { path: '/admin/tournaments/archived', label: 'Archived Tournaments' },
-    ],
-  },
-  { type: 'item', path: '/admin/teams', label: 'Teams', icon: 'bi-people' },
-  {
-    type: 'group',
-    label: 'Match Management',
-    icon: 'bi-flag',
-    children: [
-      { path: '/admin/matches', label: 'Matches' },
-      { path: '/admin/matches/archived', label: 'Archived Matches' },
-      { path: '/admin/results', label: 'Results' },
-    ],
-  },
-  { type: 'item', path: '/leaderboard', label: 'Leaderboard', icon: 'bi-bar-chart' },
-  {
-    type: 'group',
-    label: 'Administration',
-    icon: 'bi-shield-lock',
-    children: [
-      { path: '/admin/users', label: 'User Management' },
-    ],
-  },
-]);
-
-/** @type {ReadonlyArray<{ path: string, label: string, icon: string }>} */
-const ADMIN_ACCOUNT_LINKS = Object.freeze([
-  { path: '/profile', label: 'Profile', icon: 'bi-person' },
-  { path: '/settings', label: 'Settings', icon: 'bi-gear' },
-]);
+/**
+ * @typedef {'admin' | 'contestant'} SidebarVariant
+ */
 
 /**
  * @typedef {Object} SidebarOptions
  * @property {string} [activePath]
+ * @property {SidebarVariant} [variant='admin']
  */
 
 /**
- * Renders the admin sidebar navigation panel.
+ * Returns whether the current path should show the admin sidebar shell.
+ * @param {string} path
+ * @returns {boolean}
+ */
+export function isAdminPath(path) {
+  return isAdminShellPath(path);
+}
+
+/**
+ * Returns whether the current path should use a sidebar shell layout.
+ * @param {string} path
+ * @param {'admin' | 'contestant'|null} [role]
+ * @returns {boolean}
+ */
+export function isSidebarShellPath(path, role = null) {
+  if (role === 'admin') {
+    return isAdminShellPath(path);
+  }
+
+  if (role === 'contestant') {
+    return isContestantShellPath(path);
+  }
+
+  return isAdminShellPath(path) || isContestantShellPath(path);
+}
+
+/**
+ * Resolves sidebar variant from path and role.
+ * @param {string} path
+ * @param {'admin' | 'contestant'|null} [role]
+ * @returns {SidebarVariant}
+ */
+export function getSidebarVariant(path, role = null) {
+  if (role === 'admin') {
+    return 'admin';
+  }
+
+  if (role === 'contestant') {
+    return 'contestant';
+  }
+
+  return isAdminShellPath(normalizeShellPath(path)) ? 'admin' : 'contestant';
+}
+
+/**
+ * Renders the sidebar navigation panel.
  * @param {SidebarOptions} [options]
  * @returns {string}
  */
 export function renderSidebar(options = {}) {
-  const { activePath = '/admin' } = options;
-  const email = AppContext.getEmail() || 'Administrator';
-  const navMarkup = ADMIN_NAV_SECTIONS.map((section) => renderNavSection(section, activePath)).join('');
-  const accountMarkup = ADMIN_ACCOUNT_LINKS.map((link) => renderAccountLink(link, activePath)).join('');
+  const { activePath = '/admin', variant = 'admin' } = options;
+  const isContestant = variant === 'contestant';
+  const homePath = isContestant ? '/dashboard' : '/admin';
+  const navLabel = isContestant ? 'Contestant navigation' : 'Admin navigation';
+  const navSections = filterNavSections(
+    isContestant ? CONTESTANT_NAV_SECTIONS : ADMIN_NAV_SECTIONS,
+    isContestant,
+  );
+  const accountLinks = isContestant ? CONTESTANT_ACCOUNT_LINKS : ADMIN_ACCOUNT_LINKS;
+  const navMarkup = navSections.map((section) => renderNavSection(section, activePath, homePath)).join('');
+  const accountMarkup = accountLinks.map((link) => renderAccountLink(link, activePath)).join('');
+  const displayName = resolveSidebarDisplayName(isContestant);
+  const roleLabel = isContestant ? 'Contestant' : 'Administrator';
+  const photoURL = AppContext.getPhotoURL();
 
   return `
-    <aside class="ptw-sidebar" aria-label="Admin navigation">
+    <aside class="ptw-sidebar" aria-label="${escapeHtml(navLabel)}">
       <div class="ptw-sidebar__brand">
-        <a href="/admin" class="ptw-sidebar__brand-link" data-route aria-label="${escapeHtml(appSettings.appName)} home">
+        <a href="${homePath}" class="ptw-sidebar__brand-link" data-route aria-label="${escapeHtml(appSettings.appName)} home">
           ${renderAppLogo({ variant: 'navbar', className: 'ptw-sidebar__brand-logo', alt: '' })}
           <span class="ptw-sidebar__brand-text">${escapeHtml(appSettings.appName)}</span>
         </a>
@@ -89,8 +117,11 @@ export function renderSidebar(options = {}) {
         </div>
         <div class="ptw-sidebar__divider" role="presentation"></div>
         <div class="ptw-sidebar__user">
-          <i class="bi bi-person-circle" aria-hidden="true"></i>
-          <span class="ptw-sidebar__user-email">${escapeHtml(email)}</span>
+          ${renderAvatar({ photoURL, className: 'ptw-sidebar__user-avatar', size: 36 })}
+          <div class="ptw-sidebar__user-meta">
+            <span class="ptw-sidebar__user-name">${escapeHtml(displayName)}</span>
+            <span class="ptw-sidebar__user-role">${escapeHtml(roleLabel)}</span>
+          </div>
         </div>
         <button type="button" class="ptw-sidebar__logout-btn" data-ptw-sidebar-logout>
           <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
@@ -99,6 +130,27 @@ export function renderSidebar(options = {}) {
       </div>
     </aside>
   `;
+}
+
+/**
+ * @param {ReadonlyArray<{ type: string, hideWhenLeaderboardHidden?: boolean }>} sections
+ * @param {boolean} isContestant
+ * @returns {ReadonlyArray<unknown>}
+ */
+function filterNavSections(sections, isContestant) {
+  if (!isContestant) {
+    return sections;
+  }
+
+  const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
+
+  return sections.filter((section) => {
+    if (section.hideWhenLeaderboardHidden && !leaderboardVisible) {
+      return false;
+    }
+
+    return true;
+  });
 }
 
 /**
@@ -137,11 +189,12 @@ export function renderSidebarOffcanvas(options = {}) {
 /**
  * @param {{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }> }} section
  * @param {string} activePath
+ * @param {string} homePath
  * @returns {string}
  */
-function renderNavSection(section, activePath) {
+function renderNavSection(section, activePath, homePath) {
   if (section.type === 'item') {
-    const isActive = isSidebarPathActive(activePath, section.path);
+    const isActive = isSidebarPathActive(activePath, section.path, homePath);
 
     return `
       <li class="ptw-sidebar__item">
@@ -158,9 +211,9 @@ function renderNavSection(section, activePath) {
     `;
   }
 
-  const childActive = section.children.some((child) => isSidebarPathActive(activePath, child.path));
+  const childActive = section.children.some((child) => isSidebarPathActive(activePath, child.path, homePath));
   const childMarkup = section.children.map((child) => {
-    const isActive = isSidebarPathActive(activePath, child.path);
+    const isActive = isSidebarPathActive(activePath, child.path, homePath);
 
     return `
       <li class="ptw-sidebar__subitem">
@@ -195,7 +248,7 @@ function renderNavSection(section, activePath) {
  * @returns {string}
  */
 function renderAccountLink(link, activePath) {
-  const isActive = isSidebarPathActive(activePath, link.path);
+  const isActive = isSidebarPathActive(activePath, link.path, link.path);
 
   return `
     <a
@@ -211,10 +264,13 @@ function renderAccountLink(link, activePath) {
 }
 
 /**
- * Renders a compact mobile menu bar for admin pages (no global header).
+ * Renders a compact mobile menu bar for sidebar shell pages.
+ * @param {SidebarVariant} [variant='admin']
  * @returns {string}
  */
-function renderAdminMobileBar() {
+function renderSidebarMobileBar(variant = 'admin') {
+  const label = variant === 'contestant' ? 'Open navigation' : 'Open admin navigation';
+
   return `
     <div class="ptw-admin-mobile-bar d-lg-none">
       <button
@@ -223,7 +279,7 @@ function renderAdminMobileBar() {
         data-bs-toggle="offcanvas"
         data-bs-target="#ptwAdminSidebarOffcanvas"
         aria-controls="ptwAdminSidebarOffcanvas"
-        aria-label="Open admin navigation"
+        aria-label="${escapeHtml(label)}"
       >
         <i class="bi bi-list" aria-hidden="true"></i>
       </button>
@@ -239,8 +295,10 @@ function renderAdminMobileBar() {
  * @returns {void}
  */
 export function mountSidebar(container, options = {}) {
+  const variant = options.variant ?? 'admin';
+
   container.innerHTML = `
-    ${renderAdminMobileBar()}
+    ${renderSidebarMobileBar(variant)}
     <div class="ptw-sidebar-panel d-none d-lg-flex">
       ${renderSidebar(options)}
     </div>
@@ -250,21 +308,66 @@ export function mountSidebar(container, options = {}) {
 }
 
 /**
+ * Resolves the label shown in the sidebar user section.
+ * @param {boolean} isContestant
+ * @returns {string}
+ */
+function resolveSidebarDisplayName(isContestant) {
+  return AppContext.getDisplayName()
+    || AppContext.getEmail()
+    || (isContestant ? 'Contestant' : 'Administrator');
+}
+
+/**
+ * Updates sidebar user name and avatar without remounting navigation.
+ * @param {HTMLElement} container
+ * @param {SidebarVariant} [variant='admin']
+ * @returns {boolean}
+ */
+export function updateSidebarUserInfo(container, variant = 'admin') {
+  const nameElements = container.querySelectorAll('.ptw-sidebar__user-name');
+
+  if (nameElements.length === 0) {
+    return false;
+  }
+
+  const displayName = resolveSidebarDisplayName(variant === 'contestant');
+  const photoURL = AppContext.getPhotoURL();
+
+  nameElements.forEach((element) => {
+    element.textContent = displayName;
+  });
+
+  container.querySelectorAll('.ptw-sidebar__user-avatar').forEach((avatarMount) => {
+    avatarMount.outerHTML = renderAvatar({
+      photoURL,
+      className: 'ptw-sidebar__user-avatar',
+      size: 36,
+    });
+  });
+
+  return true;
+}
+
+/**
  * Updates active navigation state without remounting the sidebar.
  * @param {HTMLElement} container
  * @param {string} activePath
+ * @param {SidebarVariant} [variant='admin']
  * @returns {boolean}
  */
-export function updateSidebarActiveState(container, activePath) {
+export function updateSidebarActiveState(container, activePath, variant = 'admin') {
   const sidebar = container.querySelector('.ptw-sidebar');
 
   if (!sidebar) {
     return false;
   }
 
+  const homePath = variant === 'contestant' ? '/dashboard' : '/admin';
+
   container.querySelectorAll('.ptw-sidebar__link, .ptw-sidebar__sublink, .ptw-sidebar__account-link').forEach((link) => {
     const href = link.getAttribute('href') ?? '';
-    const isActive = isSidebarPathActive(activePath, href);
+    const isActive = isSidebarPathActive(activePath, href, homePath);
     link.classList.toggle('active', isActive);
     link.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
@@ -278,40 +381,17 @@ export function updateSidebarActiveState(container, activePath) {
 }
 
 /**
- * Returns whether the current path should show the admin shell (sidebar + static header/footer).
- * @param {string} path
- * @returns {boolean}
- */
-export function isAdminPath(path) {
-  const normalized = normalizeShellPath(path);
-
-  if (ADMIN_SHELL_EXACT_PATHS.has(normalized)) {
-    return true;
-  }
-
-  return normalized.startsWith('/admin/');
-}
-
-/**
  * @param {string} activePath
  * @param {string} itemPath
+ * @param {string} homePath
  * @returns {boolean}
  */
-function isSidebarPathActive(activePath, itemPath) {
+function isSidebarPathActive(activePath, itemPath, homePath) {
   const normalizedActive = normalizeShellPath(activePath);
   const normalizedItem = normalizeShellPath(itemPath);
 
   return normalizedActive === normalizedItem
-    || (normalizedItem !== '/admin' && normalizedActive.startsWith(`${normalizedItem}/`));
-}
-
-/**
- * @param {string} path
- * @returns {string}
- */
-function normalizeShellPath(path) {
-  const trimmed = path.split('?')[0].replace(/\/+$/, '') || '/';
-  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    || (normalizedItem !== homePath && normalizedActive.startsWith(`${normalizedItem}/`));
 }
 
 /**

@@ -9,6 +9,17 @@ export const PENALTY_WINNER = Object.freeze({
   AWAY: 'AWAY',
 });
 
+/** @enum {string} */
+export const PREDICTION_STATUS = Object.freeze({
+  NOT_AVAILABLE: 'not_available',
+  OPEN: 'open',
+  SAVED: 'saved',
+  UPDATED: 'updated',
+  LOCKED: 'locked',
+  SCORED: 'scored',
+  ARCHIVED: 'archived',
+});
+
 export const PredictionDomain = {
   /**
    * @param {boolean} isLocked
@@ -32,40 +43,14 @@ export const PredictionDomain = {
   },
 
   /**
-   * @param {string} matchFormat
-   * @returns {boolean}
-   */
-  requiresWinner(matchFormat) {
-    return matchFormat === 'knockout' || matchFormat === 'group';
-  },
-
-  /**
-   * @param {number|null|undefined} homeScore
-   * @param {number|null|undefined} awayScore
-   * @param {boolean} allowsDraw
-   * @returns {boolean}
-   */
-  validatePenaltyWorkflow(homeScore, awayScore, allowsDraw) {
-    const result = this.validatePredictionScores({
-      homeScore,
-      awayScore,
-      isPenaltyShootout: false,
-      penaltyWinner: null,
-      canEndInDraw: allowsDraw,
-    });
-
-    return result.valid;
-  },
-
-  /**
    * Determines if winner selection should be shown when scores are equal.
    * @param {number|null|undefined} homeScore
    * @param {number|null|undefined} awayScore
-   * @param {boolean} requireWinnerForDraw - Tournament configuration flag
+   * @param {boolean} requireWinnerSelectionForDrawPrediction - Tournament configuration flag
    * @returns {boolean}
    */
-  shouldShowWinnerSelection(homeScore, awayScore, requireWinnerForDraw) {
-    if (!requireWinnerForDraw) {
+  shouldShowWinnerSelection(homeScore, awayScore, requireWinnerSelectionForDrawPrediction) {
+    if (!requireWinnerSelectionForDrawPrediction) {
       return false;  // Draws are valid without winner selection
     }
 
@@ -82,17 +67,15 @@ export const PredictionDomain = {
    * @param {Object} params
    * @param {number|null|undefined} params.homeScore
    * @param {number|null|undefined} params.awayScore
-   * @param {boolean} [params.isPenaltyShootout] - Legacy parameter
-   * @param {string|null|undefined} [params.penaltyWinner]
-   * @param {boolean} [params.requireWinnerForDraw] - Tournament configuration
+   * @param {string|null|undefined} [params.predictedWinner]
+   * @param {boolean} [params.requireWinnerSelectionForDrawPrediction] - Tournament configuration
    * @returns {{ valid: boolean, errors: Record<string, string> }}
    */
   validatePredictionScores({
     homeScore,
     awayScore,
-    isPenaltyShootout = false,
-    penaltyWinner = null,
-    requireWinnerForDraw = false,
+    predictedWinner = null,
+    requireWinnerSelectionForDrawPrediction = false,
   }) {
     const errors = {};
 
@@ -117,23 +100,28 @@ export const PredictionDomain = {
     }
 
     // If draws don't require winner selection, prediction is valid
-    if (!requireWinnerForDraw) {
+    if (!requireWinnerSelectionForDrawPrediction) {
+      // Winner selection should not be provided when draws are allowed
+      if (predictedWinner && home !== away) {
+        errors.predictedWinner = 'Winner selection is only valid when scores are equal.';
+        return { valid: false, errors };
+      }
       return { valid: true, errors: {} };
     }
 
     // If scores are not equal, prediction is valid (winner implied)
     if (home !== away) {
+      // Winner selection should not be provided when scores differ
+      if (predictedWinner) {
+        errors.predictedWinner = 'Winner selection is only valid when scores are equal.';
+        return { valid: false, errors };
+      }
       return { valid: true, errors: {} };
     }
 
     // Scores are equal and winner required - check for winner selection
-    if (!isPenaltyShootout) {
-      errors.penalty = 'Equal scores require selecting a winner.';
-      return { valid: false, errors };
-    }
-
-    if (!penaltyWinner || !Object.values(PENALTY_WINNER).includes(penaltyWinner)) {
-      errors.penaltyWinner = 'Winner selection is required when scores are equal.';
+    if (!predictedWinner || !Object.values(PENALTY_WINNER).includes(predictedWinner)) {
+      errors.predictedWinner = 'Winner selection is required when scores are equal.';
       return { valid: false, errors };
     }
 

@@ -4,7 +4,8 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
-import { renderPageHeader } from '../components/page-header.component.js';
+import { renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
@@ -85,8 +86,8 @@ async function renderPredictionsListView(outlet) {
 
     if (matches.length === 0) {
       outlet.innerHTML = `
-        <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-          ${renderPageHeader({
+        <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+          ${renderContestantPageHeader({
             title: 'Predictions',
             subtitle: 'Submit your match predictions',
           })}
@@ -183,7 +184,7 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
 
     outlet.innerHTML = `
-      <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+      <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
         <button class="btn btn-outline-light mb-3" onclick="history.back()">
           <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to Predictions
         </button>
@@ -226,8 +227,8 @@ function renderPredictionsPage(matches, predictionsMap) {
   const pendingPredictions = totalMatches - submittedPredictions;
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-      ${renderPageHeader({
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      ${renderContestantPageHeader({
         title: 'Predictions',
         subtitle: 'Submit and manage your match predictions',
       })}
@@ -354,7 +355,7 @@ function attachFormHandlers(outlet) {
  */
 function renderLoadingState() {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       <div class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -372,7 +373,7 @@ function renderLoadingState() {
  */
 function renderErrorState(message) {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       ${renderEmptyState({
         title: 'Error',
         message: message || 'Failed to load predictions',

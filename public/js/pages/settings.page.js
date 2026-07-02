@@ -4,6 +4,9 @@
  */
 
 import { renderPageHeader } from '../components/page-header.component.js';
+import { AuthorizationService } from '../authorization/authorization.service.js';
+import { USER_ROLES } from '../users/user.constants.js';
+import { render as renderContestantSection } from './contestant-section.page.js';
 import { appSettings } from '../config/app.config.js';
 import { performLogout } from '../auth/actions/logout.action.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
@@ -22,7 +25,14 @@ import { escapeHtml } from '../utils/html.util.js';
  * @returns {void}
  */
 export function render(outlet) {
-  void initSettingsPage(outlet);
+  void AuthorizationService.resolve().then(() => {
+    if (AuthorizationService.getCurrentRole() === USER_ROLES.CONTESTANT) {
+      renderContestantSection(outlet);
+      return;
+    }
+
+    void initSettingsPage(outlet);
+  });
 }
 
 /**

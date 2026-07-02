@@ -4,18 +4,16 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
+import { renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
+import { renderEmptyState } from '../components/empty-state.component.js';
+import { renderMatchCard } from './match-card.component.js';
+import { initializeCountdowns } from '../components/countdown.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { MATCH_MESSAGES, MATCH_ROUTES } from './match.constants.js';
 import { getMatchById, getMatchErrorMessage, listMatchesForContestant } from './match.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
-import {
-  mountMatchListLoading,
-  renderMatchListPage,
-  renderMatchNotFound,
-  renderContestantMatchDetail,
-  renderPredictionComparison,
-} from './match.renderer.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -47,28 +45,45 @@ async function initMatchesPage(outlet) {
  * @returns {Promise<void>}
  */
 async function renderListView(outlet) {
-  mountMatchListLoading(outlet);
+  outlet.innerHTML = renderLoadingState();
   showLoadingOverlay(MATCH_MESSAGES.LOADING);
 
   try {
+    const user = getCurrentUser();
     const matches = await listMatchesForContestant();
+    const predictions = {};
+
+    if (user) {
+      await Promise.all(matches.map(async (match) => {
+        predictions[match.id] = await getPredictionForUser(match.id, user.uid);
+      }));
+    }
+
     outlet.innerHTML = `
-      <div class="container-fluid ptw-page-content">
-        <h1 class="h3 mb-3">Matches</h1>
-        <div class="ptw-match-cards">
-          ${matches.length === 0
-    ? '<p class="ptw-text-muted">No published matches are available right now.</p>'
-    : matches.map((match) => `
-              <a class="text-decoration-none" href="${MATCH_ROUTES.CONTESTANT_LIST}?id=${encodeURIComponent(match.id)}" data-route>
-                ${renderContestantMatchDetail(match)}
-              </a>
-            `).join('')}
-        </div>
+      <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+        ${renderContestantPageHeader({
+    title: 'Upcoming Matches',
+    subtitle: 'Published matches available for prediction',
+  })}
+        ${matches.length === 0
+    ? renderEmptyState({
+      title: 'No Matches',
+      message: 'No published matches are available right now.',
+      icon: 'bi-flag',
+    })
+    : `<div class="ptw-match-cards">${matches.map((match) => renderMatchCard({
+      match,
+      showPrediction: true,
+      prediction: predictions[match.id] ?? null,
+      showResult: Boolean(match.result?.published),
+      showPoints: Boolean(match.result?.published),
+    })).join('')}</div>`}
       </div>
     `;
+    initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[MatchesPage] List failed:', error);
-    outlet.innerHTML = renderMatchNotFound(getMatchErrorMessage(error));
+    outlet.innerHTML = renderErrorState(getMatchErrorMessage(error));
     showErrorToast(getMatchErrorMessage(error));
   } finally {
     hideLoadingOverlay();
@@ -81,7 +96,7 @@ async function renderListView(outlet) {
  * @returns {Promise<void>}
  */
 async function renderDetailView(outlet, matchId) {
-  mountMatchListLoading(outlet);
+  outlet.innerHTML = renderLoadingState();
   showLoadingOverlay(MATCH_MESSAGES.LOADING_MATCH);
 
   try {
@@ -89,23 +104,60 @@ async function renderDetailView(outlet, matchId) {
     const user = getCurrentUser();
 
     if (!match) {
-      outlet.innerHTML = renderMatchNotFound();
+      outlet.innerHTML = renderErrorState(MATCH_MESSAGES.NOT_FOUND);
       return;
     }
 
     const prediction = user ? await getPredictionForUser(matchId, user.uid) : null;
 
     outlet.innerHTML = `
-      <div class="container ptw-page-content">
+      <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
         <a class="btn btn-outline-light mb-3" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Back to Matches</a>
-        ${renderContestantMatchDetail(match)}
-        ${match.result?.published ? renderPredictionComparison({ match, prediction }) : ''}
+        ${renderContestantPageHeader({
+    title: 'Match Details',
+    subtitle: match.tournamentName ?? '',
+  })}
+        ${renderMatchCard({
+    match,
+    showPrediction: true,
+    prediction,
+    showResult: Boolean(match.result?.published),
+    showPoints: Boolean(match.result?.published),
+  })}
       </div>
     `;
+    initializeCountdowns(outlet);
   } catch (error) {
-    outlet.innerHTML = renderMatchNotFound(getMatchErrorMessage(error));
+    outlet.innerHTML = renderErrorState(getMatchErrorMessage(error));
     showErrorToast(getMatchErrorMessage(error));
   } finally {
     hideLoadingOverlay();
   }
+}
+
+/**
+ * @returns {string}
+ */
+function renderLoadingState() {
+  return `
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * @param {string} message
+ * @returns {string}
+ */
+function renderErrorState(message) {
+  return `
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      ${renderEmptyState({ title: 'Matches', message, icon: 'bi-flag' })}
+    </div>
+  `;
 }

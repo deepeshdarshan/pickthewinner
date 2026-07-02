@@ -8,11 +8,15 @@ import { mountFooter } from '../components/footer.component.js';
 import {
   mountSidebar,
   updateSidebarActiveState,
-  isAdminPath,
+  updateSidebarUserInfo,
+  isSidebarShellPath,
+  getSidebarVariant,
 } from '../components/sidebar.component.js';
 import { mountMobileNav } from '../components/mobile-nav.component.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { AuthorizationService } from '../authorization/authorization.service.js';
+import { USER_ROLES } from '../users/user.constants.js';
 import { ensureLoadingOverlay } from '../components/loading-overlay.component.js';
 import { ensureToastContainer } from '../components/toast.component.js';
 import { ensureConfirmationModal } from '../components/confirmation-modal.component.js';
@@ -23,8 +27,11 @@ import { ensureErrorDialog } from '../components/error-dialog.component.js';
  * @property {string} [activePath='/']
  */
 
-/** @type {'guest'|'admin'|'standard'|null} */
+/** @type {'guest'|'sidebar'|'standard'|null} */
 let activeShellMode = null;
+
+/** @type {'admin'|'contestant'|null} */
+let activeSidebarVariant = null;
 
 /**
  * Mounts the shared application shell (navbar, footer, overlays).
@@ -42,8 +49,9 @@ export function mountAppShell(options = {}) {
   const bodyWrapper = document.getElementById('ptw-body-wrapper');
 
   activeShellMode = resolveShellMode(activePath);
-  appShell?.classList.toggle('ptw-app-shell--admin', activeShellMode === 'admin');
-  applyAdminChrome(activeShellMode, activePath, { navbarMount, footerMount, mobileNavMount });
+  activeSidebarVariant = activeShellMode === 'sidebar' ? getSidebarVariant(activePath, getCurrentUserRole()) : null;
+  appShell?.classList.toggle('ptw-app-shell--admin', activeShellMode === 'sidebar');
+  applySidebarChrome(activeShellMode, activePath, { navbarMount, footerMount, mobileNavMount });
 
   updateSidebarVisibility(activePath, sidebarMount, bodyWrapper);
 
@@ -55,7 +63,7 @@ export function mountAppShell(options = {}) {
 
 /**
  * Updates shell components for the current route.
- * Admin pages use sidebar only — no global header or footer.
+ * Sidebar pages use sidebar only — no global header, footer, or bottom nav.
  * @param {string} activePath
  * @returns {void}
  */
@@ -67,31 +75,35 @@ export function updateAppShell(activePath) {
   const mobileNavMount = document.getElementById('ptw-mobile-nav-mount');
   const bodyWrapper = document.getElementById('ptw-body-wrapper');
   const nextShellMode = resolveShellMode(activePath);
-  const preserveAdminShell = activeShellMode === 'admin' && nextShellMode === 'admin';
+  const nextSidebarVariant = nextShellMode === 'sidebar' ? getSidebarVariant(activePath, getCurrentUserRole()) : null;
+  const preserveSidebarShell = activeShellMode === 'sidebar'
+    && nextShellMode === 'sidebar'
+    && activeSidebarVariant === nextSidebarVariant;
 
   activeShellMode = nextShellMode;
-  appShell?.classList.toggle('ptw-app-shell--admin', nextShellMode === 'admin');
+  activeSidebarVariant = nextSidebarVariant;
+  appShell?.classList.toggle('ptw-app-shell--admin', nextShellMode === 'sidebar');
 
-  if (preserveAdminShell) {
+  if (preserveSidebarShell) {
     updateSidebarVisibility(activePath, sidebarMount, bodyWrapper, { preserveSidebar: true });
     return;
   }
 
-  applyAdminChrome(nextShellMode, activePath, { navbarMount, footerMount, mobileNavMount });
+  applySidebarChrome(nextShellMode, activePath, { navbarMount, footerMount, mobileNavMount });
   updateSidebarVisibility(activePath, sidebarMount, bodyWrapper);
 }
 
 /**
  * Shows or hides the global navbar and footer based on shell mode.
- * @param {'guest'|'admin'|'standard'} shellMode
+ * @param {'guest'|'sidebar'|'standard'} shellMode
  * @param {string} activePath
  * @param {{ navbarMount: HTMLElement|null, footerMount: HTMLElement|null, mobileNavMount: HTMLElement|null }} mounts
  * @returns {void}
  */
-function applyAdminChrome(shellMode, activePath, mounts) {
+function applySidebarChrome(shellMode, activePath, mounts) {
   const { navbarMount, footerMount, mobileNavMount } = mounts;
 
-  if (shellMode === 'admin') {
+  if (shellMode === 'sidebar') {
     if (navbarMount) {
       navbarMount.innerHTML = '';
       navbarMount.className = 'd-none';
@@ -128,7 +140,7 @@ function applyAdminChrome(shellMode, activePath, mounts) {
 
 /**
  * @param {string} activePath
- * @returns {'guest'|'admin'|'standard'}
+ * @returns {'guest'|'sidebar'|'standard'}
  */
 function resolveShellMode(activePath) {
   if (!isAuthenticated()) {
@@ -138,11 +150,29 @@ function resolveShellMode(activePath) {
     }
   }
 
-  if (isAdminPath(activePath)) {
-    return 'admin';
+  const role = getCurrentUserRole();
+
+  if (isSidebarShellPath(activePath, role)) {
+    return 'sidebar';
   }
 
   return 'standard';
+}
+
+/**
+ * @returns {'admin'|'contestant'|null}
+ */
+function getCurrentUserRole() {
+  const role = AuthorizationService.getCurrentRole();
+  if (role === USER_ROLES.ADMIN) {
+    return 'admin';
+  }
+
+  if (role === USER_ROLES.CONTESTANT) {
+    return 'contestant';
+  }
+
+  return null;
 }
 
 /**
@@ -167,7 +197,7 @@ function ensureFooterMounted(footerMount) {
 }
 
 /**
- * Shows or hides the admin sidebar based on the current path.
+ * Shows or hides the sidebar based on the current path.
  * @param {string} activePath
  * @param {HTMLElement|null} sidebarMount
  * @param {HTMLElement|null} bodyWrapper
@@ -175,7 +205,9 @@ function ensureFooterMounted(footerMount) {
  * @returns {void}
  */
 function updateSidebarVisibility(activePath, sidebarMount, bodyWrapper, options = {}) {
-  const showSidebar = isAdminPath(activePath);
+  const role = getCurrentUserRole();
+  const showSidebar = isSidebarShellPath(activePath, role);
+  const variant = showSidebar ? getSidebarVariant(activePath, role) : null;
 
   if (bodyWrapper) {
     bodyWrapper.classList.toggle('ptw-body-wrapper--with-sidebar', showSidebar);
@@ -185,14 +217,15 @@ function updateSidebarVisibility(activePath, sidebarMount, bodyWrapper, options 
     return;
   }
 
-  if (showSidebar) {
+  if (showSidebar && variant) {
     sidebarMount.className = 'ptw-sidebar-mount';
 
-    if (options.preserveSidebar && updateSidebarActiveState(sidebarMount, activePath)) {
+    if (options.preserveSidebar && updateSidebarActiveState(sidebarMount, activePath, variant)) {
+      updateSidebarUserInfo(sidebarMount, variant);
       return;
     }
 
-    mountSidebar(sidebarMount, { activePath });
+    mountSidebar(sidebarMount, { activePath, variant });
     return;
   }
 

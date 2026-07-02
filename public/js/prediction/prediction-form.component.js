@@ -10,7 +10,7 @@ import { escapeHtml } from '../utils/html.util.js';
  * @property {import('../match/match.service.js').EnrichedMatch} match
  * @property {Record<string, unknown>|null} [existingPrediction]
  * @property {boolean} [isEdit]
- * @property {boolean} [requireWinnerForDraw] - Tournament configuration
+ * @property {boolean} [requireWinnerSelectionForDrawPrediction] - Tournament configuration
  */
 
 /**
@@ -19,13 +19,13 @@ import { escapeHtml } from '../utils/html.util.js';
  * @returns {string}
  */
 export function renderPredictionForm(options) {
-  const { match, existingPrediction = null, isEdit = false, requireWinnerForDraw = false } = options;
+  const { match, existingPrediction = null, isEdit = false, requireWinnerSelectionForDrawPrediction = false } = options;
 
   const homeTeam = match.homeTeam?.name || 'Home';
   const awayTeam = match.awayTeam?.name || 'Away';
   const homeScore = existingPrediction?.homeScore ?? '';
   const awayScore = existingPrediction?.awayScore ?? '';
-  const penaltyWinner = existingPrediction?.penaltyWinner || '';
+  const predictedWinner = existingPrediction?.predictedWinner || '';
 
   return `
     <div class="card ptw-card">
@@ -89,17 +89,17 @@ export function renderPredictionForm(options) {
           </div>
 
           <!-- Winner Selection (shown when draw predicted and required by tournament) -->
-          ${requireWinnerForDraw ? `
+          ${requireWinnerSelectionForDrawPrediction ? `
             <div id="winner-selection-section" class="mb-4" style="display: none;">
               <div class="alert alert-info">
                 <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
                 <strong>Draw Predicted:</strong> Please select which team will win after Normal Time + Extra Time.
               </div>
-              <label for="penalty-winner" class="form-label">Winner After Normal Time + Extra Time</label>
-              <select class="form-select" id="penalty-winner" name="penaltyWinner">
+              <label for="predicted-winner" class="form-label">Who will win after Normal Time + Extra Time?</label>
+              <select class="form-select" id="predicted-winner" name="predictedWinner">
                 <option value="">Select winner...</option>
-                <option value="HOME" ${penaltyWinner === 'HOME' ? 'selected' : ''}>${escapeHtml(homeTeam)}</option>
-                <option value="AWAY" ${penaltyWinner === 'AWAY' ? 'selected' : ''}>${escapeHtml(awayTeam)}</option>
+                <option value="HOME" ${predictedWinner === 'HOME' ? 'selected' : ''}>${escapeHtml(homeTeam)}</option>
+                <option value="AWAY" ${predictedWinner === 'AWAY' ? 'selected' : ''}>${escapeHtml(awayTeam)}</option>
               </select>
               <div class="invalid-feedback">Please select a winner for draw predictions</div>
             </div>
@@ -124,8 +124,8 @@ export function renderPredictionForm(options) {
         <div class="mt-3 pt-3 border-top">
           <small class="ptw-text-muted">
             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-            ${requireWinnerForDraw 
-              ? 'If you predict equal scores, you must select which team will win after normal and extra time (winner is decided, never penalty shootout scores).'
+            ${requireWinnerSelectionForDrawPrediction 
+              ? 'If you predict equal scores, you must select which team will win after normal and extra time. Do not enter penalty shootout scores.'
               : 'Enter the final score you predict for this match. Draws are valid predictions.'
             }
           </small>
@@ -138,34 +138,34 @@ export function renderPredictionForm(options) {
 /**
  * Attaches event handlers to prediction form.
  * @param {HTMLFormElement} form
- * @param {boolean} requireWinnerForDraw - Tournament configuration
+ * @param {boolean} requireWinnerSelectionForDrawPrediction - Tournament configuration
  * @param {(payload: Record<string, unknown>) => Promise<void>} onSubmit
  * @param {() => void} onCancel
  * @returns {void}
  */
-export function attachPredictionFormHandlers(form, requireWinnerForDraw, onSubmit, onCancel) {
+export function attachPredictionFormHandlers(form, requireWinnerSelectionForDrawPrediction, onSubmit, onCancel) {
   const homeScoreInput = form.querySelector('#home-score');
   const awayScoreInput = form.querySelector('#away-score');
   const winnerSelectionSection = form.querySelector('#winner-selection-section');
-  const penaltyWinnerSelect = form.querySelector('#penalty-winner');
+  const predictedWinnerSelect = form.querySelector('#predicted-winner');
   const errorsDiv = form.querySelector('#prediction-form-errors');
 
   // Show/hide winner selection section based on scores
-  if (requireWinnerForDraw && homeScoreInput && awayScoreInput && winnerSelectionSection) {
+  if (requireWinnerSelectionForDrawPrediction && homeScoreInput && awayScoreInput && winnerSelectionSection) {
     const checkScores = () => {
       const homeScore = parseInt(homeScoreInput.value, 10);
       const awayScore = parseInt(awayScoreInput.value, 10);
 
       if (!isNaN(homeScore) && !isNaN(awayScore) && homeScore === awayScore) {
         winnerSelectionSection.style.display = 'block';
-        if (penaltyWinnerSelect) {
-          penaltyWinnerSelect.required = true;
+        if (predictedWinnerSelect) {
+          predictedWinnerSelect.required = true;
         }
       } else {
         winnerSelectionSection.style.display = 'none';
-        if (penaltyWinnerSelect) {
-          penaltyWinnerSelect.required = false;
-          penaltyWinnerSelect.value = '';
+        if (predictedWinnerSelect) {
+          predictedWinnerSelect.required = false;
+          predictedWinnerSelect.value = '';
         }
       }
     };
@@ -197,7 +197,7 @@ export function attachPredictionFormHandlers(form, requireWinnerForDraw, onSubmi
     const formData = new FormData(form);
     const homeScore = parseInt(formData.get('homeScore'), 10);
     const awayScore = parseInt(formData.get('awayScore'), 10);
-    const penaltyWinner = formData.get('penaltyWinner') || null;
+    const predictedWinner = formData.get('predictedWinner') || null;
 
     if (isNaN(homeScore) || isNaN(awayScore)) {
       if (errorsDiv) {
@@ -208,7 +208,7 @@ export function attachPredictionFormHandlers(form, requireWinnerForDraw, onSubmi
     }
 
     // Check winner selection requirement
-    if (requireWinnerForDraw && homeScore === awayScore && !penaltyWinner) {
+    if (requireWinnerSelectionForDrawPrediction && homeScore === awayScore && !predictedWinner) {
       if (errorsDiv) {
         errorsDiv.textContent = 'Please select a winner when predicting equal scores';
         errorsDiv.classList.remove('d-none');
@@ -219,7 +219,7 @@ export function attachPredictionFormHandlers(form, requireWinnerForDraw, onSubmi
     const payload = {
       homeScore,
       awayScore,
-      penaltyWinner,
+      predictedWinner,
     };
 
     try {

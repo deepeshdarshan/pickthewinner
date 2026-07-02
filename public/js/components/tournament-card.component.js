@@ -13,6 +13,7 @@ import { formatDateTime, formatDate } from '../utils/date.util.js';
  * @property {number} [totalMatches]
  * @property {number} [submittedPredictions]
  * @property {boolean} [showProgress]
+ * @property {string} [actionLabel]
  */
 
 /**
@@ -21,7 +22,13 @@ import { formatDateTime, formatDate } from '../utils/date.util.js';
  * @returns {string}
  */
 export function renderTournamentCard(options) {
-  const { tournament, totalMatches = 0, submittedPredictions = 0, showProgress = false } = options;
+  const {
+    tournament,
+    totalMatches = 0,
+    submittedPredictions = 0,
+    showProgress = false,
+    actionLabel = 'View Tournament',
+  } = options;
 
   const statusBadge = renderTournamentStatusBadge(tournament.status);
   const progressPercentage = totalMatches > 0 ? Math.round((submittedPredictions / totalMatches) * 100) : 0;
@@ -78,7 +85,7 @@ export function renderTournamentCard(options) {
         <a href="/tournaments?id=${encodeURIComponent(tournament.id)}" 
            class="btn btn-ptw-primary w-100" 
            data-route>
-          <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>Enter Tournament
+          <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>${escapeHtml(actionLabel)}
         </a>
       </div>
     </div>

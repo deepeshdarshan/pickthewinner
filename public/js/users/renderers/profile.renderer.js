@@ -3,7 +3,10 @@
  * @module users/renderers/profile.renderer
  */
 
-import { renderPageHeader } from '../../components/page-header.component.js';
+import { renderPageHeader, renderContestantPageHeader } from '../../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-shell.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
+import { USER_ROLES } from '../user.constants.js';
 import { renderHtml } from '../../renderers/base.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateDisplay } from '../../utils/date.util.js';
@@ -40,11 +43,30 @@ function formatTimestamp(value) {
 }
 
 /**
+ * @param {'admin'|'contestant'} [shell='contestant']
+ * @returns {string}
+ */
+function getShellClasses(shell = 'contestant') {
+  return shell === 'admin' ? ADMIN_PAGE_SHELL_CLASSES : CONTESTANT_PAGE_SHELL_CLASSES;
+}
+
+/**
+ * @param {{ title: string, subtitle?: string }} options
+ * @param {'admin'|'contestant'} shell
+ * @returns {string}
+ */
+function renderProfileHeader(options, shell) {
+  return shell === 'admin'
+    ? renderPageHeader(options)
+    : renderContestantPageHeader(options);
+}
+
+/**
  * @returns {string}
  */
 export function renderProfileLoading() {
   return `
-    <div class="container ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card" role="status" aria-live="polite">
           <div class="spinner-border text-primary" role="status" aria-label="${escapeHtml(USER_MESSAGES.LOADING_PROFILE)}">
@@ -61,10 +83,10 @@ export function renderProfileLoading() {
  * @param {string} [message]
  * @returns {string}
  */
-export function renderProfileEmpty(message = USER_MESSAGES.PROFILE_NOT_FOUND) {
+export function renderProfileEmpty(message = USER_MESSAGES.PROFILE_NOT_FOUND, shell = 'contestant') {
   return `
-    <div class="container ptw-page-content">
-      ${renderPageHeader({ title: 'Profile', subtitle: 'Your account details' })}
+    <div class="${getShellClasses(shell)}">
+      ${renderProfileHeader({ title: 'Profile', subtitle: 'Your account details' }, shell)}
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card">
           <i class="bi bi-person-x" aria-hidden="true"></i>
@@ -87,13 +109,14 @@ export function renderProfilePage(profile, authUser) {
   const email = authUser?.email || profile.email;
   const memberSince = formatTimestamp(profile.createdAt);
   const lastLogin = formatTimestamp(profile.lastLogin);
+  const shell = profile.role === USER_ROLES.ADMIN ? 'admin' : 'contestant';
 
   return `
-    <div class="container ptw-page-content">
-      ${renderPageHeader({
+    <div class="${getShellClasses(shell)}">
+      ${renderProfileHeader({
         title: 'Profile',
         subtitle: 'Manage your account details',
-      })}
+      }, shell)}
 
       <div class="row g-4">
         <div class="col-12 col-lg-4">

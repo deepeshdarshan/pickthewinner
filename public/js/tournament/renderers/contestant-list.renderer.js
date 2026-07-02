@@ -112,7 +112,7 @@ export function renderContestantTournamentDetailPage(tournament) {
             <dt class="col-sm-4">Tournament Type</dt>
             <dd class="col-sm-8">${escapeHtml(tournament.tournamentType)}</dd>
             <dt class="col-sm-4">Draw Predictions</dt>
-            <dd class="col-sm-8">${config.canEndInDraw ? 'Allowed' : 'Not allowed (knockout)'}</dd>
+            <dd class="col-sm-8">${config.requireWinnerSelectionForDrawPrediction ? 'Require winner selection' : 'Allowed without winner'}</dd>
           </dl>
         </div>
       </div>

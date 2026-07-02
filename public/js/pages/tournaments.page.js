@@ -4,7 +4,8 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
-import { renderPageHeader } from '../components/page-header.component.js';
+import { renderContestantPageHeader } from '../components/page-header.component.js';
+import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderTournamentCard } from '../components/tournament-card.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
@@ -58,8 +59,8 @@ async function initTournamentsPage(outlet) {
 
     if (tournaments.length === 0) {
       outlet.innerHTML = `
-        <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-          ${renderPageHeader({
+        <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+          ${renderContestantPageHeader({
             title: 'Tournaments',
             subtitle: 'Browse active prediction tournaments',
           })}
@@ -127,8 +128,8 @@ function renderTournamentsPage(tournamentData) {
   const completed = tournamentData.filter((t) => t.tournament.status === 'completed');
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
-      ${renderPageHeader({
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      ${renderContestantPageHeader({
         title: 'Tournaments',
         subtitle: 'Browse and participate in prediction tournaments',
       })}
@@ -205,7 +206,7 @@ function renderTournamentsPage(tournamentData) {
  */
 function renderLoadingState() {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       <div class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -223,7 +224,7 @@ function renderLoadingState() {
  */
 function renderErrorState(message) {
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       ${renderEmptyState({
         title: 'Error',
         message: message || 'Failed to load tournaments',

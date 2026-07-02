@@ -1770,3 +1770,85 @@
   transition: background-color var(--ptw-transition-fast), color var(--ptw-transition-fast);
 }
 
+/* Contestant dashboard */
+.ptw-contestant-dashboard {
+  animation: ptw-fade-in var(--ptw-transition-base) ease-out;
+}
+
+.ptw-featured-match {
+  overflow: hidden;
+  transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
+}
+
+.ptw-featured-match:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ptw-shadow-lg);
+}
+
+.ptw-featured-match__teams {
+  padding: var(--ptw-space-3) 0;
+}
+
+.ptw-featured-match__vs {
+  font-size: var(--ptw-font-size-lg);
+  letter-spacing: 0.08em;
+}
+
+.ptw-featured-match .ptw-countdown {
+  background: color-mix(in srgb, var(--ptw-color-bg-tertiary) 75%, transparent);
+  border: 1px solid var(--ptw-color-border);
+  border-radius: var(--ptw-radius-md);
+  padding: var(--ptw-space-2) var(--ptw-space-3);
+  backdrop-filter: blur(8px);
+}
+
+.ptw-quick-stats-card__row + .ptw-quick-stats-card__row {
+  border-top: 1px solid var(--ptw-color-border);
+}
+
+.ptw-activity-timeline__item + .ptw-activity-timeline__item {
+  border-top: 1px solid var(--ptw-color-border);
+}
+
+.ptw-tournament-grid .ptw-tournament-card {
+  height: 100%;
+}
+
+.ptw-page-header__icon-btn {
+  color: var(--ptw-color-text-secondary);
+  padding: var(--ptw-space-2);
+  line-height: 1;
+  text-decoration: none;
+}
+
+.ptw-page-header__icon-btn:hover,
+.ptw-page-header__icon-btn:focus {
+  color: var(--ptw-color-primary-blue);
+}
+
+.ptw-page-header__badge {
+  font-size: 0.625rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.ptw-page-header__profile-btn {
+  padding: 0;
+}
+
+.ptw-tournament-detail-banner {
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+}
+
+.ptw-tournament-detail-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ptw-round-filters .btn.active {
+  box-shadow: var(--ptw-shadow-sm);
+}
+

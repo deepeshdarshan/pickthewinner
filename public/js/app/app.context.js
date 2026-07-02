@@ -60,9 +60,9 @@ export const AppContext = {
    * @returns {string}
    */
   getDisplayName() {
-    const profile = getCachedProfile();
-    const authUser = getCurrentUser();
-    return profile?.name || authUser?.displayName || authUser?.email?.split('@')[0] || 'User';
+    const profile = ApplicationContext.getProfile() ?? getCachedProfile();
+    const authUser = ApplicationContext.getCurrentUser() ?? getCurrentUser();
+    return profile?.name || authUser?.displayName || authUser?.email?.split('@')[0] || '';
   },
 
   /**

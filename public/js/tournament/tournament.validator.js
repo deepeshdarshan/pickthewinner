@@ -136,21 +136,6 @@ export function validateVisibility(visibility) {
   return { valid: true, errors };
 }
 
-/**
- * @param {unknown} canEndInDraw
- * @param {unknown} requiresWinner
- * @returns {TournamentValidationResult}
- */
-export function validateMatchBehaviour(canEndInDraw, requiresWinner) {
-  const errors = {};
-
-  if (canEndInDraw === false && requiresWinner === false) {
-    errors.matchBehaviour = 'Knockout tournaments must require a winner.';
-    return { valid: false, errors };
-  }
-
-  return { valid: true, errors };
-}
 
 /**
  * @param {unknown} value
@@ -273,7 +258,6 @@ export function validateCreatePayload(data) {
   return mergeValidationResults([
     validateName(data.name),
     validateTimezone(configuration.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE),
-    validateMatchBehaviour(configuration.canEndInDraw, configuration.requiresWinner),
     validateScoringConfiguration(configuration.scoringConfiguration),
     validatePredictionConfiguration(configuration),
   ]);

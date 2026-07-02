@@ -189,8 +189,7 @@ export function renderInheritedConfigPanel(config) {
           <dt class="col-sm-4">Timezone</dt><dd class="col-sm-8">${escapeHtml(String(config.timezone ?? 'Asia/Kolkata'))}</dd>
           <dt class="col-sm-4">Prediction Lock</dt><dd class="col-sm-8">${escapeHtml(String(config.predictionLockMinutes ?? '—'))} minutes before kickoff</dd>
           <dt class="col-sm-4">Prediction Opens</dt><dd class="col-sm-8">${escapeHtml(String(config.predictionOpenHoursBeforeKickoff ?? '—'))} hours before kickoff</dd>
-          <dt class="col-sm-4">Can End In Draw</dt><dd class="col-sm-8">${config.canEndInDraw ? 'Yes' : 'No'}</dd>
-          <dt class="col-sm-4">Requires Winner</dt><dd class="col-sm-8">${config.requiresWinner ? 'Yes' : 'No'}</dd>
+          <dt class="col-sm-4">Winner Selection for Draws</dt><dd class="col-sm-8">${config.requireWinnerSelectionForDrawPrediction ? 'Required' : 'Not required'}</dd>
           <dt class="col-sm-4">Match Score Points</dt><dd class="col-sm-8">${escapeHtml(String(scoring.correctMatchScorePoints ?? '—'))}</dd>
           <dt class="col-sm-4">Penalty Winner Points</dt><dd class="col-sm-8">${escapeHtml(String(scoring.correctPenaltyWinnerPoints ?? '—'))}</dd>
         </dl>

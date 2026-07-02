@@ -53,8 +53,7 @@ import { writeAuditLog } from '../audit/audit.service.js';
 /**
  * @typedef {Object} TournamentConfiguration
  * @property {string} timezone
- * @property {boolean} canEndInDraw
- * @property {boolean} requiresWinner
+ * @property {boolean} requireWinnerSelectionForDrawPrediction
  * @property {string} winnerResolution
  * @property {{ strategy: string, secondary: string }} tieBreaker
  * @property {ScoringConfiguration} [scoringConfiguration]
