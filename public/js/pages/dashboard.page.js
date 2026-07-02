@@ -70,30 +70,36 @@ function renderContestantDashboard(data) {
           </div>
           <div class="card-body">
             <div class="row g-3">
-              ${renderStatisticCard({
-                icon: 'bi-bullseye',
-                title: 'Total Matches',
-                value: data.predictionStats.total,
-                variant: 'primary',
-              })}
-              ${renderStatisticCard({
-                icon: 'bi-check-circle',
-                title: 'Submitted',
-                value: data.predictionStats.submitted,
-                variant: 'success',
-              })}
-              ${renderStatisticCard({
-                icon: 'bi-clock',
-                title: 'Pending',
-                value: data.predictionStats.pending,
-                variant: 'warning',
-              })}
-              ${data.leaderboardVisible ? renderStatisticCard({
-                icon: 'bi-trophy',
-                title: 'Points',
-                value: 0, // TODO: Get actual points
-                variant: 'info',
-              }) : ''}
+              <div class="col-6 col-md-3">
+                ${renderStatisticCard({
+                  label: 'Total Matches',
+                  value: data.predictionStats.total || 0,
+                  icon: 'bi-bullseye',
+                })}
+              </div>
+              <div class="col-6 col-md-3">
+                ${renderStatisticCard({
+                  label: 'Submitted',
+                  value: data.predictionStats.submitted || 0,
+                  icon: 'bi-check-circle',
+                })}
+              </div>
+              <div class="col-6 col-md-3">
+                ${renderStatisticCard({
+                  label: 'Pending',
+                  value: data.predictionStats.pending || 0,
+                  icon: 'bi-clock',
+                })}
+              </div>
+              ${data.leaderboardVisible ? `
+              <div class="col-6 col-md-3">
+                ${renderStatisticCard({
+                  label: 'Points',
+                  value: 0,
+                  icon: 'bi-trophy',
+                })}
+              </div>
+              ` : ''}
             </div>
           </div>
         </div>

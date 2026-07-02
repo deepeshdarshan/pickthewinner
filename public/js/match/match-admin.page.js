@@ -22,6 +22,13 @@ import {
   runMatchLifecycle,
   updateMatch,
 } from './match.service.js';
+import {
+  filterMatches,
+  handleDeleteMatch,
+  paginateMatches,
+  sortMatchesByKickoff,
+} from './match-list.controller.js';
+import { MATCH_ROUTES } from './match.constants.js';
 import { publishMatchResult, recalculateMatchScores } from './match-result.service.js';
 import {
   applyFormErrors,
@@ -82,13 +89,40 @@ async function renderListView(outlet) {
   showLoadingOverlay(MATCH_MESSAGES.LOADING);
 
   try {
-    const [matches, tournaments] = await Promise.all([
+    const [allMatches, tournaments] = await Promise.all([
       listMatchesForAdmin(),
       listTournamentsForAdmin(),
     ]);
 
-    outlet.innerHTML = renderMatchListPage(matches, { tournaments });
-    bindListFilters(outlet, matches, tournaments);
+    const params = new URLSearchParams(window.location.search);
+    let currentPage = Number(params.get('page')) || 1;
+    /** @type {{ search: string, tournamentId: string, status: string, date: string }} */
+    let filterState = {
+      search: '',
+      tournamentId: '',
+      status: '',
+      date: '',
+    };
+
+    const paint = () => {
+      const filtered = filterMatches(sortMatchesByKickoff(allMatches), filterState);
+      const pagination = paginateMatches(filtered, currentPage);
+
+      currentPage = pagination.currentPage;
+
+      outlet.innerHTML = renderMatchListPage(pagination.pageMatches, {
+        tournaments,
+        currentPage: pagination.currentPage,
+        totalPages: pagination.totalPages,
+      });
+
+      bindListInteractions(outlet, allMatches, tournaments, filterState, () => currentPage, (page) => {
+        currentPage = page;
+        paint();
+      }, paint);
+    };
+
+    paint();
   } catch (error) {
     Logger.error('[MatchAdmin] List failed:', error);
     outlet.innerHTML = renderMatchNotFound(getMatchErrorMessage(error));
@@ -158,6 +192,7 @@ async function renderEditView(outlet, matchId) {
     bindMatchForm(outlet, match, tournaments, teams);
     bindLifecycleActions(outlet, match);
     bindResultForm(outlet, match);
+    bindMatchDeleteAction(outlet, match);
   } catch (error) {
     Logger.error('[MatchAdmin] Load failed:', error);
     outlet.innerHTML = renderMatchNotFound(getMatchErrorMessage(error));
@@ -173,7 +208,7 @@ async function renderEditView(outlet, matchId) {
 async function listActiveTournaments() {
   const tournaments = await listTournamentsForAdmin();
   return tournaments.filter((tournament) => !tournament.archived
-    && [TOURNAMENT_STATUS.PUBLISHED, TOURNAMENT_STATUS.LIVE, TOURNAMENT_STATUS.REGISTRATION_OPEN].includes(tournament.status));
+    && [TOURNAMENT_STATUS.PUBLISHED, TOURNAMENT_STATUS.LIVE].includes(tournament.status));
 }
 
 /**
@@ -342,13 +377,18 @@ function bindLifecycleActions(outlet, match) {
       };
 
       if (confirmArchive) {
-        showConfirmationModal({
+        const confirmed = await showConfirmationModal({
           title: 'Archive Match',
-          message: MATCH_MESSAGES.CONFIRM_ARCHIVE ?? 'Archive this match?',
+          message: MATCH_MESSAGES.CONFIRM_ARCHIVE,
           confirmLabel: 'Archive',
-          confirmVariant: 'danger',
-          onConfirm: run,
+          confirmClass: 'btn-danger',
         });
+
+        if (!confirmed) {
+          return;
+        }
+
+        await run();
         return;
       }
 
@@ -395,49 +435,71 @@ function bindResultForm(outlet, match) {
 
 /**
  * @param {HTMLElement} outlet
- * @param {import('./match.service.js').EnrichedMatch[]} matches
- * @param {import('../tournament/tournament.service.js').Tournament[]} tournaments
+ * @param {import('./match.service.js').EnrichedMatch} match
  * @returns {void}
  */
-function bindListFilters(outlet, matches, tournaments) {
+function bindMatchDeleteAction(outlet, match) {
+  const deleteButton = outlet.querySelector('[data-ptw-match-delete]');
+
+  if (!(deleteButton instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  deleteButton.addEventListener('click', () => {
+    void handleDeleteMatch(outlet, match.id, async () => {
+      window.history.pushState({}, '', MATCH_ROUTES.ADMIN_LIST);
+      await renderListView(outlet);
+    });
+  });
+}
+
+/**
+ * @param {HTMLElement} outlet
+ * @param {import('./match.service.js').EnrichedMatch[]} allMatches
+ * @param {import('../tournament/tournament.service.js').Tournament[]} tournaments
+ * @param {{ search: string, tournamentId: string, status: string, date: string }} filterState
+ * @param {() => number} getCurrentPage
+ * @param {(page: number) => void} setCurrentPage
+ * @param {() => void} repaint
+ * @returns {void}
+ */
+function bindListInteractions(outlet, allMatches, tournaments, filterState, getCurrentPage, setCurrentPage, repaint) {
   const search = outlet.querySelector('#ptw-match-filter-search');
   const tournamentFilter = outlet.querySelector('#ptw-match-filter-tournament');
   const statusFilter = outlet.querySelector('#ptw-match-filter-status');
   const dateFilter = outlet.querySelector('#ptw-match-filter-date');
 
-  const apply = () => {
-    const term = search instanceof HTMLInputElement ? search.value.trim().toLowerCase() : '';
-    const tournamentId = tournamentFilter instanceof HTMLSelectElement ? tournamentFilter.value : '';
-    const status = statusFilter instanceof HTMLSelectElement ? statusFilter.value : '';
-    const date = dateFilter instanceof HTMLInputElement ? dateFilter.value : '';
-
-    outlet.querySelectorAll('[data-match-id]').forEach((row) => {
-      if (!(row instanceof HTMLElement)) {
-        return;
-      }
-
-      const match = matches.find((item) => item.id === row.dataset.matchId);
-      let visible = true;
-
-      if (match) {
-        if (tournamentId && match.tournamentId !== tournamentId) visible = false;
-        if (status && match.status !== status) visible = false;
-        if (date) {
-          const kickoff = match.kickoffUtc && typeof match.kickoffUtc === 'object' && 'toDate' in match.kickoffUtc
-            ? match.kickoffUtc.toDate().toISOString().slice(0, 10)
-            : '';
-          if (kickoff !== date) visible = false;
-        }
-        if (term && !JSON.stringify(match).toLowerCase().includes(term)) visible = false;
-      }
-
-      row.hidden = !visible;
-    });
+  const syncFilters = () => {
+    filterState.search = search instanceof HTMLInputElement ? search.value : '';
+    filterState.tournamentId = tournamentFilter instanceof HTMLSelectElement ? tournamentFilter.value : '';
+    filterState.status = statusFilter instanceof HTMLSelectElement ? statusFilter.value : '';
+    filterState.date = dateFilter instanceof HTMLInputElement ? dateFilter.value : '';
+    setCurrentPage(1);
+    repaint();
   };
 
   [search, tournamentFilter, statusFilter, dateFilter].forEach((element) => {
-    element?.addEventListener('input', apply);
-    element?.addEventListener('change', apply);
+    element?.addEventListener('input', syncFilters);
+    element?.addEventListener('change', syncFilters);
+  });
+
+  outlet.querySelectorAll('#ptw-match-pagination [data-page]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const page = Number(link.getAttribute('data-page'));
+      const filtered = filterMatches(sortMatchesByKickoff(allMatches), filterState);
+      const { totalPages } = paginateMatches(filtered, getCurrentPage());
+
+      if (!Number.isInteger(page) || page < 1 || page > totalPages) {
+        return;
+      }
+
+      setCurrentPage(page);
+      const url = new URL(window.location.href);
+      url.searchParams.set('page', String(page));
+      window.history.replaceState({}, '', url.toString());
+      repaint();
+    });
   });
 
   void tournaments;

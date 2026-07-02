@@ -140,7 +140,28 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     }
 
     const matches = await listMatchesForContestant();
-    const match = matches.find((m) => m.id === matchId);
+
+    // Filter matches to only show those from ongoing/published tournaments
+    const allowedStatuses = ['live', 'published'];
+    const tournamentCache = new Map();
+
+    const filteredMatches = [];
+    for (const match of matches) {
+      if (!match.tournamentId) continue;
+
+      // Check tournament status (with caching to avoid repeated queries)
+      let tournament = tournamentCache.get(match.tournamentId);
+      if (!tournament) {
+        tournament = await getTournamentById(match.tournamentId);
+        tournamentCache.set(match.tournamentId, tournament);
+      }
+
+      if (tournament && allowedStatuses.includes(tournament.status)) {
+        filteredMatches.push(match);
+      }
+    }
+
+    const match = filteredMatches.find((m) => m.id === matchId);
 
     if (!match) {
       showErrorToast('Match not found');

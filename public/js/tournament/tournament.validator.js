@@ -315,11 +315,6 @@ export function validateLifecycleAction(action, tournament) {
         errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
       }
       break;
-    case LIFECYCLE_ACTIONS.OPEN_REGISTRATION:
-      if (!TournamentDomain.canOpenRegistration(status)) {
-        errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
-      }
-      break;
     case LIFECYCLE_ACTIONS.GO_LIVE:
       if (!TournamentDomain.canGoLive(status)) {
         errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
@@ -332,6 +327,11 @@ export function validateLifecycleAction(action, tournament) {
       break;
     case LIFECYCLE_ACTIONS.ARCHIVE:
       if (!TournamentDomain.canArchiveTournament(status)) {
+        errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
+      }
+      break;
+    case LIFECYCLE_ACTIONS.RESTORE:
+      if (!(TournamentDomain.canRestoreTournament(status) || tournament.archived)) {
         errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
       }
       break;

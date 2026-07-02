@@ -13,6 +13,7 @@ import { TournamentConfigurationService } from '../tournament/configuration/Tour
 import { listMatchesForContestant } from '../match/match.service.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
+import { getPredictionForUser } from '../prediction/prediction.service.js';
 
 /**
  * @typedef {Object} ContestantDashboardDto
@@ -81,7 +82,6 @@ export const ContestantDashboardService = {
       .slice(0, 5);
 
     // Get prediction stats
-    const user = getCurrentUser();
     let predictionStats = { total: 0, submitted: 0, pending: 0 };
 
     if (user && activeTournament) {
@@ -109,7 +109,7 @@ export const ContestantDashboardService = {
       activeTournament: activeTournament
         ? { name: activeTournament.name, season: activeTournament.season, id: activeTournament.id }
         : null,
-      tournaments: visibleTournaments,
+      tournaments: unentered,
       upcomingMatches,
       predictionStats,
     };

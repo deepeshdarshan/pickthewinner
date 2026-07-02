@@ -16,7 +16,7 @@ import {
 import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { BaseFirestoreService } from '../services/BaseFirestoreService.js';
 import { MATCH_COLLECTIONS } from './match.constants.js';
-import { MatchDomain } from '../domain/match.domain.js';
+import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 
 /**
  * @typedef {Object} MatchListFilters
@@ -25,6 +25,8 @@ import { MatchDomain } from '../domain/match.domain.js';
  * @property {string} [date]
  * @property {string} [search]
  * @property {boolean} [contestantOnly]
+ * @property {boolean} [excludeArchived]
+ * @property {boolean} [archivedOnly]
  */
 
 class MatchRepository extends BaseFirestoreService {
@@ -60,6 +62,21 @@ class MatchRepository extends BaseFirestoreService {
       .filter((value) => Number.isInteger(value));
 
     return numbers.length === 0 ? 1 : Math.max(...numbers) + 1;
+  }
+
+  /**
+   * @param {string} tournamentId
+   * @returns {Promise<Array<{ id: string } & Record<string, unknown>>>}
+   */
+  async listByTournament(tournamentId) {
+    await ensureFirestoreOnline();
+
+    const snapshot = await getDocs(query(
+      this.getCollection(),
+      where('tournamentId', '==', tournamentId),
+    ));
+
+    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
   }
 
   /**
@@ -105,8 +122,15 @@ class MatchRepository extends BaseFirestoreService {
   async list(filters = {}) {
     await ensureFirestoreOnline();
 
+    const excludeArchived = filters.excludeArchived !== false;
     const snapshot = await getDocs(query(this.getCollection(), orderBy('kickoffUtc', 'asc')));
     let matches = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+    if (filters.archivedOnly) {
+      matches = matches.filter((match) => String(match.status ?? '') === MATCH_STATUS.ARCHIVED);
+    } else if (excludeArchived) {
+      matches = matches.filter((match) => String(match.status ?? '') !== MATCH_STATUS.ARCHIVED);
+    }
 
     if (filters.tournamentId) {
       matches = matches.filter((match) => match.tournamentId === filters.tournamentId);

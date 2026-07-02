@@ -16,6 +16,7 @@ export const MATCH_COLLECTIONS = Object.freeze({
 /** @enum {string} */
 export const MATCH_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/matches',
+  ARCHIVED_LIST: '/admin/matches/archived',
   CONTESTANT_LIST: '/matches',
 });
 
@@ -85,9 +86,10 @@ export const MATCH_MESSAGES = Object.freeze({
   GENERIC_ERROR: 'Something went wrong. Please try again.',
   PERMISSION_DENIED: 'You do not have permission to manage matches.',
   NO_MATCHES: 'No matches have been created yet.',
-  CONFIRM_DELETE: 'Delete this match?',
+  NO_ARCHIVED_MATCHES: 'No archived matches.',
+  CONFIRM_DELETE: 'Delete this match permanently? This action is irreversible and cannot be undone.',
   CONFIRM_ARCHIVE: 'Archive this match?',
-  CONFIRM_ARCHIVE: 'Archive this match?',
+  CANNOT_DELETE_HAS_PREDICTIONS: 'Cannot delete this match because contestants have submitted predictions.',
   VALIDATION_SUMMARY: 'Please correct the highlighted fields and try again.',
 });
 

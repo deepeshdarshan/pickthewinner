@@ -105,7 +105,26 @@ async function initTournamentsPage(outlet) {
       }),
     );
 
-    outlet.innerHTML = renderTournamentsPage(tournamentData);
+    // Show message if all tournaments have been entered
+    if (availableTournamentData.length === 0 && tournamentData.length > 0) {
+      outlet.innerHTML = `
+        <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+          ${renderPageHeader({
+            title: 'Tournaments',
+            subtitle: 'Browse active prediction tournaments',
+          })}
+          ${renderEmptyState({
+            title: 'All Tournaments Entered',
+            message: 'You have already entered all available tournaments. View your predictions to manage them.',
+            icon: 'bi-check-circle',
+            actionHtml: '<a href="/predictions" class="btn btn-ptw-primary" data-route><i class="bi bi-arrow-right me-2" aria-hidden="true"></i>Go to My Predictions</a>',
+          })}
+        </div>
+      `;
+      return;
+    }
+
+    outlet.innerHTML = renderTournamentsPage(availableTournamentData);
   } catch (error) {
     Logger.error('[TournamentsPage] Failed to load:', error);
     outlet.innerHTML = renderErrorState(error.message);
@@ -123,7 +142,7 @@ async function initTournamentsPage(outlet) {
 function renderTournamentsPage(tournamentData) {
   // Group by status
   const live = tournamentData.filter((t) => t.tournament.status === 'live');
-  const upcoming = tournamentData.filter((t) => t.tournament.status === 'published' || t.tournament.status === 'registration_open');
+  const upcoming = tournamentData.filter((t) => t.tournament.status === 'published');
   const completed = tournamentData.filter((t) => t.tournament.status === 'completed');
 
   return `

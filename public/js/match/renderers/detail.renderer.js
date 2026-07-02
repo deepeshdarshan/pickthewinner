@@ -22,16 +22,26 @@ import { MatchDomain } from '../../domain/match.domain.js';
  *   tournaments: Tournament[],
  *   teams: Team[],
  *   inheritedConfig?: Record<string, unknown>|null,
+ *   readOnly?: boolean,
  * }} options
  * @returns {string}
  */
 export function renderMatchDetailPage(match, options) {
+  const forceReadOnly = Boolean(options.readOnly);
   const formHtml = renderMatchFormPage({
     match,
     ...options,
-    readOnly: !MatchDomain.canEditMatch(match.status),
+    readOnly: forceReadOnly || !MatchDomain.canEditMatch(match.status),
     includePageWrapper: false,
   });
+
+  const actionButtons = forceReadOnly
+    ? `
+      <button type="button" class="btn btn-danger" data-ptw-match-delete>
+        Delete Permanently
+      </button>
+    `
+    : renderLifecycleButtons(match);
 
   return `
     <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
@@ -42,10 +52,10 @@ export function renderMatchDetailPage(match, options) {
         ${renderMatchStatusBadge(match.status)}
       </div>
       <div class="card-body d-flex flex-wrap gap-2">
-        ${renderLifecycleButtons(match)}
+        ${actionButtons}
       </div>
     </div>
-      ${MatchDomain.canEnterResult(match.status) || match.status === MATCH_STATUS.RESULT_PUBLISHED
+      ${!forceReadOnly && (MatchDomain.canEnterResult(match.status) || match.status === MATCH_STATUS.RESULT_PUBLISHED)
     ? renderResultForm(match, options.inheritedConfig ?? null)
     : ''}
     </div>
@@ -91,6 +101,12 @@ function renderLifecycleButtons(match) {
   if (match.status !== MATCH_STATUS.ARCHIVED) {
     buttons.push(actionButton('Archive', MATCH_LIFECYCLE_ACTIONS.ARCHIVE, 'btn-outline-danger'));
   }
+
+  buttons.push(`
+    <button type="button" class="btn btn-danger" data-ptw-match-delete>
+      Delete Permanently
+    </button>
+  `);
 
   return buttons.join('');
 }

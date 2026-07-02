@@ -93,7 +93,6 @@ export function renderTournamentCard(options) {
 function renderTournamentStatusBadge(status) {
   const statusConfig = {
     draft: { label: 'Draft', variant: 'secondary', icon: 'bi-pencil' },
-    registration_open: { label: 'Registration Open', variant: 'info', icon: 'bi-door-open' },
     published: { label: 'Upcoming', variant: 'warning', icon: 'bi-calendar-event' },
     live: { label: 'Live', variant: 'success', icon: 'bi-broadcast' },
     completed: { label: 'Completed', variant: 'secondary', icon: 'bi-check-circle' },

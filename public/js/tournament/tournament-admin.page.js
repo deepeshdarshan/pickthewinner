@@ -17,11 +17,11 @@ import {
   archiveTournament,
   completeTournament,
   createTournament,
+  deleteTournament,
   getTournamentById,
   getTournamentErrorMessage,
   goLive,
   listTournamentsForAdmin,
-  openRegistration,
   publishTournament,
   setActiveTournament,
   updateTournament,
@@ -91,6 +91,7 @@ async function renderListView(outlet) {
   try {
     const tournaments = await listTournamentsForAdmin();
     outlet.innerHTML = renderTournamentListPage(tournaments);
+    bindListDeleteActions(outlet);
   } catch (error) {
     Logger.error('[TournamentAdmin] List failed:', error);
     outlet.innerHTML = renderTournamentNotFound(getTournamentErrorMessage(error));
@@ -129,6 +130,7 @@ async function renderEditView(outlet, tournamentId, forceReadOnly = false) {
     bindTournamentForm(outlet, tournament);
     bindTournamentMatchBehaviourPreview(outlet);
     bindLifecycleActions(outlet, tournament);
+    bindDeleteAction(outlet, tournament);
     void TournamentConfigurationService.load(tournament.id);
   } catch (error) {
     Logger.error('[TournamentAdmin] Load failed:', error);
@@ -248,10 +250,6 @@ async function handleLifecycleAction(action, tournamentId) {
         await publishTournament(tournamentId, authUser.uid);
         showSuccessToast(TOURNAMENT_MESSAGES.PUBLISHED);
         break;
-      case 'open-registration':
-        await openRegistration(tournamentId, authUser.uid);
-        showSuccessToast(TOURNAMENT_MESSAGES.REGISTRATION_OPENED);
-        break;
       case 'go-live':
         await goLive(tournamentId, authUser.uid);
         showSuccessToast(TOURNAMENT_MESSAGES.WENT_LIVE);
@@ -325,5 +323,76 @@ async function confirmLifecycleAction(action) {
       });
     default:
       return true;
+  }
+}
+
+/**
+ * @param {HTMLElement} outlet
+ * @param {Tournament} tournament
+ * @returns {void}
+ */
+function bindDeleteAction(outlet, tournament) {
+  const deleteButton = outlet.querySelector('[data-ptw-tournament-delete]');
+
+  if (!(deleteButton instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  deleteButton.addEventListener('click', () => {
+    void handleDeleteTournament(tournament.id, TOURNAMENT_ROUTES.ADMIN_LIST);
+  });
+}
+
+/**
+ * @param {HTMLElement} outlet
+ * @returns {void}
+ */
+function bindListDeleteActions(outlet) {
+  outlet.querySelectorAll('[data-ptw-tournament-delete]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const tournamentId = button.getAttribute('data-tournament-id');
+
+      if (tournamentId) {
+        void handleDeleteTournament(tournamentId, TOURNAMENT_ROUTES.ADMIN_LIST);
+      }
+    });
+  });
+}
+
+/**
+ * @param {string} tournamentId
+ * @param {string} redirectTo
+ * @returns {Promise<void>}
+ */
+async function handleDeleteTournament(tournamentId, redirectTo) {
+  const authUser = getCurrentUser();
+
+  if (!authUser) {
+    showErrorToast(TOURNAMENT_MESSAGES.PERMISSION_DENIED);
+    return;
+  }
+
+  const confirmed = await showConfirmationModal({
+    title: 'Delete Tournament',
+    message: TOURNAMENT_MESSAGES.CONFIRM_DELETE,
+    confirmLabel: 'Delete Permanently',
+    confirmClass: 'btn-danger',
+  });
+
+  if (!confirmed) {
+    return;
+  }
+
+  showLoadingOverlay(TOURNAMENT_MESSAGES.DELETING);
+
+  try {
+    await deleteTournament(tournamentId, authUser.uid);
+    showSuccessToast(TOURNAMENT_MESSAGES.DELETED);
+    await navigateTo(redirectTo);
+  } catch (error) {
+    Logger.error('[TournamentAdmin] Delete failed:', error);
+    showErrorToast(getTournamentErrorMessage(error));
+  } finally {
+    hideLoadingOverlay();
   }
 }

@@ -105,9 +105,22 @@ function renderTournamentRow(tournament) {
       <td>${renderVisibilityBadge(tournament.visibility)}</td>
       <td>${renderActiveBadge(tournament.active)}</td>
       <td class="text-end">
-        <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route aria-label="Manage ${escapeHtml(tournament.name)}">
-          Manage
-        </a>
+        <div class="d-flex gap-1 justify-content-end flex-wrap">
+          <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route aria-label="Manage ${escapeHtml(tournament.name)}">
+            Manage
+          </a>
+          ${!tournament.active ? `
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              data-ptw-tournament-delete
+              data-tournament-id="${escapeHtml(tournament.id)}"
+              aria-label="Delete ${escapeHtml(tournament.name)}"
+            >
+              Delete
+            </button>
+          ` : ''}
+        </div>
       </td>
     </tr>
   `;

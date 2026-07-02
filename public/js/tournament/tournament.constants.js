@@ -17,6 +17,7 @@ export const TOURNAMENT_COLLECTIONS = Object.freeze({
 /** @enum {string} */
 export const TOURNAMENT_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/tournaments',
+  ARCHIVED_LIST: '/admin/tournaments/archived',
   CONTESTANT_LIST: '/tournaments',
 });
 
@@ -107,10 +108,11 @@ export const PROTECTED_TOURNAMENT_FIELDS = new Set([
 /** @enum {string} */
 export const LIFECYCLE_ACTIONS = Object.freeze({
   PUBLISH: 'publish',
-  OPEN_REGISTRATION: 'open_registration',
   GO_LIVE: 'go_live',
   COMPLETE: 'complete',
   ARCHIVE: 'archive',
+  RESTORE: 'restore',
+  DELETE: 'delete',
   SET_ACTIVE: 'set_active',
 });
 
@@ -138,10 +140,12 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
   CREATED: 'Tournament created successfully.',
   UPDATED: 'Tournament updated successfully.',
   PUBLISHED: 'Tournament published successfully.',
-  REGISTRATION_OPENED: 'Registration opened successfully.',
   WENT_LIVE: 'Tournament is now live.',
   COMPLETED: 'Tournament marked as completed.',
   ARCHIVED: 'Tournament archived successfully.',
+  RESTORED: 'Tournament restored successfully.',
+  DELETED: 'Tournament deleted permanently.',
+  DELETING: 'Deleting tournament…',
   ACTIVE_SET: 'Active tournament updated.',
   CREATE_FAILED: 'Unable to create tournament. Please try again.',
   UPDATE_FAILED: 'Unable to update tournament. Please try again.',
@@ -154,7 +158,12 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
   CONFIRM_GO_LIVE: 'Mark this tournament as live?',
   CONFIRM_COMPLETE: 'Mark this tournament as completed? It will become read-only.',
   CONFIRM_SET_ACTIVE: 'Set this as the active tournament? Only one tournament can be active.',
+  CONFIRM_DELETE: 'Delete this tournament permanently? This action is irreversible and cannot be undone.',
+  CONFIRM_RESTORE: 'Restore this tournament? It will become available for management again.',
+  CANNOT_DELETE_ACTIVE: 'Cannot delete the active tournament. Set another tournament as active first.',
+  CANNOT_DELETE_HAS_PREDICTIONS: 'Cannot delete this tournament because one or more matches have predictions.',
   NO_TOURNAMENTS: 'No tournaments have been created yet.',
+  NO_ARCHIVED_TOURNAMENTS: 'No archived tournaments.',
   NO_VISIBLE_TOURNAMENTS: 'No tournaments are available right now.',
   VALIDATION_SUMMARY: 'Please correct the highlighted fields and try again.',
 });
@@ -162,7 +171,6 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
 /** @type {Readonly<Record<string, string>>} */
 export const TOURNAMENT_STATUS_LABELS = Object.freeze({
   [TOURNAMENT_STATUS.DRAFT]: 'Draft',
-  [TOURNAMENT_STATUS.REGISTRATION_OPEN]: 'Registration Open',
   [TOURNAMENT_STATUS.PUBLISHED]: 'Published',
   [TOURNAMENT_STATUS.LIVE]: 'Live',
   [TOURNAMENT_STATUS.COMPLETED]: 'Completed',

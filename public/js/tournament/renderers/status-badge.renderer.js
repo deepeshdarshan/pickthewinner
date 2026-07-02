@@ -12,7 +12,6 @@ import {
 /** @type {Readonly<Record<string, string>>} */
 const STATUS_BADGE_CLASS = Object.freeze({
   draft: 'text-bg-secondary',
-  registration_open: 'text-bg-info',
   published: 'text-bg-primary',
   live: 'text-bg-success',
   completed: 'text-bg-warning',

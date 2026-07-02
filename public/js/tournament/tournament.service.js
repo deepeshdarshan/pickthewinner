@@ -16,6 +16,7 @@ import {
   serverTimestamp,
   Timestamp,
   runTransaction,
+  writeBatch,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { TournamentDomain, TOURNAMENT_STATUS, TOURNAMENT_VISIBILITY } from '../domain/tournament.domain.js';
@@ -37,6 +38,11 @@ import {
 import { TOURNAMENT_EVENTS, emitTournamentEvent } from './tournament.events.js';
 import { ApplicationContext } from '../app/application-context.js';
 import { Logger } from '../utils/logger.util.js';
+import { matchRepository } from '../match/match.repository.js';
+import { MATCH_STATUS } from '../domain/match.domain.js';
+import { MATCH_COLLECTIONS } from '../match/match.constants.js';
+import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
+import { writeAuditLog } from '../audit/audit.service.js';
 
 /**
  * @typedef {Object} ScoringConfiguration
@@ -321,11 +327,13 @@ export async function getTournamentById(id, options = {}) {
 }
 
 /**
- * @param {{ includeArchived?: boolean, status?: string }} [filters]
+ * @param {{ includeArchived?: boolean, archivedOnly?: boolean, status?: string }} [filters]
  * @returns {Promise<Tournament[]>}
  */
 export async function listTournamentsForAdmin(filters = {}) {
-  if (!filters.status && !filters.includeArchived && adminListCache) {
+  const useCache = !filters.status && !filters.includeArchived && !filters.archivedOnly;
+
+  if (useCache && adminListCache) {
     return adminListCache;
   }
 
@@ -337,7 +345,9 @@ export async function listTournamentsForAdmin(filters = {}) {
 
   let tournaments = snapshot.docs.map((item) => normalizeTournamentDocument(item.id, item.data()));
 
-  if (!filters.includeArchived) {
+  if (filters.archivedOnly) {
+    tournaments = tournaments.filter((item) => item.status === STATUS.ARCHIVED || item.archived);
+  } else if (!filters.includeArchived) {
     tournaments = tournaments.filter((item) => item.status !== STATUS.ARCHIVED && !item.archived);
   }
 
@@ -345,7 +355,7 @@ export async function listTournamentsForAdmin(filters = {}) {
     tournaments = tournaments.filter((item) => item.status === filters.status);
   }
 
-  if (!filters.status && !filters.includeArchived) {
+  if (useCache) {
     adminListCache = tournaments;
   }
 
@@ -560,27 +570,6 @@ export async function publishTournament(id, uid) {
  * @param {string} uid
  * @returns {Promise<Tournament>}
  */
-export async function openRegistration(id, uid) {
-  const existing = await getTournamentById(id, { forceRefresh: true });
-
-  if (!existing) {
-    throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
-  }
-
-  const validation = validateLifecycleAction(LIFECYCLE_ACTIONS.OPEN_REGISTRATION, existing);
-
-  if (!validation.valid) {
-    throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
-  }
-
-  return transitionTournamentStatus(id, uid, STATUS.REGISTRATION_OPEN);
-}
-
-/**
- * @param {string} id
- * @param {string} uid
- * @returns {Promise<Tournament>}
- */
 export async function goLive(id, uid) {
   const existing = await getTournamentById(id, { forceRefresh: true });
 
@@ -636,10 +625,69 @@ export async function archiveTournament(id, uid) {
     throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
   }
 
-  const tournament = await transitionTournamentStatus(id, uid, STATUS.ARCHIVED, {
-    archived: true,
-    active: false,
-    visibility: VISIBILITY.ARCHIVED,
+  const matches = await matchRepository.listByTournament(id);
+
+  const tournament = await runSerializedFirestoreWrite(async () => {
+    await ensureFirestoreOnline();
+
+    const tournamentRef = getTournamentDocRef(id);
+
+    await runTransaction(db, async (transaction) => {
+      const tournamentSnap = await transaction.get(tournamentRef);
+
+      if (!tournamentSnap.exists()) {
+        throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
+      }
+
+      const matchRefs = matches.map((match) => doc(db, MATCH_COLLECTIONS.MATCHES, match.id));
+      const matchSnaps = await Promise.all(matchRefs.map((ref) => transaction.get(ref)));
+
+      transaction.update(tournamentRef, {
+        status: STATUS.ARCHIVED,
+        archived: true,
+        active: false,
+        visibility: VISIBILITY.ARCHIVED,
+        updatedBy: uid,
+        updatedAt: serverTimestamp(),
+      });
+
+      matchSnaps.forEach((snap) => {
+        if (!snap.exists()) {
+          return;
+        }
+
+        const data = snap.data();
+
+        if (String(data.status ?? '') === MATCH_STATUS.ARCHIVED) {
+          return;
+        }
+
+        transaction.update(snap.ref, {
+          status: MATCH_STATUS.ARCHIVED,
+          visible: false,
+          archivedWithTournament: true,
+          statusBeforeArchive: String(data.status ?? MATCH_STATUS.DRAFT),
+          updatedBy: uid,
+          updatedAt: serverTimestamp(),
+        });
+      });
+    });
+
+    const updated = normalizeTournamentDocument(id, {
+      ...existing,
+      status: STATUS.ARCHIVED,
+      archived: true,
+      active: false,
+      visibility: VISIBILITY.ARCHIVED,
+      updatedBy: uid,
+      updatedAt: new Date(),
+    });
+
+    cacheTournament(updated);
+    adminListCache = null;
+    contestantListCache = null;
+    matchRepository.clearCache();
+    return updated;
   });
 
   if (activeTournamentCache?.id === id) {
@@ -656,8 +704,165 @@ export async function archiveTournament(id, uid) {
  * @param {string} uid
  * @returns {Promise<Tournament>}
  */
+export async function restoreTournament(id, uid) {
+  const existing = await getTournamentById(id, { forceRefresh: true });
+
+  if (!existing) {
+    throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
+  }
+
+  const validation = validateLifecycleAction(LIFECYCLE_ACTIONS.RESTORE, existing);
+
+  if (!validation.valid) {
+    throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
+  }
+
+  const matches = await matchRepository.listByTournament(id);
+
+  const tournament = await runSerializedFirestoreWrite(async () => {
+    await ensureFirestoreOnline();
+
+    const tournamentRef = getTournamentDocRef(id);
+
+    await runTransaction(db, async (transaction) => {
+      const tournamentSnap = await transaction.get(tournamentRef);
+
+      if (!tournamentSnap.exists()) {
+        throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
+      }
+
+      const cascadeMatches = matches.filter((match) => Boolean(match.archivedWithTournament));
+      const matchRefs = cascadeMatches.map((match) => doc(db, MATCH_COLLECTIONS.MATCHES, match.id));
+      const matchSnaps = await Promise.all(matchRefs.map((ref) => transaction.get(ref)));
+
+      transaction.update(tournamentRef, {
+        status: STATUS.COMPLETED,
+        archived: false,
+        visibility: VISIBILITY.HIDDEN,
+        updatedBy: uid,
+        updatedAt: serverTimestamp(),
+      });
+
+      matchSnaps.forEach((snap) => {
+        if (!snap.exists()) {
+          return;
+        }
+
+        const data = snap.data();
+
+        if (!data.archivedWithTournament) {
+          return;
+        }
+
+        const restoredStatus = resolveRestoredMatchStatus(data);
+
+        transaction.update(snap.ref, {
+          status: restoredStatus,
+          visible: restoredStatus !== MATCH_STATUS.DRAFT && restoredStatus !== MATCH_STATUS.SCHEDULED,
+          archivedWithTournament: false,
+          statusBeforeArchive: null,
+          updatedBy: uid,
+          updatedAt: serverTimestamp(),
+        });
+      });
+    });
+
+    const updated = normalizeTournamentDocument(id, {
+      ...existing,
+      status: STATUS.COMPLETED,
+      archived: false,
+      visibility: VISIBILITY.HIDDEN,
+      updatedBy: uid,
+      updatedAt: new Date(),
+    });
+
+    cacheTournament(updated);
+    adminListCache = null;
+    contestantListCache = null;
+    matchRepository.clearCache();
+    return updated;
+  });
+
+  emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_RESTORED, tournament);
+  return tournament;
+}
+
+/**
+ * @param {Record<string, unknown>} matchData
+ * @returns {string}
+ */
+function resolveRestoredMatchStatus(matchData) {
+  const stored = String(matchData.statusBeforeArchive ?? '');
+
+  if (stored && stored !== MATCH_STATUS.ARCHIVED) {
+    return stored;
+  }
+
+  if (matchData.result) {
+    return MATCH_STATUS.RESULT_PUBLISHED;
+  }
+
+  return MATCH_STATUS.COMPLETED;
+}
+
+/**
+ * @param {string} id
+ * @param {string} uid
+ * @returns {Promise<void>}
+ */
 export async function deleteTournament(id, uid) {
-  return archiveTournament(id, uid);
+  const existing = await getTournamentById(id, { forceRefresh: true });
+
+  if (!existing) {
+    throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
+  }
+
+  if (existing.active) {
+    throw new Error(TOURNAMENT_MESSAGES.CANNOT_DELETE_ACTIVE);
+  }
+
+  const matches = await matchRepository.listByTournament(id);
+
+  for (const match of matches) {
+    const predictions = await listPredictionsByMatch(match.id);
+
+    if (predictions.length > 0) {
+      throw new Error(TOURNAMENT_MESSAGES.CANNOT_DELETE_HAS_PREDICTIONS);
+    }
+  }
+
+  await runSerializedFirestoreWrite(async () => {
+    await ensureFirestoreOnline();
+
+    const batch = writeBatch(db);
+
+    matches.forEach((match) => {
+      batch.delete(doc(db, MATCH_COLLECTIONS.MATCHES, match.id));
+    });
+
+    batch.delete(getTournamentDocRef(id));
+    await batch.commit();
+
+    tournamentCache.delete(id);
+    adminListCache = null;
+    contestantListCache = null;
+
+    if (activeTournamentCache?.id === id) {
+      activeTournamentCache = null;
+      ApplicationContext.setTournament(null);
+    }
+
+    matchRepository.clearCache();
+
+    await writeAuditLog({
+      action: 'tournament_deleted',
+      entityType: 'tournament',
+      entityId: id,
+      details: { name: existing.name },
+    });
+
+    emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_DELETED, { id });
+  });
 }
 
 /**

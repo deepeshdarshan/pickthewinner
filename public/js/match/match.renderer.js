@@ -6,8 +6,11 @@
 export {
   renderMatchListLoading,
   renderMatchListPage,
+  renderArchivedMatchListPage,
+  renderMatchFilters,
   mountMatchListLoading,
   renderMatchNotFound,
+  MATCH_LIST_PAGE_SIZE,
 } from './renderers/list.renderer.js';
 
 export {

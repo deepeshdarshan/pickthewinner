@@ -155,6 +155,14 @@ function renderLifecycleActions(tournament) {
     actions.push(renderActionButton('archive', 'Archive', 'btn-outline-danger'));
   }
 
+  if (!tournament.active) {
+    actions.push(`
+      <button type="button" class="btn btn-danger" data-ptw-tournament-delete>
+        Delete Permanently
+      </button>
+    `);
+  }
+
   if (actions.length === 0) {
     return '';
   }

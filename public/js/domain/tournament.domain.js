@@ -6,7 +6,6 @@
 /** @enum {string} */
 export const TOURNAMENT_STATUS = Object.freeze({
   DRAFT: 'draft',
-  REGISTRATION_OPEN: 'registration_open',
   PUBLISHED: 'published',
   LIVE: 'live',
   COMPLETED: 'completed',
@@ -23,13 +22,7 @@ export const TOURNAMENT_VISIBILITY = Object.freeze({
 /** @type {Readonly<Record<string, ReadonlySet<string>>>} */
 const ALLOWED_TRANSITIONS = Object.freeze({
   [TOURNAMENT_STATUS.DRAFT]: new Set([
-    TOURNAMENT_STATUS.REGISTRATION_OPEN,
     TOURNAMENT_STATUS.PUBLISHED,
-    TOURNAMENT_STATUS.ARCHIVED,
-  ]),
-  [TOURNAMENT_STATUS.REGISTRATION_OPEN]: new Set([
-    TOURNAMENT_STATUS.PUBLISHED,
-    TOURNAMENT_STATUS.DRAFT,
     TOURNAMENT_STATUS.ARCHIVED,
   ]),
   [TOURNAMENT_STATUS.PUBLISHED]: new Set([
@@ -44,7 +37,9 @@ const ALLOWED_TRANSITIONS = Object.freeze({
   [TOURNAMENT_STATUS.COMPLETED]: new Set([
     TOURNAMENT_STATUS.ARCHIVED,
   ]),
-  [TOURNAMENT_STATUS.ARCHIVED]: new Set(),
+  [TOURNAMENT_STATUS.ARCHIVED]: new Set([
+    TOURNAMENT_STATUS.COMPLETED,
+  ]),
 });
 
 export const TournamentDomain = {
@@ -67,14 +62,6 @@ export const TournamentDomain = {
    * @returns {boolean}
    */
   canPublishTournament(status) {
-    return status === TOURNAMENT_STATUS.DRAFT || status === TOURNAMENT_STATUS.REGISTRATION_OPEN;
-  },
-
-  /**
-   * @param {string} status
-   * @returns {boolean}
-   */
-  canOpenRegistration(status) {
     return status === TOURNAMENT_STATUS.DRAFT;
   },
 
@@ -104,6 +91,14 @@ export const TournamentDomain = {
 
   /**
    * @param {string} status
+   * @returns {boolean}
+   */
+  canRestoreTournament(status) {
+    return status === TOURNAMENT_STATUS.ARCHIVED;
+  },
+
+  /**
+   * @param {string} status
    * @param {boolean} [archived]
    * @returns {boolean}
    */
@@ -112,8 +107,7 @@ export const TournamentDomain = {
       return false;
     }
 
-    return status === TOURNAMENT_STATUS.DRAFT
-      || status === TOURNAMENT_STATUS.REGISTRATION_OPEN;
+    return status === TOURNAMENT_STATUS.DRAFT;
   },
 
   /**
@@ -141,17 +135,12 @@ export const TournamentDomain = {
   },
 
   /**
-   * @param {string} status
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationStart
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationEnd
    * @param {Date} [now]
    * @returns {boolean}
    */
-  isRegistrationOpen(status, registrationStart, registrationEnd, now = new Date()) {
-    if (status === TOURNAMENT_STATUS.REGISTRATION_OPEN) {
-      return true;
-    }
-
+  isRegistrationOpen(registrationStart, registrationEnd, now = new Date()) {
     const start = toDate(registrationStart);
     const end = toDate(registrationEnd);
 
@@ -164,17 +153,12 @@ export const TournamentDomain = {
   },
 
   /**
-   * @param {string} status
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationStart
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationEnd
    * @param {Date} [now]
    * @returns {'open'|'closed'|'scheduled'|'not_configured'}
    */
-  resolveRegistrationStatus(status, registrationStart, registrationEnd, now = new Date()) {
-    if (status === TOURNAMENT_STATUS.REGISTRATION_OPEN) {
-      return 'open';
-    }
-
+  resolveRegistrationStatus(registrationStart, registrationEnd, now = new Date()) {
     const start = toDate(registrationStart);
     const end = toDate(registrationEnd);
 

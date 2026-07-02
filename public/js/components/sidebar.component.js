@@ -21,6 +21,7 @@ const ADMIN_NAV_SECTIONS = Object.freeze([
     icon: 'bi-calendar-event',
     children: [
       { path: '/admin/tournaments', label: 'All Tournaments' },
+      { path: '/admin/tournaments/archived', label: 'Archived Tournaments' },
     ],
   },
   { type: 'item', path: '/admin/teams', label: 'Teams', icon: 'bi-people' },
@@ -30,6 +31,7 @@ const ADMIN_NAV_SECTIONS = Object.freeze([
     icon: 'bi-flag',
     children: [
       { path: '/admin/matches', label: 'Matches' },
+      { path: '/admin/matches/archived', label: 'Archived Matches' },
       { path: '/admin/results', label: 'Results' },
     ],
   },

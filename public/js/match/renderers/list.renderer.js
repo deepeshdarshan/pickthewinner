@@ -8,9 +8,11 @@ import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderCountdown } from '../../components/countdown.component.js';
 import { renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderPagination } from '../../components/pagination.component.js';
 import {
   MATCH_MESSAGES,
   MATCH_ROUTES,
+  MATCH_STATUS,
   MATCH_STATUS_LABELS,
 } from '../match.constants.js';
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
@@ -37,24 +39,51 @@ export function renderMatchListLoading() {
   `;
 }
 
+/** @type {Readonly<number>} */
+export const MATCH_LIST_PAGE_SIZE = 20;
+
 /**
  * @param {EnrichedMatch[]} matches
- * @param {{ tournaments?: Array<{ id: string, name: string }> }} [options]
+ * @param {{
+ *   tournaments?: Array<{ id: string, name: string }>,
+ *   title?: string,
+ *   subtitle?: string,
+ *   actionsHtml?: string,
+ *   showCreateFab?: boolean,
+ *   allowDelete?: boolean,
+ *   listRoute?: string,
+ *   currentPage?: number,
+ *   totalPages?: number,
+ *   archivedOnly?: boolean,
+ * }} [options]
  * @returns {string}
  */
 export function renderMatchListPage(matches, options = {}) {
-  const createButton = `
+  const {
+    title = 'Matches',
+    subtitle = 'Create, schedule, and manage tournament matches',
+    actionsHtml = '',
+    showCreateFab = true,
+    allowDelete = false,
+    listRoute = MATCH_ROUTES.ADMIN_LIST,
+    currentPage = 1,
+    totalPages = 1,
+    archivedOnly = false,
+  } = options;
+
+  const createButton = showCreateFab ? `
     <a class="btn btn-ptw-primary" href="${MATCH_ROUTES.ADMIN_LIST}?action=create" data-route>
       <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Add Match
     </a>
-  `;
+  ` : '';
 
-  const filters = renderFilters(options.tournaments ?? []);
+  const filters = renderMatchFilters(options.tournaments ?? [], { archivedOnly });
+  const pagination = renderPagination({ currentPage, totalPages, basePath: `${listRoute}?` });
 
   const body = matches.length === 0
     ? renderEmptyState({
-      title: 'No Matches',
-      message: MATCH_MESSAGES.NO_MATCHES,
+      title: archivedOnly ? 'No Archived Matches' : 'No Matches',
+      message: archivedOnly ? MATCH_MESSAGES.NO_ARCHIVED_MATCHES : MATCH_MESSAGES.NO_MATCHES,
       icon: 'bi-flag',
       actionHtml: createButton,
     })
@@ -72,38 +101,68 @@ export function renderMatchListPage(matches, options = {}) {
               <th scope="col" class="text-end">Actions</th>
             </tr>
           </thead>
-          <tbody>${matches.map((match) => renderMatchRow(match)).join('')}</tbody>
+          <tbody>${matches.map((match) => renderMatchRow(match, { listRoute, allowDelete })).join('')}</tbody>
         </table>
       </div>
       <div class="d-lg-none ptw-match-cards">
-        ${matches.map((match) => renderMatchCard(match)).join('')}
+        ${matches.map((match) => renderMatchCard(match, { listRoute, allowDelete })).join('')}
       </div>
+      ${pagination ? `<div class="mt-3" id="ptw-match-pagination">${pagination}</div>` : ''}
     `;
 
   return `
     <div class="container-fluid ptw-page-content ptw-match-list-page">
       ${renderPageHeader({
-    title: 'Matches',
-    subtitle: 'Create, schedule, and manage tournament matches',
-    actionsHtml: createButton,
+    title,
+    subtitle,
+    actionsHtml: actionsHtml || createButton,
   })}
       ${filters}
       <div class="card ptw-card">
         <div class="card-body">${body}</div>
       </div>
-      <a class="btn btn-ptw-primary ptw-match-fab d-lg-none" href="${MATCH_ROUTES.ADMIN_LIST}?action=create" data-route aria-label="Add match">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i>
-      </a>
+      ${showCreateFab ? `
+        <a class="btn btn-ptw-primary ptw-match-fab d-lg-none" href="${MATCH_ROUTES.ADMIN_LIST}?action=create" data-route aria-label="Add match">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        </a>
+      ` : ''}
     </div>
   `;
 }
 
 /**
- * @param {Array<{ id: string, name: string }>} tournaments
+ * @param {EnrichedMatch[]} matches
+ * @param {{ tournaments?: Array<{ id: string, name: string }>, currentPage?: number, totalPages?: number }} [options]
  * @returns {string}
  */
-function renderFilters(tournaments) {
-  const statusOptions = Object.entries(MATCH_STATUS_LABELS)
+export function renderArchivedMatchListPage(matches, options = {}) {
+  return renderMatchListPage(matches, {
+    ...options,
+    title: 'Archived Matches',
+    subtitle: 'View or permanently delete archived matches',
+    showCreateFab: false,
+    allowDelete: true,
+    archivedOnly: true,
+    listRoute: MATCH_ROUTES.ARCHIVED_LIST,
+    actionsHtml: `
+      <a class="btn btn-outline-light" href="${MATCH_ROUTES.ADMIN_LIST}" data-route>
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Active Matches
+      </a>
+    `,
+  });
+}
+
+/**
+ * @param {Array<{ id: string, name: string }>} tournaments
+ * @param {{ archivedOnly?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderMatchFilters(tournaments, options = {}) {
+  const statusEntries = Object.entries(MATCH_STATUS_LABELS).filter(([value]) => (
+    options.archivedOnly ? value === MATCH_STATUS.ARCHIVED : value !== MATCH_STATUS.ARCHIVED
+  ));
+
+  const statusOptions = statusEntries
     .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
     .join('');
 
@@ -145,10 +204,12 @@ function renderFilters(tournaments) {
 
 /**
  * @param {EnrichedMatch} match
+ * @param {{ listRoute?: string, allowDelete?: boolean }} [options]
  * @returns {string}
  */
-function renderMatchRow(match) {
-  const editUrl = `${MATCH_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(match.id)}`;
+function renderMatchRow(match, options = {}) {
+  const listRoute = options.listRoute ?? MATCH_ROUTES.ADMIN_LIST;
+  const editUrl = `${listRoute}?id=${encodeURIComponent(match.id)}`;
 
   return `
     <tr data-match-id="${escapeHtml(match.id)}">
@@ -159,7 +220,19 @@ function renderMatchRow(match) {
       <td>${escapeHtml(formatKickoff(match))}</td>
       <td>${renderMatchStatusBadge(match.status)}</td>
       <td class="text-end">
-        <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
+        <div class="d-flex gap-1 justify-content-end flex-wrap">
+          <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
+          ${options.allowDelete ? `
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              data-ptw-match-delete
+              data-match-id="${escapeHtml(match.id)}"
+            >
+              Delete
+            </button>
+          ` : ''}
+        </div>
       </td>
     </tr>
   `;
@@ -167,10 +240,12 @@ function renderMatchRow(match) {
 
 /**
  * @param {EnrichedMatch} match
+ * @param {{ listRoute?: string, allowDelete?: boolean }} [options]
  * @returns {string}
  */
-function renderMatchCard(match) {
-  const editUrl = `${MATCH_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(match.id)}`;
+function renderMatchCard(match, options = {}) {
+  const listRoute = options.listRoute ?? MATCH_ROUTES.ADMIN_LIST;
+  const editUrl = `${listRoute}?id=${encodeURIComponent(match.id)}`;
   const kickoffIso = toIso(match.kickoffUtc);
 
   return `
@@ -186,7 +261,19 @@ function renderMatchCard(match) {
         </div>
         ${kickoffIso ? renderCountdown({ targetDate: kickoffIso, label: 'Kickoff in', id: `ptw-countdown-${match.id}` }) : ''}
         <div class="mt-2 small">Prediction: ${escapeHtml(match.predictionStatus ?? '—')}</div>
-        <a class="btn btn-sm btn-outline-light mt-3" href="${editUrl}" data-route>Manage</a>
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+          <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
+          ${options.allowDelete ? `
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              data-ptw-match-delete
+              data-match-id="${escapeHtml(match.id)}"
+            >
+              Delete
+            </button>
+          ` : ''}
+        </div>
       </div>
     </article>
   `;

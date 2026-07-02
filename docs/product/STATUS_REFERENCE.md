@@ -19,9 +19,7 @@ stateDiagram-v2
 
   state "Tournament" as T {
     [*] --> draft
-    draft --> registration_open
     draft --> published
-    registration_open --> published
     published --> live
     live --> completed
     completed --> archived
@@ -50,7 +48,6 @@ stateDiagram-v2
 | Status | Label | Visible to contestants? |
 |--------|-------|-------------------------|
 | `draft` | Draft | No |
-| `registration_open` | Registration Open | No |
 | `published` | Published | Yes (if visibility = Visible) |
 | `live` | Live | Yes (if visibility = Visible) |
 | `completed` | Completed | Yes (if visibility = Visible) |
@@ -74,26 +71,6 @@ Contestant visibility is determined by `TournamentDomain.isTournamentVisibleToCo
 | Tournaments (`/tournaments`) | Tournament does not appear. List shows *"No tournaments are available right now."* if no other visible tournaments exist. |
 | Matches / Predictions | No matches from this tournament are shown. |
 | Leaderboard | Not applicable for this tournament. |
-
----
-
-### `registration_open`
-
-**What happens**
-
-- Administrators have opened registration (either by setting this status or by configuring a registration window).
-- Tournament remains **hidden from contestants** until it is published.
-- Registration dates may be evaluated separately via `resolveRegistrationStatus()` (`open`, `closed`, `scheduled`, `not_configured`).
-
-**Contestant UI**
-
-| Area | Behavior |
-|------|----------|
-| Dashboard | Same as `draft` — tournament is not counted as an active/visible tournament. |
-| Tournaments | Not listed. |
-| Matches / Predictions | Not available. |
-
-> **Note:** Registration is an admin lifecycle step. Contestants only gain access after the tournament moves to **`published`**.
 
 ---
 
@@ -429,7 +406,7 @@ Controlled by `configuration.leaderboardVisible`, not directly by tournament or 
 
 | Tournament status | Match status (effective) | `visible` | Can predict? |
 |-------------------|--------------------------|-----------|--------------|
-| `draft` / `registration_open` / `archived` | Any | Any | No — tournament not visible |
+| `draft` / `archived` | Any | Any | No — tournament not visible |
 | `published` / `live` | `published` (before window) | `true` | No — window closed |
 | `published` / `live` | `prediction_open` | `true` | **Yes** |
 | `published` / `live` | `prediction_locked` / `live` | `true` | No — locked |

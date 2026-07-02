@@ -25,6 +25,8 @@ import {
 import { matchRepository } from './match.repository.js';
 import { applyLifecycleAction, getMatchWithEffectiveStatus } from './match-status.service.js';
 import { MATCH_EVENTS, emitMatchEvent } from './match.events.js';
+import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
+import { writeAuditLog } from '../audit/audit.service.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -218,7 +220,13 @@ export async function enrichMatch(match) {
  * @returns {Promise<EnrichedMatch[]>}
  */
 export async function listMatchesForAdmin(filters = {}) {
-  const rows = await matchRepository.list(filters);
+  const listFilters = {
+    ...filters,
+    excludeArchived: filters.archivedOnly ? false : filters.excludeArchived !== false,
+    archivedOnly: Boolean(filters.archivedOnly),
+  };
+
+  const rows = await matchRepository.list(listFilters);
   const matches = await Promise.all(rows.map(async (row) => {
     const match = await getMatchWithEffectiveStatus(row.id);
     return match ? enrichMatch(match) : null;
@@ -381,8 +389,28 @@ export async function updateMatch(id, payload) {
  * @returns {Promise<void>}
  */
 export async function deleteMatch(id) {
+  const data = await matchRepository.getById(id, false);
+
+  if (!data) {
+    throw new Error(MATCH_MESSAGES.NOT_FOUND);
+  }
+
+  const predictions = await listPredictionsByMatch(id);
+
+  if (predictions.length > 0) {
+    throw new Error(MATCH_MESSAGES.CANNOT_DELETE_HAS_PREDICTIONS);
+  }
+
   await matchRepository.remove(id);
   matchCache.delete(id);
+
+  await writeAuditLog({
+    action: 'match_deleted',
+    entityType: 'match',
+    entityId: id,
+  });
+
+  emitMatchEvent(MATCH_EVENTS.MATCH_DELETED, { id });
 }
 
 /**

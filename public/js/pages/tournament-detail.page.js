@@ -163,30 +163,34 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
 
       <!-- Statistics -->
       <div class="row g-3 mb-4">
-        ${renderStatisticCard({
-          icon: 'bi-bullseye',
-          title: 'Total Matches',
-          value: totalMatches,
-          variant: 'primary',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-check-circle',
-          title: 'Submitted',
-          value: submittedPredictions,
-          variant: 'success',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-clock',
-          title: 'Pending',
-          value: pendingPredictions,
-          variant: 'warning',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-flag-fill',
-          title: 'Completed',
-          value: completedMatches,
-          variant: 'info',
-        })}
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            label: 'Total Matches',
+            value: totalMatches || 0,
+            icon: 'bi-bullseye',
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            label: 'Submitted',
+            value: submittedPredictions || 0,
+            icon: 'bi-check-circle',
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            label: 'Pending',
+            value: pendingPredictions || 0,
+            icon: 'bi-clock',
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            label: 'Completed',
+            value: completedMatches || 0,
+            icon: 'bi-flag-fill',
+          })}
+        </div>
       </div>
 
       <!-- Matches by Round -->
