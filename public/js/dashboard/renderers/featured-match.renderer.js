@@ -34,6 +34,7 @@ export function renderFeaturedMatchSection(data) {
   const prediction = data.featuredMatchPrediction ?? null;
   const predictionStatus = getPredictionStatus(match, prediction);
   const actionButtons = renderFeaturedActionButtons(match, prediction, predictionStatus);
+  const countdown = data.featuredMatchCountdown;
 
   return `
     <section class="card ptw-card ptw-featured-match h-100" aria-labelledby="ptw-featured-match-heading">
@@ -42,7 +43,7 @@ export function renderFeaturedMatchSection(data) {
           <span class="badge bg-secondary me-2">${escapeHtml(match.tournamentName ?? 'Tournament')}</span>
           <span class="badge bg-info">${escapeHtml(match.round ?? 'Match')}</span>
         </div>
-        ${kickoff ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Prediction opens in', id: `ptw-featured-countdown-${match.id}` }) : ''}
+        ${countdown ? renderCountdown({ targetDate: countdown.targetDate, label: countdown.label, id: `ptw-featured-countdown-${match.id}` }) : ''}
       </div>
       <div class="card-body">
         <h2 class="h5 mb-4" id="ptw-featured-match-heading">Upcoming Match</h2>

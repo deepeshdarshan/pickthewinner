@@ -15,6 +15,7 @@ import { getPredictionSummary } from '../prediction/prediction-submission.servic
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
+import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 
 /**
  * @typedef {Object} ContestantActivityItem
@@ -63,6 +64,7 @@ import { TournamentDomain } from '../domain/tournament.domain.js';
  * @property {import('../tournament/tournament.service.js').Tournament[]} tournaments
  * @property {Array<import('../tournament/tournament.service.js').Tournament & { stats: TournamentCardStats }>} tournamentCards
  * @property {import('../match/match.service.js').EnrichedMatch|null} featuredMatch
+ * @property {{ targetDate: string, label: string }|null} featuredMatchCountdown
  * @property {Record<string, unknown>|null} featuredMatchPrediction
  * @property {import('../match/match.service.js').EnrichedMatch[]} upcomingMatches
  * @property {Record<string, Record<string, unknown>|null>} upcomingPredictions
@@ -190,6 +192,9 @@ export const ContestantDashboardService = {
     });
 
     const recentActivity = buildRecentActivity(allMatches, user?.uid ?? null);
+    const featuredMatchCountdown = featuredMatch
+      ? await buildFeaturedMatchCountdown(featuredMatch)
+      : null;
 
     return {
       displayName: escapeHtml(displayName),
@@ -209,6 +214,7 @@ export const ContestantDashboardService = {
       tournaments: visibleTournaments,
       tournamentCards,
       featuredMatch,
+      featuredMatchCountdown,
       featuredMatchPrediction,
       upcomingMatches,
       upcomingPredictions,
@@ -245,6 +251,44 @@ export const ContestantDashboardService = {
     };
   },
 };
+
+/**
+ * @param {import('../match/match.service.js').EnrichedMatch} match
+ * @returns {Promise<{ targetDate: string, label: string }|null>}
+ */
+async function buildFeaturedMatchCountdown(match) {
+  if (isPredictionWindowLocked(match)) {
+    return null;
+  }
+
+  const kickoff = toDate(match.kickoffUtc);
+  if (!kickoff || !match.tournamentId) {
+    return null;
+  }
+
+  try {
+    await TournamentConfigurationService.load(match.tournamentId);
+    const openHours = TournamentConfigurationService.getPredictionOpenHoursBeforeKickoff();
+    const lockMinutes = TournamentConfigurationService.getPredictionLockMinutes();
+    const { opensAt, locksAt } = MatchDomain.calculatePredictionWindow(kickoff, openHours, lockMinutes);
+
+    if (match.status === MATCH_STATUS.PREDICTION_OPEN || match.predictionStatus === 'Open') {
+      return { targetDate: locksAt.toISOString(), label: 'Closes in' };
+    }
+
+    return { targetDate: opensAt.toISOString(), label: 'Prediction opens in' };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {import('../match/match.service.js').EnrichedMatch} match
+ * @returns {boolean}
+ */
+function isPredictionWindowLocked(match) {
+  return match.predictionStatus === 'Locked' || match.status === MATCH_STATUS.PREDICTION_LOCKED;
+}
 
 /**
  * @param {unknown} value

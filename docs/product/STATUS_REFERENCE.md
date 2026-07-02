@@ -281,6 +281,7 @@ Default configuration: predictions open **48 hours** before kickoff and lock **1
 | Match card badge | **Prediction Locked** (lock icon). |
 | Actions | **Prediction Locked** button — disabled, full width. |
 | Submitted prediction | Still displayed read-only on the card. |
+| Countdown timer | Hidden on contestant dashboard when predictions are locked. |
 
 ---
 
