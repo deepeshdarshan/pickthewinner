@@ -4,6 +4,7 @@
  */
 
 import { renderMatchFormPage } from './form.renderer.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
 import { renderResultForm } from './result-form.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
@@ -46,7 +47,7 @@ export function renderMatchDetailPage(match, options) {
   const overrideIndicator = renderOverrideIndicator(match);
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${formHtml}
       ${overrideIndicator}
       <div class="ptw-match-detail-actions card ptw-card mb-3">

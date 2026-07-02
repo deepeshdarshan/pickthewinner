@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { TOURNAMENT_MESSAGES, TOURNAMENT_ROUTES } from '../tournament.constants.js';
@@ -18,7 +19,7 @@ import { renderStatusBadge, renderVisibilityBadge, renderActiveBadge } from './s
  */
 export function renderTournamentListLoading() {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card" role="status" aria-live="polite">
           <div class="spinner-border text-primary" role="status" aria-label="${escapeHtml(TOURNAMENT_MESSAGES.LOADING)}">
@@ -73,7 +74,7 @@ export function renderTournamentListPage(tournaments) {
     `;
 
   return `
-    <div class="container-fluid ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
     title: 'Tournaments',
     subtitle: 'Create, configure, and manage tournaments',

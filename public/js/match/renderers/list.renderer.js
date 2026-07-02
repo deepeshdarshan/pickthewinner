@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderCountdown } from '../../components/countdown.component.js';
 import { renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
@@ -26,7 +27,7 @@ import { renderMatchStatusBadge } from './status-badge.renderer.js';
  */
 export function renderMatchListLoading() {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card" role="status" aria-live="polite">
           <div class="spinner-border text-primary" role="status" aria-label="${escapeHtml(MATCH_MESSAGES.LOADING)}">
@@ -111,7 +112,7 @@ export function renderMatchListPage(matches, options = {}) {
     `;
 
   return `
-    <div class="container-fluid ptw-page-content ptw-match-list-page">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
     title,
     subtitle,
@@ -290,7 +291,7 @@ function renderTeamsCell(match) {
   const awayFlag = renderTeamFlagHtml(away?.flagUrl, { marginClass: 'me-1' });
 
   return `
-    <div class="d-flex align-items-center gap-2 flex-wrap">
+    <div class="d-flex align-items-center gap-2 flex-nowrap">
       <span>${homeFlag}${escapeHtml(home?.name ?? 'Home')}</span>
       <span class="ptw-text-muted">vs</span>
       <span>${awayFlag}${escapeHtml(away?.name ?? 'Away')}</span>
@@ -358,7 +359,7 @@ export function mountMatchListLoading(outlet) {
  */
 export function renderMatchNotFound(message = MATCH_MESSAGES.NOT_FOUND) {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderEmptyState({ title: 'Match', message, icon: 'bi-flag' })}
     </div>
   `;

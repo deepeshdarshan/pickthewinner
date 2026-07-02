@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import {
   renderIconInputField,
   renderIconSelectField,
@@ -60,7 +61,7 @@ export function renderTournamentFormPage(tournament = null, options = {}) {
   const backUrl = TOURNAMENT_ROUTES.ADMIN_LIST;
 
   return `
-    <div class="ptw-tournament-form-page ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES} ptw-tournament-form-page">
       ${renderPageHeader({
     title,
     subtitle,
@@ -217,8 +218,7 @@ function renderVisibilitySettingsSection(config, readOnly) {
  * @returns {string}
  */
 function renderConfigurationSection(config, readOnly) {
-  const canEndInDraw = Boolean(config.canEndInDraw);
-  const requiresWinner = Boolean(config.requiresWinner ?? true);
+  const requireWinnerForDraw = Boolean(config.requireWinnerForDraw);
 
   return `
     <section class="card ptw-card ptw-tournament-form__section" aria-labelledby="ptw-tournament-match-heading">
@@ -240,21 +240,16 @@ function renderConfigurationSection(config, readOnly) {
         </div>
         <div class="ptw-tournament-form__field ptw-tournament-form__field--full ptw-tournament-form__field--switch">
           ${renderSwitchField({
-    id: 'ptw-tournament-canEndInDraw',
-    name: 'canEndInDraw',
-    label: 'Matches can end in a draw (league)',
-    checked: canEndInDraw,
+    id: 'ptw-tournament-requireWinnerForDraw',
+    name: 'requireWinnerForDraw',
+    label: 'Require Winner Selection for Draw Predictions',
+    checked: requireWinnerForDraw,
     readOnly,
   })}
-        </div>
-        <div class="ptw-tournament-form__field ptw-tournament-form__field--full ptw-tournament-form__field--switch">
-          ${renderSwitchField({
-    id: 'ptw-tournament-requiresWinner',
-    name: 'requiresWinner',
-    label: 'Knockout matches require a winner',
-    checked: requiresWinner,
-    readOnly,
-  })}
+          <p class="form-text mb-0">
+            When enabled, contestants must select a winner if they predict equal scores.
+            Leave disabled for league-style tournaments where draws are valid outcomes.
+          </p>
         </div>
         ${renderTextField('predictionLockMinutes', 'Prediction Lock (minutes before kickoff)', config.predictionLockMinutes ?? 10, {
     required: true,
@@ -458,12 +453,9 @@ export function readTournamentForm(form) {
     logo: formData.get('logo'),
     configuration: {
       timezone: formData.get('timezone') || 'Asia/Kolkata',
-      canEndInDraw: form.querySelector('[name="canEndInDraw"]') instanceof HTMLInputElement
-        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="canEndInDraw"]')).checked
+      requireWinnerForDraw: form.querySelector('[name="requireWinnerForDraw"]') instanceof HTMLInputElement
+        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="requireWinnerForDraw"]')).checked
         : false,
-      requiresWinner: form.querySelector('[name="requiresWinner"]') instanceof HTMLInputElement
-        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="requiresWinner"]')).checked
-        : true,
       leaderboardVisible: form.querySelector('[name="leaderboardVisible"]') instanceof HTMLInputElement
         ? /** @type {HTMLInputElement} */ (form.querySelector('[name="leaderboardVisible"]')).checked
         : false,

@@ -94,8 +94,7 @@ export const TournamentConfigurationService = {
     return {
       timezone: appSettings.timezone,
       tieBreaker: { ...DEFAULT_TIE_BREAKER },
-      requiresWinner: true,
-      canEndInDraw: false,
+      requireWinnerForDraw: false,
       winnerResolution: 'regulation',
       leaderboardVisible: false,
       predictionLockMinutes: 10,
@@ -130,19 +129,37 @@ export const TournamentConfigurationService = {
   },
 
   /**
+   * Returns whether the tournament requires winner selection when a draw is predicted.
+   *
+   * When FALSE (default):
+   * - Matches are treated as league-style
+   * - Draws are valid predictions without additional winner selection
+   *
+   * When TRUE:
+   * - Draws require selecting which team wins after normal+extra time
+   * - Only the winner is stored, never penalty shootout scores
+   *
    * @returns {boolean}
    */
-  requiresWinner() {
+  requireWinnerForDraw() {
     const config = cachedConfiguration ?? this.getDefaultConfiguration();
-    return Boolean(config.requiresWinner ?? true);
-  },
 
-  /**
-   * @returns {boolean}
-   */
-  canEndInDraw() {
-    const config = cachedConfiguration ?? this.getDefaultConfiguration();
-    return Boolean(config.canEndInDraw ?? false);
+    // Handle legacy configurations for backward compatibility
+    if (config.requireWinnerForDraw !== undefined) {
+      return Boolean(config.requireWinnerForDraw);
+    }
+
+    // Legacy fallback: if canEndInDraw was true, winner not required (return false)
+    // if requiresWinner was true and canEndInDraw was false, winner required (return true)
+    if (config.canEndInDraw !== undefined) {
+      return !Boolean(config.canEndInDraw);
+    }
+
+    if (config.requiresWinner !== undefined) {
+      return Boolean(config.requiresWinner);
+    }
+
+    return false; // Default: league-style, draws allowed
   },
 
   /**

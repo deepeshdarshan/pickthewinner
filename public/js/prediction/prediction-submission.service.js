@@ -48,10 +48,10 @@ const PREDICTIONS_COLLECTION = 'predictions';
 /**
  * Validates prediction payload.
  * @param {PredictionPayload} payload
- * @param {boolean} isKnockout
+ * @param {boolean} requireWinnerForDraw
  * @returns {{ valid: boolean, errors: Record<string, string> }}
  */
-function validatePredictionPayload(payload, isKnockout) {
+function validatePredictionPayload(payload, requireWinnerForDraw) {
   const errors = {};
 
   if (!Number.isInteger(payload.homeScore) || payload.homeScore < 0) {
@@ -64,16 +64,16 @@ function validatePredictionPayload(payload, isKnockout) {
 
   const isDraw = payload.homeScore === payload.awayScore;
 
-  if (isKnockout && isDraw && !payload.penaltyWinner) {
-    errors.penaltyWinner = 'Penalty winner must be selected when predicting a draw in knockout matches';
+  if (requireWinnerForDraw && isDraw && !payload.penaltyWinner) {
+    errors.penaltyWinner = 'Winner selection is required when predicting equal scores';
   }
 
-  if (!isKnockout && payload.penaltyWinner) {
-    errors.penaltyWinner = 'Penalty winner cannot be selected for non-knockout matches';
+  if (!requireWinnerForDraw && payload.penaltyWinner) {
+    errors.penaltyWinner = 'Winner cannot be selected when draws are allowed';
   }
 
   if (payload.penaltyWinner && !['HOME', 'AWAY'].includes(payload.penaltyWinner)) {
-    errors.penaltyWinner = 'Penalty winner must be either HOME or AWAY';
+    errors.penaltyWinner = 'Winner must be either HOME or AWAY';
   }
 
   return {
@@ -188,10 +188,11 @@ export async function submitPrediction(matchId, payload) {
     throw new Error('Match not found');
   }
 
-  // Check if match is knockout
-  const isKnockout = match.round && ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'].includes(match.round);
+  // Load tournament configuration
+  await TournamentConfigurationService.load(match.tournamentId);
+  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
 
-  const validation = validatePredictionPayload(payload, isKnockout);
+  const validation = validatePredictionPayload(payload, requireWinnerForDraw);
 
   if (!validation.valid) {
     const errorMessage = Object.values(validation.errors).join('. ');
@@ -214,8 +215,8 @@ export async function submitPrediction(matchId, payload) {
     tournamentId: match.tournamentId,
     homeScore: payload.homeScore,
     awayScore: payload.awayScore,
-    isPenaltyShootout: isKnockout && isDraw,
-    penaltyWinner: (isKnockout && isDraw) ? payload.penaltyWinner : null,
+    isPenaltyShootout: requireWinnerForDraw && isDraw,
+    penaltyWinner: (requireWinnerForDraw && isDraw) ? payload.penaltyWinner : null,
     locked: false,
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -268,10 +269,11 @@ export async function updatePrediction(matchId, payload) {
     throw new Error('Prediction is locked and cannot be updated');
   }
 
-  // Check if match is knockout
-  const isKnockout = match.round && ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'].includes(match.round);
+  // Load tournament configuration
+  await TournamentConfigurationService.load(match.tournamentId);
+  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
 
-  const validation = validatePredictionPayload(payload, isKnockout);
+  const validation = validatePredictionPayload(payload, requireWinnerForDraw);
 
   if (!validation.valid) {
     const errorMessage = Object.values(validation.errors).join('. ');
@@ -284,8 +286,8 @@ export async function updatePrediction(matchId, payload) {
   const updateData = {
     homeScore: payload.homeScore,
     awayScore: payload.awayScore,
-    isPenaltyShootout: isKnockout && isDraw,
-    penaltyWinner: (isKnockout && isDraw) ? payload.penaltyWinner : null,
+    isPenaltyShootout: requireWinnerForDraw && isDraw,
+    penaltyWinner: (requireWinnerForDraw && isDraw) ? payload.penaltyWinner : null,
     updatedAt: serverTimestamp(),
   };
 

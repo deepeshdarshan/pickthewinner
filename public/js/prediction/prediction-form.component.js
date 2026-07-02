@@ -10,6 +10,7 @@ import { escapeHtml } from '../utils/html.util.js';
  * @property {import('../match/match.service.js').EnrichedMatch} match
  * @property {Record<string, unknown>|null} [existingPrediction]
  * @property {boolean} [isEdit]
+ * @property {boolean} [requireWinnerForDraw] - Tournament configuration
  */
 
 /**
@@ -18,16 +19,13 @@ import { escapeHtml } from '../utils/html.util.js';
  * @returns {string}
  */
 export function renderPredictionForm(options) {
-  const { match, existingPrediction = null, isEdit = false } = options;
+  const { match, existingPrediction = null, isEdit = false, requireWinnerForDraw = false } = options;
 
   const homeTeam = match.homeTeam?.name || 'Home';
   const awayTeam = match.awayTeam?.name || 'Away';
   const homeScore = existingPrediction?.homeScore ?? '';
   const awayScore = existingPrediction?.awayScore ?? '';
   const penaltyWinner = existingPrediction?.penaltyWinner || '';
-
-  // Check if match is knockout
-  const isKnockout = match.round && ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'].includes(match.round);
 
   return `
     <div class="card ptw-card">
@@ -90,20 +88,20 @@ export function renderPredictionForm(options) {
             </div>
           </div>
 
-          <!-- Penalty Winner (for knockout matches only) -->
-          ${isKnockout ? `
-            <div id="penalty-winner-section" class="mb-4" style="display: none;">
-              <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>
-                <strong>Draw Predicted:</strong> Please select the penalty shootout winner.
+          <!-- Winner Selection (shown when draw predicted and required by tournament) -->
+          ${requireWinnerForDraw ? `
+            <div id="winner-selection-section" class="mb-4" style="display: none;">
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+                <strong>Draw Predicted:</strong> Please select which team will win after Normal Time + Extra Time.
               </div>
-              <label for="penalty-winner" class="form-label">Penalty Winner</label>
+              <label for="penalty-winner" class="form-label">Winner After Normal Time + Extra Time</label>
               <select class="form-select" id="penalty-winner" name="penaltyWinner">
                 <option value="">Select winner...</option>
                 <option value="HOME" ${penaltyWinner === 'HOME' ? 'selected' : ''}>${escapeHtml(homeTeam)}</option>
                 <option value="AWAY" ${penaltyWinner === 'AWAY' ? 'selected' : ''}>${escapeHtml(awayTeam)}</option>
               </select>
-              <div class="invalid-feedback">Please select a penalty winner for draw predictions</div>
+              <div class="invalid-feedback">Please select a winner for draw predictions</div>
             </div>
           ` : ''}
 
@@ -126,9 +124,9 @@ export function renderPredictionForm(options) {
         <div class="mt-3 pt-3 border-top">
           <small class="ptw-text-muted">
             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-            ${isKnockout 
-              ? 'For knockout matches, if you predict a draw, you must select the penalty shootout winner.'
-              : 'Enter the final score you predict for this match.'
+            ${requireWinnerForDraw 
+              ? 'If you predict equal scores, you must select which team will win after normal and extra time (winner is decided, never penalty shootout scores).'
+              : 'Enter the final score you predict for this match. Draws are valid predictions.'
             }
           </small>
         </div>
@@ -140,31 +138,31 @@ export function renderPredictionForm(options) {
 /**
  * Attaches event handlers to prediction form.
  * @param {HTMLFormElement} form
- * @param {boolean} isKnockout
+ * @param {boolean} requireWinnerForDraw - Tournament configuration
  * @param {(payload: Record<string, unknown>) => Promise<void>} onSubmit
  * @param {() => void} onCancel
  * @returns {void}
  */
-export function attachPredictionFormHandlers(form, isKnockout, onSubmit, onCancel) {
+export function attachPredictionFormHandlers(form, requireWinnerForDraw, onSubmit, onCancel) {
   const homeScoreInput = form.querySelector('#home-score');
   const awayScoreInput = form.querySelector('#away-score');
-  const penaltyWinnerSection = form.querySelector('#penalty-winner-section');
+  const winnerSelectionSection = form.querySelector('#winner-selection-section');
   const penaltyWinnerSelect = form.querySelector('#penalty-winner');
   const errorsDiv = form.querySelector('#prediction-form-errors');
 
-  // Show/hide penalty winner section based on scores
-  if (isKnockout && homeScoreInput && awayScoreInput && penaltyWinnerSection) {
+  // Show/hide winner selection section based on scores
+  if (requireWinnerForDraw && homeScoreInput && awayScoreInput && winnerSelectionSection) {
     const checkScores = () => {
       const homeScore = parseInt(homeScoreInput.value, 10);
       const awayScore = parseInt(awayScoreInput.value, 10);
 
       if (!isNaN(homeScore) && !isNaN(awayScore) && homeScore === awayScore) {
-        penaltyWinnerSection.style.display = 'block';
+        winnerSelectionSection.style.display = 'block';
         if (penaltyWinnerSelect) {
           penaltyWinnerSelect.required = true;
         }
       } else {
-        penaltyWinnerSection.style.display = 'none';
+        winnerSelectionSection.style.display = 'none';
         if (penaltyWinnerSelect) {
           penaltyWinnerSelect.required = false;
           penaltyWinnerSelect.value = '';
@@ -209,10 +207,10 @@ export function attachPredictionFormHandlers(form, isKnockout, onSubmit, onCance
       return;
     }
 
-    // Check penalty winner requirement
-    if (isKnockout && homeScore === awayScore && !penaltyWinner) {
+    // Check winner selection requirement
+    if (requireWinnerForDraw && homeScore === awayScore && !penaltyWinner) {
       if (errorsDiv) {
-        errorsDiv.textContent = 'Please select a penalty winner when predicting a draw';
+        errorsDiv.textContent = 'Please select a winner when predicting equal scores';
         errorsDiv.classList.remove('d-none');
       }
       return;

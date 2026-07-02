@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.component.js';
 import { MESSAGES } from '../config/application.constants.js';
 
 /**
@@ -45,7 +46,7 @@ export function renderPlaceholderPage(options) {
   }
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${content}
     </div>
   `;

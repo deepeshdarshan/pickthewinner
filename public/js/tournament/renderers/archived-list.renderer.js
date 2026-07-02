@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { TOURNAMENT_MESSAGES, TOURNAMENT_ROUTES } from '../tournament.constants.js';
@@ -47,7 +48,7 @@ export function renderArchivedTournamentListPage(tournaments) {
     `;
 
   return `
-    <div class="container-fluid ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
     title: 'Archived Tournaments',
     subtitle: 'View, restore, or permanently delete archived tournaments',

@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { TournamentDomain } from '../../domain/tournament.domain.js';
 import { TOURNAMENT_ROUTES, TOURNAMENT_TIMEZONE_LABEL } from '../tournament.constants.js';
@@ -63,10 +64,8 @@ function renderSummaryList(tournament) {
     <dl class="row mb-0">
       <dt class="col-sm-4">Timezone</dt>
       <dd class="col-sm-8">${escapeHtml(TOURNAMENT_TIMEZONE_LABEL)}</dd>
-      <dt class="col-sm-4">Draw Allowed</dt>
-      <dd class="col-sm-8" id="ptw-tournament-status-can-end-in-draw">${formatBooleanLabel(config.canEndInDraw)}</dd>
-      <dt class="col-sm-4">Requires Winner</dt>
-      <dd class="col-sm-8" id="ptw-tournament-status-requires-winner">${formatBooleanLabel(config.requiresWinner ?? true)}</dd>
+      <dt class="col-sm-4">Require Winner for Draw</dt>
+      <dd class="col-sm-8" id="ptw-tournament-status-require-winner-for-draw">${formatBooleanLabel(config.requireWinnerForDraw)}</dd>
       <dt class="col-sm-4">Match Score Points</dt>
       <dd class="col-sm-8">${escapeHtml(formatScoringPoints(scoring.correctMatchScorePoints))}</dd>
       <dt class="col-sm-4">Penalty Winner Points</dt>
@@ -84,27 +83,21 @@ function renderSummaryList(tournament) {
  */
 export function bindTournamentMatchBehaviourPreview(root) {
   const form = root.querySelector('#ptw-tournament-form');
-  const drawStatus = root.querySelector('#ptw-tournament-status-can-end-in-draw');
-  const winnerStatus = root.querySelector('#ptw-tournament-status-requires-winner');
-  const canEndInDrawInput = form?.querySelector('[name="canEndInDraw"]');
-  const requiresWinnerInput = form?.querySelector('[name="requiresWinner"]');
+  const requireWinnerStatus = root.querySelector('#ptw-tournament-status-require-winner-for-draw');
+  const requireWinnerInput = form?.querySelector('[name="requireWinnerForDraw"]');
 
   if (
-    !(canEndInDrawInput instanceof HTMLInputElement)
-    || !(requiresWinnerInput instanceof HTMLInputElement)
-    || !(drawStatus instanceof HTMLElement)
-    || !(winnerStatus instanceof HTMLElement)
+    !(requireWinnerInput instanceof HTMLInputElement)
+    || !(requireWinnerStatus instanceof HTMLElement)
   ) {
     return;
   }
 
   const sync = () => {
-    drawStatus.textContent = formatBooleanLabel(canEndInDrawInput.checked);
-    winnerStatus.textContent = formatBooleanLabel(requiresWinnerInput.checked);
+    requireWinnerStatus.textContent = formatBooleanLabel(requireWinnerInput.checked);
   };
 
-  canEndInDrawInput.addEventListener('change', sync);
-  requiresWinnerInput.addEventListener('change', sync);
+  requireWinnerInput.addEventListener('change', sync);
   sync();
 }
 
@@ -194,7 +187,7 @@ function renderActionButton(action, label, buttonClass) {
  */
 export function renderTournamentNotFound(message = 'Tournament not found.') {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({ title: 'Tournament', subtitle: 'Details unavailable' })}
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card">

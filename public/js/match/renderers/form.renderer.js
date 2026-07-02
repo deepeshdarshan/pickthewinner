@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { MATCH_ROUTES } from '../match.constants.js';
@@ -158,7 +159,7 @@ export function renderMatchFormPage(options) {
   }
 
   return `
-    <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${content}
     </div>
   `;

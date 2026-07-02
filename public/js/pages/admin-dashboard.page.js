@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { AdminDashboardService } from '../dashboard/AdminDashboardService.js';
 import { escapeHtml } from '../utils/html.util.js';
@@ -42,7 +43,7 @@ async function initAdminDashboard(outlet) {
     : `<a class="btn btn-ptw-primary" href="${escapeHtml(data.tournamentsPath)}?action=create" data-route><i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Create Tournament</a>`;
 
   outlet.innerHTML = `
-    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
     title: 'Admin Dashboard',
     subtitle: 'Tournament and match management',

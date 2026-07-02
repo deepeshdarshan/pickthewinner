@@ -234,6 +234,12 @@ h6 {
   animation: ptw-fade-in var(--ptw-transition-base) ease-out;
 }
 
+.ptw-admin-page {
+  width: 100%;
+  max-width: none;
+  padding-bottom: var(--ptw-space-6);
+}
+
 .ptw-admin-layout {
   display: grid;
   grid-template-columns: 1fr;

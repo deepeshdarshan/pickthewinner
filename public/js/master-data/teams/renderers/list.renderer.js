@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../../components/empty-state.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
 import { renderTeamFlagHtml } from '../team-flag.util.js';
@@ -18,7 +19,7 @@ import { TEAM_MESSAGES, TEAM_ROUTES } from '../team.constants.js';
  */
 export function renderTeamListLoading() {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card" role="status" aria-live="polite">
           <div class="spinner-border text-primary" role="status" aria-label="${escapeHtml(TEAM_MESSAGES.LOADING)}">
@@ -69,7 +70,7 @@ export function renderTeamListPage(teams) {
     `;
 
   return `
-    <div class="container-fluid ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
     title: 'Teams',
     subtitle: 'Manage team master data for matches',
@@ -127,7 +128,7 @@ export function mountTeamListLoading(outlet) {
  */
 export function renderTeamNotFound(message = TEAM_MESSAGES.NOT_FOUND) {
   return `
-    <div class="container ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderEmptyState({ title: 'Team', message, icon: 'bi-people' })}
     </div>
   `;

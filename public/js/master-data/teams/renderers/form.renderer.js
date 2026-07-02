@@ -4,6 +4,7 @@
  */
 
 import { renderPageHeader } from '../../../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../../../components/admin-page-shell.component.js';
 import { renderIconInputField } from '../../../shared/form/icon-input.component.js';
 import { renderFlagSelect } from '../../shared/flag-select.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
@@ -28,7 +29,7 @@ export function renderTeamFormPage(team = null, options = {}) {
   const title = isCreate ? 'Add Team' : 'Edit Team';
 
   return `
-    <div class="ptw-team-form-page ptw-page-content">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES} ptw-team-form-page">
       ${renderPageHeader({
     title,
     subtitle: isCreate ? 'Create a team for use in matches' : escapeHtml(data.name ?? ''),

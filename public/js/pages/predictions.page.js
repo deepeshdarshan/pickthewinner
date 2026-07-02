@@ -19,6 +19,7 @@ import {
   getExistingPrediction,
 } from '../prediction/prediction-submission.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
+import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { Logger } from '../utils/logger.util.js';
 
 /** @type {import('../match/match.service.js').EnrichedMatch|null} */
@@ -177,12 +178,16 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
 
     const existingPrediction = isEdit ? await getExistingPrediction(matchId, user.uid) : null;
 
+    // Load tournament configuration
+    await TournamentConfigurationService.load(match.tournamentId);
+    const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
+
     outlet.innerHTML = `
       <div class="container-fluid px-3 px-lg-4 ptw-page-content">
         <button class="btn btn-outline-light mb-3" onclick="history.back()">
           <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to Predictions
         </button>
-        ${renderPredictionForm({ match, existingPrediction, isEdit })}
+        ${renderPredictionForm({ match, existingPrediction, isEdit, requireWinnerForDraw })}
       </div>
     `;
 
@@ -314,11 +319,11 @@ function attachFormHandlers(outlet) {
     return;
   }
 
-  const isKnockout = currentMatch.round && ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'].includes(currentMatch.round);
+  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
 
   attachPredictionFormHandlers(
     form,
-    isKnockout,
+    requireWinnerForDraw,
     async (payload) => {
       try {
         if (isEditing) {
