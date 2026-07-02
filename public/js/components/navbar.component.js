@@ -11,6 +11,7 @@ import { AppContext } from '../app/app.context.js';
 import { isAuthenticated } from '../auth/auth.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { performLogout } from '../auth/actions/logout.action.js';
+import { isAdminPath } from './sidebar.component.js';
 import { renderAppLogo } from '../shared/logo/logo.component.js';
 import { renderAvatar } from '../shared/avatar/avatar.component.js';
 import { escapeHtml } from '../utils/html.util.js';
@@ -33,6 +34,28 @@ function shouldShowMinimalNavbar(activePath) {
 }
 
 /**
+ * @param {string} activePath
+ * @param {string} routePath
+ * @returns {boolean}
+ */
+function isNavbarPathActive(activePath, routePath) {
+  const normalizedActive = normalizeNavbarPath(activePath);
+  const normalizedRoute = normalizeNavbarPath(routePath);
+
+  return normalizedActive === normalizedRoute
+    || (normalizedRoute !== '/' && normalizedActive.startsWith(`${normalizedRoute}/`));
+}
+
+/**
+ * @param {string} path
+ * @returns {string}
+ */
+function normalizeNavbarPath(path) {
+  const trimmed = path.split('?')[0].replace(/\/+$/, '') || '/';
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+}
+
+/**
  * @param {import('../config/routes.js').RouteDefinition[]} routes
  * @param {string} activePath
  * @returns {string}
@@ -40,8 +63,7 @@ function shouldShowMinimalNavbar(activePath) {
 function renderNavItems(routes, activePath) {
   return routes
     .map((route) => {
-      const isActive = activePath === route.path
-        || (route.path !== '/' && activePath.startsWith(`${route.path}/`));
+      const isActive = isNavbarPathActive(activePath, route.path);
       const icon = route.icon ?? route.navIcon ?? 'bi-circle';
 
       return `
@@ -89,12 +111,55 @@ function renderMinimalNavbar() {
 }
 
 /**
+ * Renders a minimal admin top bar — navigation lives in the left sidebar.
+ * @returns {string}
+ */
+function renderAdminNavbar() {
+  return `
+    <nav class="navbar navbar-expand-lg navbar-dark ptw-navbar ptw-navbar--admin sticky-top" aria-label="Admin header">
+      <div class="container-fluid px-3 px-lg-4">
+        <button
+          type="button"
+          class="btn btn-link ptw-navbar__icon-btn d-lg-none"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#ptwAdminSidebarOffcanvas"
+          aria-controls="ptwAdminSidebarOffcanvas"
+          aria-label="Open admin navigation"
+        >
+          <i class="bi bi-list fs-4" aria-hidden="true"></i>
+        </button>
+
+        <span class="ptw-navbar__admin-title d-lg-none">${escapeHtml(appSettings.appName)}</span>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button
+            type="button"
+            class="btn btn-link ptw-navbar__icon-btn"
+            aria-label="Notifications"
+            title="Notifications (coming soon)"
+            disabled
+          >
+            <i class="bi bi-bell" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+  `;
+}
+
+/**
  * Renders the authenticated or guest navigation bar.
  * @param {NavbarOptions} options
  * @returns {string}
  */
 function renderAuthenticatedNavbar(options) {
   const { activePath = '/' } = options;
+  const isAdminShell = isAdminPath(activePath) && AuthorizationService.hasRole(Roles.ADMIN);
+
+  if (isAdminShell) {
+    return renderAdminNavbar();
+  }
+
   const authenticated = isAuthenticated();
   const navRoutes = AuthorizationService.getAuthorizedNavRoutes(ROUTES);
   const navItems = renderNavItems(navRoutes, activePath);
@@ -273,4 +338,27 @@ export function bindNavbarEvents(container) {
 export function mountNavbar(container, options = {}) {
   container.innerHTML = renderNavbar(options);
   bindNavbarEvents(container);
+}
+
+/**
+ * Updates navbar active states without remounting the header.
+ * @param {HTMLElement} container
+ * @param {string} activePath
+ * @returns {boolean}
+ */
+export function updateNavbarActiveState(container, activePath) {
+  const navbar = container.querySelector('.ptw-navbar');
+
+  if (!navbar) {
+    return false;
+  }
+
+  navbar.querySelectorAll('[data-route].nav-link').forEach((link) => {
+    const href = link.getAttribute('href') ?? '';
+    const isActive = isNavbarPathActive(activePath, href);
+    link.classList.toggle('active', isActive);
+    link.setAttribute('aria-current', isActive ? 'page' : 'false');
+  });
+
+  return true;
 }

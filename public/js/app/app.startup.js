@@ -5,16 +5,16 @@
 
 import { initGlobalErrorHandler } from './error-handler.js';
 import { initSession } from '../auth/session.service.js';
-import { isAuthenticated } from '../auth/auth.service.js';
+import { isAuthenticated, getCurrentUser, isAdminAuthUser } from '../auth/auth.service.js';
 import { initUserModule } from '../users/user.bootstrap.js';
+import { initTournamentModule } from '../tournament/tournament.bootstrap.js';
 import { initAuthorizationModule } from '../authorization/authorization.bootstrap.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
-import { loadCurrentUser } from '../users/user.service.js';
+import { ensureAdminProfile, loadCurrentUser } from '../users/user.service.js';
 import { Logger } from '../utils/logger.util.js';
 import { APP_EVENTS, emitAppEvent } from './app.events.js';
 import { AppContext, initAppContext } from './app.context.js';
 import { ApplicationContext } from './application-context.js';
-import { getCurrentUser } from '../auth/auth.service.js';
 
 /**
  * Runs the application startup sequence in the correct order.
@@ -29,11 +29,19 @@ export async function runStartup() {
   await initSession();
 
   await initUserModule();
+  await initTournamentModule();
   await initAuthorizationModule();
 
   if (isAuthenticated()) {
     try {
-      await loadCurrentUser();
+      const user = getCurrentUser();
+
+      if (user && isAdminAuthUser(user)) {
+        await ensureAdminProfile(user);
+      } else {
+        await loadCurrentUser();
+      }
+
       await AuthorizationService.resolve();
       ApplicationContext.setCurrentUser(getCurrentUser());
       ApplicationContext.setProfile(AppContext.getProfile());

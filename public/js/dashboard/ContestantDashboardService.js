@@ -7,6 +7,8 @@ import { ApplicationContext } from '../app/application-context.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { USER_ROLES } from '../users/user.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
+import { getActiveTournament, listTournamentsForContestant } from '../tournament/tournament.service.js';
+import { TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
 
 /**
  * @typedef {Object} ContestantDashboardDto
@@ -17,6 +19,8 @@ import { escapeHtml } from '../utils/html.util.js';
  * @property {string} welcomeMessage
  * @property {string} emptyStateTitle
  * @property {string} emptyStateMessage
+ * @property {string} tournamentsPath
+ * @property {{ name: string, season: string }|null} activeTournament
  */
 
 export const ContestantDashboardService = {
@@ -33,7 +37,9 @@ export const ContestantDashboardService = {
       || ApplicationContext.getCurrentUser()?.displayName
       || 'User';
 
-    const activeTournamentCount = 0;
+    const visibleTournaments = await listTournamentsForContestant();
+    const activeTournament = await getActiveTournament();
+    const activeTournamentCount = visibleTournaments.length;
 
     return {
       displayName: escapeHtml(displayName),
@@ -43,6 +49,10 @@ export const ContestantDashboardService = {
       welcomeMessage: `Welcome ${escapeHtml(displayName)}!`,
       emptyStateTitle: 'No Active Tournaments',
       emptyStateMessage: 'Once a tournament is published, you can begin submitting predictions.',
+      tournamentsPath: TOURNAMENT_ROUTES.CONTESTANT_LIST,
+      activeTournament: activeTournament
+        ? { name: activeTournament.name, season: activeTournament.season }
+        : null,
     };
   },
 };

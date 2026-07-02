@@ -3,10 +3,9 @@
  * @module users/user.guard
  */
 
-import { isAuthenticated } from '../auth/auth.service.js';
+import { isAuthenticated, isAdminAuthUser, getCurrentUser } from '../auth/auth.service.js';
 import { USER_ROUTES } from './user.constants.js';
-import { getCachedProfile, loadCurrentUser } from './user.service.js';
-import { AuthorizationService } from '../authorization/authorization.service.js';
+import { ensureAdminProfile, getCachedProfile, loadCurrentUser } from './user.service.js';
 import { UserDomain } from '../domain/user.domain.js';
 import { Logger } from '../utils/logger.util.js';
 
@@ -42,6 +41,18 @@ export async function canActivateUserRoute(route) {
     return { allowed: true };
   }
 
+  const authUser = getCurrentUser();
+
+  if (isAdminAuthUser(authUser)) {
+    try {
+      await ensureAdminProfile(authUser);
+    } catch (error) {
+      Logger.error('[UserGuard] Failed to ensure admin profile:', error);
+    }
+
+    return { allowed: true };
+  }
+
   let profile = getCachedProfile();
 
   if (!profile) {
@@ -51,6 +62,10 @@ export async function canActivateUserRoute(route) {
       Logger.error('[UserGuard] Failed to load profile:', error);
       return { allowed: false, redirectTo: USER_ROUTES.COMPLETE_PROFILE, replace: true };
     }
+  }
+
+  if (UserDomain.isAdmin(profile)) {
+    return { allowed: true };
   }
 
   if (!UserDomain.isProfileComplete(profile)) {

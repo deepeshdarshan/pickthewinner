@@ -510,6 +510,50 @@ export async function getUser(uid) {
 }
 
 /**
+ * Ensures an administrator has a Firestore profile after email/password sign-in.
+ * Contestant onboarding fields are not required for admins.
+ * @param {import('firebase/auth').User} firebaseUser
+ * @returns {Promise<UserProfile|null>}
+ */
+export async function ensureAdminProfile(firebaseUser) {
+  const existing = getCachedProfile() ?? await getUser(firebaseUser.uid);
+
+  if (existing) {
+    cachedProfile = existing;
+    ApplicationContext.setProfile(existing);
+    ApplicationContext.setCurrentUser(firebaseUser);
+    emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile: existing });
+    return existing;
+  }
+
+  try {
+    return await createUser(firebaseUser.uid, {
+      name: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? 'Administrator',
+      email: firebaseUser.email ?? '',
+      photoURL: firebaseUser.photoURL ?? '',
+      authProvider: AUTH_PROVIDERS.EMAIL_PASSWORD,
+      role: USER_ROLES.ADMIN,
+    });
+  } catch (error) {
+    if (typeof error === 'object' && error !== null && 'code' in error
+      && String(/** @type {{ code: string }} */ (error).code) === 'already-exists') {
+      const profile = await getUser(firebaseUser.uid);
+
+      if (profile) {
+        cachedProfile = profile;
+        ApplicationContext.setProfile(profile);
+        ApplicationContext.setCurrentUser(firebaseUser);
+        emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
+      }
+
+      return profile;
+    }
+
+    throw error;
+  }
+}
+
+/**
  * Loads the current authenticated user's profile, using cache when available.
  * @param {boolean} [forceRefresh=false]
  * @returns {Promise<UserProfile|null>}

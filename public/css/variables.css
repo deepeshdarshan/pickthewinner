@@ -28,6 +28,9 @@
   --ptw-color-warning: #ffc107;
   --ptw-color-danger: #d50032;
   --ptw-color-danger-text: #ffb3c0;
+  --ptw-color-validation-text: #ffe0e6;
+  --ptw-color-validation-bg: color-mix(in srgb, var(--ptw-color-danger) 22%, var(--ptw-color-bg-primary));
+  --ptw-color-validation-border: color-mix(in srgb, var(--ptw-color-danger-text) 55%, var(--ptw-color-border));
   --ptw-color-info: #1565ff;
 
   /* Bootstrap overrides */
@@ -41,6 +44,8 @@
   --bs-border-color: var(--ptw-color-border);
   --bs-link-color: var(--ptw-color-primary-blue);
   --bs-link-hover-color: var(--ptw-color-primary-green);
+  --bs-form-invalid-color: var(--ptw-color-validation-text);
+  --bs-form-valid-color: var(--ptw-color-success);
 
   /* Typography */
   --ptw-font-heading: 'Poppins', system-ui, sans-serif;
@@ -87,8 +92,14 @@
   /* Layout */
   --ptw-container-max: 1200px;
   --ptw-navbar-height: 4rem;
-  --ptw-sidebar-width: 260px;
+  --ptw-sidebar-width: 280px;
   --ptw-sidebar-collapsed-width: 72px;
+  --ptw-sidebar-bg: var(--ptw-color-bg-secondary);
+  --ptw-sidebar-bg-end: var(--ptw-color-bg-primary);
+  --ptw-sidebar-hover: var(--ptw-color-bg-tertiary);
+  --ptw-sidebar-accent: var(--ptw-color-primary-blue);
+  --ptw-sidebar-accent-soft: color-mix(in srgb, var(--ptw-color-primary-blue) 16%, transparent);
+  --ptw-sidebar-accent-muted: color-mix(in srgb, var(--ptw-color-primary-blue) 40%, transparent);
   --ptw-footer-height: 3.5rem;
   --ptw-mobile-nav-height: 4rem;
 

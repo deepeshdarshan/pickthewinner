@@ -9,7 +9,7 @@ import {
   signInWithAdminCredentials,
   getAuthErrorMessage,
 } from '../auth/auth.service.js';
-import { AUTH_MESSAGES } from '../auth/authentication.constants.js';
+import { AUTH_ROUTES, AUTH_MESSAGES } from '../auth/authentication.constants.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
 import { navigateTo } from '../services/router.service.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
@@ -199,7 +199,8 @@ async function handleAdminLogin(form) {
     try {
       destination = await getPostLoginDestination(user, 'email_password');
     } catch (error) {
-      Logger.warn('[Login] Profile lookup failed after admin sign-in; using complete-profile route.', error);
+      Logger.warn('[Login] Profile lookup failed after admin sign-in; using admin dashboard route.', error);
+      destination = AUTH_ROUTES.ADMIN;
     }
 
     hideLoadingOverlay();

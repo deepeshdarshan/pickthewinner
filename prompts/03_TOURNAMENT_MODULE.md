@@ -137,15 +137,11 @@ Short Name
 
 Description
 
-Sport
+Sport (Cricket/Football etc)
 
-Season
+Tournament Type (IPL, FIFA WC, EPL, LaLiga etc)
 
-Tournament Type
-
-Timezone
-
-Country
+Timezone (default IST)
 
 Logo
 
@@ -193,25 +189,11 @@ Administrators can always view all tournaments.
 
 ---
 
-# Tournament Type
-
-Support
-
-Knockout
-
-League
-
-Hybrid
-
-The tournament type determines match behaviour.
-
----
-
 # Match Behaviour Configuration
 
 Every tournament should define
 
-Can matches end in draw?
+Can matches end in draw? (football)
 
 Boolean
 
@@ -277,7 +259,7 @@ NOT penalty shootout score.
 
 ---
 
-Prediction Form
+Prediction Form (football)
 
 Initially
 
@@ -393,19 +375,28 @@ Penalty shootout scores.
 
 # Scoring Configuration
 
-Tournament administrator configures
+Tournament administrators configure scoring in the **Scoring Configuration** section of tournament settings.
 
-Correct Winner Points
+## Implemented Fields
 
-Exact Score Points
+| Field | Label | Validation |
+|-------|-------|------------|
+| `correctMatchScorePoints` | Points for Correct Match Score (Normal Time + Extra Time) | Required integer, 0–100 |
+| `correctPenaltyWinnerPoints` | Points for Correct Penalty Shootout Winner | Required integer, 0–100 |
 
-Bonus Points
+Stored at `configuration.scoringConfiguration` on the tournament document.
 
-Tie-breaker Rules
+## Access
 
-Future scoring extensions.
+`TournamentConfigurationService.getCorrectMatchScorePoints()` and `getCorrectPenaltyWinnerPoints()` are the only approved read paths. Hardcoded point values are prohibited.
 
-Hardcoded values are prohibited.
+## Future Extensions (not yet implemented)
+
+- Correct Winner Points
+- Goal Difference Points
+- Bonus Round Points
+- Perfect Round Bonus
+- Streak Bonus
 
 ---
 
@@ -448,8 +439,6 @@ Prediction Lock
 Visibility
 
 Registration
-
-Notifications
 
 Theme (future)
 

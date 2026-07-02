@@ -283,29 +283,37 @@ Publishing results automatically triggers score calculation.
 
 # Scoring Rules
 
-Document
+Scoring is tournament-specific. Point values are configured by administrators and stored on each tournament document. The Scoring Engine must never hardcode point values.
 
-Scoring model.
+## Configurable Point Values
 
-Include
+Each tournament stores scoring configuration under `configuration.scoringConfiguration`:
 
-Winner prediction
+| Field | Purpose |
+|-------|---------|
+| `correctMatchScorePoints` | Points awarded when the contestant correctly predicts the final match score after normal time and extra time (penalty shootout goals are not included) |
+| `correctPenaltyWinnerPoints` | Points awarded when the contestant correctly predicts the penalty shootout winner (knockout matches only) |
 
-Exact score
+Both values are required integers between 0 and 100. A tournament cannot be saved without valid scoring configuration.
 
-Bonus points
+## Access Pattern
 
-Tie-breakers
+All modules read scoring values through `TournamentConfigurationService`:
 
-Tournament-specific configuration
+- `getCorrectMatchScorePoints()`
+- `getCorrectPenaltyWinnerPoints()`
 
-Manual score adjustments
+## Future Extensions
 
-Automatic recalculation
+The `scoringConfiguration` object is designed for future rules such as correct winner points, goal difference points, bonus round points, perfect round bonus, and streak bonus. These are not yet implemented.
 
-Document configurable scoring.
+## Tie-breakers
 
-Do not hardcode point values.
+Tie-breaker strategy is configured separately under `configuration.tieBreaker`.
+
+## Recalculation
+
+Publishing match results triggers automatic score calculation. Manual recalculation may be supported in future releases.
 
 ---
 

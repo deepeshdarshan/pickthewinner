@@ -5,7 +5,7 @@
 
 export { renderAvatar } from './avatar/avatar.component.js';
 export { renderAppLogo } from './logo/logo.component.js';
-export { renderIconInputField, renderIconSelectField } from './form/icon-input.component.js';
+export { renderIconInputField, renderIconSelectField, renderIconTextareaField } from './form/icon-input.component.js';
 export { renderEmptyState } from '../components/empty-state.component.js';
 export { renderPageHeader } from '../components/page-header.component.js';
 export { renderErrorState } from '../components/error-state.component.js';

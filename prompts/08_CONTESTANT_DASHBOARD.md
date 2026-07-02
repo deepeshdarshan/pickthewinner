@@ -69,8 +69,7 @@ The Contestant Dashboard is responsible for
 - Welcome screen
 - Active Tournament
 - Upcoming Matches
-- Prediction Summary
-- Leaderboard Summary
+- My Prediction Summary
 - Personal Statistics
 - Notifications
 - Quick Actions

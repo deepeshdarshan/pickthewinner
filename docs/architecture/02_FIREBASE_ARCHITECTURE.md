@@ -27,7 +27,7 @@ Page → Service → Domain (validation) → BaseFirestoreService → Firestore
 
 - Services handle Firestore I/O and caching
 - Domain modules validate business rules before writes
-- `TournamentConfigurationService` is the only entry for tournament settings reads
+- `TournamentConfigurationService` is the only entry for tournament settings reads, including scoring point values (`getCorrectMatchScorePoints`, `getCorrectPenaltyWinnerPoints`)
 
 ## Caching Strategy
 

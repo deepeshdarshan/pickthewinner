@@ -87,8 +87,19 @@
 ## Upcoming
 
 ### Module 06 — Tournament Module
-- [ ] Tournament CRUD (admin)
-- [ ] Tournament selection (contestant)
+- [x] Tournament domain lifecycle (DRAFT, REGISTRATION_OPEN, PUBLISHED, LIVE, COMPLETED, ARCHIVED)
+- [x] Prediction domain penalty workflow validation
+- [x] `tournament.constants.js` — routes, visibility, scoring defaults, validation messages
+- [x] `tournament.validator.js` — create/update/lifecycle validation
+- [x] `tournament.service.js` — Firestore CRUD, lifecycle, active-flag enforcement, caching
+- [x] `tournament.events.js` and `tournament.bootstrap.js`
+- [x] `TournamentConfigurationService` — Firestore-backed configuration loading
+- [x] Admin tournament UI (`/admin/tournaments`) — list, create, edit, lifecycle actions
+- [x] Contestant tournament browsing (`/tournaments`)
+- [x] Dashboard services wired to real tournament data
+- [x] Firestore security rules for `tournaments` collection
+- [x] Unit tests for domain and validator layers
+- [x] Scoring Configuration section — UI, Firestore persistence, validation, `TournamentConfigurationService` getters
 
 ### Module 07 — Match Module
 - [ ] Match lifecycle states

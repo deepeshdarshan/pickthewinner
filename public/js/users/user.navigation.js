@@ -3,11 +3,17 @@
  * @module users/user.navigation
  */
 
-import { AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { AUTH_PROVIDERS, AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { isAdminAuthUser } from '../auth/auth.service.js';
+import { AuthorizationService } from '../authorization/authorization.service.js';
 import { CONTESTANT_ROUTES } from '../config/routes.js';
 import { UserDomain } from '../domain/user.domain.js';
 import { USER_ROLES, USER_ROUTES } from './user.constants.js';
-import { getCachedProfile, loadCurrentUser } from './user.service.js';
+import {
+  ensureAdminProfile,
+  getCachedProfile,
+  loadCurrentUser,
+} from './user.service.js';
 
 /**
  * @typedef {import('./user.service.js').UserProfile} UserProfile
@@ -32,7 +38,21 @@ export function getDashboardRouteForProfile(profile) {
  * @param {string} [_authProvider]
  * @returns {Promise<string>}
  */
-export async function getPostLoginDestination(_firebaseUser, _authProvider) {
+export async function getPostLoginDestination(firebaseUser, authProvider) {
+  const isAdminLogin = authProvider === AUTH_PROVIDERS.EMAIL_PASSWORD
+    || isAdminAuthUser(firebaseUser);
+
+  if (isAdminLogin) {
+    const profile = getCachedProfile() ?? await ensureAdminProfile(firebaseUser);
+    await AuthorizationService.resolve(true);
+
+    if (profile) {
+      return getDashboardRouteForProfile(profile);
+    }
+
+    return AUTH_ROUTES.ADMIN;
+  }
+
   const profile = getCachedProfile() ?? await loadCurrentUser();
 
   if (!profile || !UserDomain.isProfileComplete(profile)) {

@@ -3,10 +3,11 @@
  * @module dashboard/AdminDashboardService
  */
 
-import { ApplicationContext } from '../app/application-context.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { USER_ROLES } from '../users/user.constants.js';
-import { AUTH_ROUTES } from '../auth/authentication.constants.js';
+import { TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
+import { listTournamentsForAdmin, getActiveTournament } from '../tournament/tournament.service.js';
+import { TOURNAMENT_STATUS_LABELS } from '../tournament/tournament.constants.js';
 
 /**
  * @typedef {Object} AdminDashboardDto
@@ -18,6 +19,8 @@ import { AUTH_ROUTES } from '../auth/authentication.constants.js';
  * @property {string} emptyStateTitle
  * @property {string} emptyStateMessage
  * @property {string} adminConsolePath
+ * @property {string} tournamentsPath
+ * @property {{ name: string, season: string, status: string, statusLabel: string }|null} activeTournament
  */
 
 export const AdminDashboardService = {
@@ -30,19 +33,44 @@ export const AdminDashboardService = {
 
     const role = AuthorizationService.getCurrentRole();
     const isAdmin = role === USER_ROLES.ADMIN;
-    const tournamentCount = 0;
+
+    let tournamentCount = 0;
+    let activeTournament = null;
+
+    if (isAdmin) {
+      const tournaments = await listTournamentsForAdmin();
+      tournamentCount = tournaments.length;
+      const active = await getActiveTournament();
+
+      if (active) {
+        activeTournament = {
+          name: active.name,
+          season: active.season,
+          status: active.status,
+          statusLabel: TOURNAMENT_STATUS_LABELS[active.status] ?? active.status,
+        };
+      }
+    }
+
+    const welcomeMessage = tournamentCount > 0
+      ? (activeTournament
+        ? `Active tournament: ${activeTournament.name} (${activeTournament.season}).`
+        : `You have ${tournamentCount} tournament${tournamentCount === 1 ? '' : 's'} configured.`)
+      : 'There are currently no tournaments.';
 
     return {
       role: role ?? USER_ROLES.ADMIN,
       isAdmin,
       tournamentCount,
       welcomeTitle: 'Welcome Administrator',
-      welcomeMessage: 'There are currently no tournaments.',
+      welcomeMessage,
       emptyStateTitle: tournamentCount > 0 ? 'Manage Tournaments' : 'No Tournaments Yet',
       emptyStateMessage: tournamentCount > 0
-        ? 'Use the admin console to manage tournaments and matches.'
+        ? 'Use the tournaments console to configure, publish, and manage tournaments.'
         : 'Create your first tournament to get started.',
-      adminConsolePath: AUTH_ROUTES.ADMIN,
+      adminConsolePath: '/admin',
+      tournamentsPath: TOURNAMENT_ROUTES.ADMIN_LIST,
+      activeTournament,
     };
   },
 };

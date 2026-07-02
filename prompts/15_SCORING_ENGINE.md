@@ -205,27 +205,30 @@ Submitted Time
 
 # Scoring Configuration
 
-Read from
+Read from `TournamentConfigurationService` after `load(tournamentId)`.
 
-TournamentConfigurationService
+Never hardcode point values.
 
-Never hardcode
+## Implemented (via TournamentConfigurationService)
 
-Point values.
+| Getter | Purpose |
+|--------|---------|
+| `getCorrectMatchScorePoints()` | Points for exact match score (normal time + extra time) |
+| `getCorrectPenaltyWinnerPoints()` | Points for correct penalty shootout winner |
 
-Support
+Example:
 
-Winner Points
+```javascript
+await TournamentConfigurationService.load(match.tournamentId);
+const scorePoints = TournamentConfigurationService.getCorrectMatchScorePoints();
+const penaltyPoints = TournamentConfigurationService.getCorrectPenaltyWinnerPoints();
+```
 
-Exact Score Points
+## Future Extensions (not yet implemented)
 
-Bonus Points
-
-Penalty Winner Points
-
-Tie Breakers
-
-Future extensions.
+- Winner Points
+- Bonus Points
+- Tie Breakers (separate from scoring points)
 
 ---
 

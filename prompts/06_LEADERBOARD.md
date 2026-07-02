@@ -106,8 +106,6 @@ Profile Photo
 
 Display Name
 
-Country
-
 Points
 
 Correct Winner Predictions
@@ -136,7 +134,9 @@ Apply Tournament Tie-Breaker configuration.
 
 Possible tie-breakers
 
-Most Correct Winners
+Most Correct Winners 
+
+One fixed point for normal time+extra time prediction (eg: 5), predicting the winner in the penality will get additional points (eg: 3)
 
 Most Exact Scores
 

@@ -1,9 +1,11 @@
 {
   "name": "pickthewinner",
   "private": true,
+  "type": "module",
   "description": "PickTheWinner static web app",
   "scripts": {
-    "start": "serve . -l tcp://127.0.0.1:3000 --no-port-switching"
+    "start": "serve . -l tcp://127.0.0.1:3000 --no-port-switching",
+    "test": "node --import ../tests/setup.js --test ../tests/**/*.test.js"
   },
   "devDependencies": {
     "serve": "^14.2.4"

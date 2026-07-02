@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && userDoc().data.role == 'ADMIN';
+    }
+
+    function isContestantVisibleTournament(data) {
+      return data.visibility == 'visible'
+        && data.status in ['published', 'live', 'completed'];
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if isAdmin() || (isSignedIn() && isContestantVisibleTournament(resource.data));
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /matches/{matchId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /predictions/{predictionId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+      );
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /leaderboard_cache/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

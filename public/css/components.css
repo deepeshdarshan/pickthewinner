@@ -4,6 +4,7 @@
 
 /* Navbar */
 .ptw-navbar {
+  flex-shrink: 0;
   background-color: var(--ptw-color-bg-secondary) !important;
   border-bottom: 1px solid var(--ptw-color-border);
   min-height: var(--ptw-navbar-height);
@@ -86,6 +87,27 @@
   height: 2px;
   background-color: var(--ptw-color-primary-blue);
   border-radius: var(--ptw-radius-pill);
+}
+
+.ptw-navbar--admin {
+  min-height: var(--ptw-navbar-height);
+  border-bottom: 1px solid var(--ptw-color-border);
+}
+
+.ptw-navbar--admin .container-fluid {
+  min-height: var(--ptw-navbar-height);
+}
+
+.ptw-navbar__admin-title {
+  font-family: var(--ptw-font-heading);
+  font-weight: var(--ptw-font-weight-semibold);
+  color: var(--ptw-color-text-primary);
+}
+
+@media (min-width: 992px) {
+  .ptw-navbar--admin .container-fluid {
+    justify-content: flex-end;
+  }
 }
 
 .ptw-navbar__brand-text {
@@ -207,6 +229,7 @@
 
 /* Footer */
 .ptw-footer {
+  flex-shrink: 0;
   background-color: var(--ptw-color-bg-secondary);
   border-top: 1px solid var(--ptw-color-border);
   padding: var(--ptw-space-4) 0;
@@ -316,6 +339,170 @@
   color: var(--ptw-color-text-muted);
   font-size: var(--ptw-font-size-base);
   margin-bottom: 0;
+}
+
+/* Tournament admin form */
+.ptw-tournament-form-page {
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-inline: var(--ptw-space-3);
+  padding-bottom: var(--ptw-space-6);
+  overflow-x: clip;
+}
+
+@media (min-width: 992px) {
+  .ptw-tournament-form-page {
+    padding-inline: var(--ptw-space-4);
+  }
+}
+
+.ptw-tournament-form-page .ptw-page-header {
+  gap: var(--ptw-space-4);
+}
+
+.ptw-tournament-form-page .ptw-page-header__title {
+  font-size: clamp(1.35rem, 4vw, var(--ptw-font-size-2xl));
+  word-break: break-word;
+}
+
+.ptw-tournament-form-page .ptw-page-header__actions {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .ptw-tournament-form-page .ptw-page-header__actions {
+    width: auto;
+    flex-shrink: 0;
+  }
+}
+
+.ptw-tournament-form {
+  width: 100%;
+  min-width: 0;
+}
+
+.ptw-tournament-form__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-4);
+}
+
+.ptw-tournament-form__section {
+  min-width: 0;
+}
+
+.ptw-tournament-form__section:hover {
+  transform: none;
+}
+
+.ptw-tournament-form__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ptw-space-3);
+}
+
+.ptw-tournament-form__field {
+  min-width: 0;
+}
+
+.ptw-tournament-form__field--full {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .ptw-tournament-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ptw-tournament-form__field--half {
+    grid-column: span 1;
+  }
+}
+
+.ptw-tournament-form .form-control,
+.ptw-tournament-form .form-select,
+.ptw-tournament-form__datetime {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ptw-tournament-form .form-check-label {
+  line-height: 1.5;
+}
+
+.ptw-tournament-form__field--switch {
+  overflow: visible;
+}
+
+.ptw-tournament-form .ptw-form-switch.form-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ptw-space-3);
+  min-height: 1.5rem;
+  margin-bottom: 0;
+  padding: var(--ptw-space-1) 0;
+  padding-left: 0;
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-input {
+  float: none;
+  flex-shrink: 0;
+  width: 2.5em;
+  height: 1.25em;
+  margin: 0.125rem 0 0;
+  margin-left: 0;
+  background-color: var(--ptw-color-bg-tertiary);
+  border-color: var(--ptw-color-border);
+  cursor: pointer;
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-input:checked {
+  background-color: var(--ptw-color-primary-blue);
+  border-color: var(--ptw-color-primary-blue);
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ptw-color-primary-blue) 25%, transparent);
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 0.125rem;
+  cursor: pointer;
+}
+
+.ptw-tournament-form .ptw-form-switch .form-check-input:disabled ~ .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.ptw-tournament-form__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: var(--ptw-space-4);
+  padding: var(--ptw-space-4) 0 calc(var(--ptw-space-4) + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ptw-color-bg-primary) 0%, transparent) 0%,
+    var(--ptw-color-bg-primary) 28%
+  );
+}
+
+@media (min-width: 768px) {
+  .ptw-tournament-form__actions {
+    position: static;
+    padding: var(--ptw-space-2) 0 0;
+    background: none;
+  }
 }
 
 /* Buttons */
@@ -899,6 +1086,42 @@
   color: var(--ptw-color-text-muted);
 }
 
+.ptw-icon-input--multiline {
+  align-items: stretch;
+}
+
+.ptw-icon-input--multiline .ptw-icon-input__icon {
+  align-items: flex-start;
+  padding-top: 0.75rem;
+}
+
+.ptw-icon-input--multiline .ptw-icon-input__divider {
+  margin-block: var(--ptw-space-3);
+}
+
+.ptw-icon-input--multiline .ptw-icon-input__control {
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
+.ptw-tournament-form .ptw-icon-input {
+  width: 100%;
+}
+
+.ptw-tournament-form .form-label {
+  margin-bottom: var(--ptw-space-2);
+}
+
+.ptw-tournament-form .form-text {
+  color: var(--ptw-color-text-secondary);
+}
+
+.ptw-tournament-form .invalid-feedback {
+  color: var(--ptw-color-validation-text);
+  background-color: var(--ptw-color-validation-bg);
+  border-color: var(--ptw-color-validation-border);
+}
+
 /* Search Box */
 .ptw-search-box {
   position: relative;
@@ -1140,4 +1363,34 @@
   --bs-table-bg: transparent;
   --bs-table-color: var(--ptw-color-text-primary);
   margin-bottom: 0;
+}
+
+.ptw-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--ptw-color-text-primary);
+  --bs-table-border-color: var(--ptw-color-border);
+  --bs-table-hover-bg: color-mix(in srgb, var(--ptw-color-bg-tertiary) 70%, transparent);
+  --bs-table-hover-color: var(--ptw-color-text-primary);
+  margin-bottom: 0;
+}
+
+.ptw-table thead th {
+  color: var(--ptw-color-text-secondary);
+  background-color: var(--ptw-color-bg-tertiary);
+  border-bottom: 1px solid var(--ptw-color-border);
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ptw-table tbody td {
+  border-bottom-color: var(--ptw-color-border);
+  color: var(--ptw-color-text-primary);
+  vertical-align: middle;
+}
+
+.ptw-table tbody tr:last-child td {
+  border-bottom: none;
 }

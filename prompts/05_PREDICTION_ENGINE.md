@@ -358,7 +358,7 @@ Validation error
 
 # Editing Predictions
 
-Contestants may edit
+Contestants may edit (when prediction is open)
 
 Home Score
 

@@ -25,28 +25,47 @@ export const firestore = db;
 /** @type {import('firebase/storage').FirebaseStorage} */
 export const storage = getStorage(app);
 
+/** @type {boolean} */
+let networkRecoveryNeeded = false;
+
 /** @type {Promise<void>|null} */
 let ensureOnlineInFlight = null;
 
 /**
- * Re-enables the Firestore network client.
- * Called before reads/writes to recover from the brief offline state that can
- * follow a Google popup sign-in (COOP side-effect).
- *
- * Concurrent callers share one in-flight enableNetwork call so the SDK async
- * queue is not disrupted by overlapping network toggles.
+ * Marks that Firestore may need network recovery after a disruptive auth flow.
+ * enableNetwork() must only run after disableNetwork() or a known offline event —
+ * calling it on every read/write bricks the Firestore async queue.
+ * @returns {void}
+ */
+export function markFirestoreNetworkRecoveryNeeded() {
+  networkRecoveryNeeded = true;
+}
+
+/**
+ * Re-enables the Firestore network client after popup sign-in recovery.
+ * No-op during normal operation when the client is already online.
  * @returns {Promise<void>}
  */
 export async function ensureFirestoreOnline() {
+  if (!networkRecoveryNeeded) {
+    return;
+  }
+
   if (ensureOnlineInFlight) {
     return ensureOnlineInFlight;
   }
 
   ensureOnlineInFlight = enableNetwork(db)
+    .then(() => {
+      networkRecoveryNeeded = false;
+    })
     .catch((error) => {
-      if (error?.code !== 'failed-precondition') {
-        Logger.warn('[Firebase] ensureFirestoreOnline failed:', error);
+      if (error?.code === 'failed-precondition') {
+        networkRecoveryNeeded = false;
+        return;
       }
+
+      Logger.warn('[Firebase] ensureFirestoreOnline failed:', error);
     })
     .finally(() => {
       ensureOnlineInFlight = null;

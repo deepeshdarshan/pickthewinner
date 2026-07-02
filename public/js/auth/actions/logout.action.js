@@ -16,6 +16,7 @@ import { navigateTo } from '../../services/router.service.js';
 import { updateAppShell } from '../../services/layout.service.js';
 import { Logger } from '../../utils/logger.util.js';
 import { TournamentConfigurationService } from '../../tournament/configuration/TournamentConfigurationService.js';
+import { clearTournamentCache } from '../../tournament/tournament.service.js';
 
 /**
  * Signs out the current user, clears caches, and navigates to login.
@@ -27,6 +28,7 @@ export async function performLogout() {
   try {
     await signOut();
     clearProfileCache();
+    clearTournamentCache();
     AuthorizationService.clearCache();
     TournamentConfigurationService.clearCache();
     ApplicationContext.clear();

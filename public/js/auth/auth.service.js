@@ -10,7 +10,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
-import { auth, ensureFirestoreOnline } from '../firebase/firebase.js';
+import { auth, ensureFirestoreOnline, markFirestoreNetworkRecoveryNeeded } from '../firebase/firebase.js';
 import { Logger } from '../utils/logger.util.js';
 import {
   AUTH_EVENTS,
@@ -84,6 +84,21 @@ export function getCurrentAuthProvider() {
   }
 
   return AUTH_PROVIDERS.GOOGLE;
+}
+
+/**
+ * Returns whether the user signed in with email/password (administrator).
+ * @param {import('firebase/auth').User|null} [user]
+ * @returns {boolean}
+ */
+export function isAdminAuthUser(user) {
+  const target = user ?? getCurrentUser();
+
+  if (!target) {
+    return false;
+  }
+
+  return target.providerData?.some((provider) => provider.providerId === 'password') ?? false;
 }
 
 /**
@@ -178,6 +193,7 @@ export async function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
 
   signInInProgress = true;
+  markFirestoreNetworkRecoveryNeeded();
 
   try {
     const result = await signInWithPopup(auth, provider);

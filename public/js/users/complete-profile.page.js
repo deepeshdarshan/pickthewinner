@@ -3,7 +3,7 @@
  * @module users/complete-profile.page
  */
 
-import { getCurrentUser } from '../auth/auth.service.js';
+import { getCurrentUser, isAdminAuthUser } from '../auth/auth.service.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
@@ -13,6 +13,7 @@ import { USER_MESSAGES } from './user.constants.js';
 import { UserDomain } from '../domain/user.domain.js';
 import {
   completeUserProfile,
+  ensureAdminProfile,
   getCachedProfile,
   getUserErrorMessage,
   loadCurrentUser,
@@ -53,6 +54,19 @@ async function initCompleteProfilePage(outlet) {
   if (!authUser) {
     await navigateTo(AUTH_ROUTES.LOGIN, true);
     return;
+  }
+
+  if (isAdminAuthUser(authUser)) {
+    try {
+      const profile = await ensureAdminProfile(authUser);
+      await AuthorizationService.resolve(true);
+      await navigateTo(getDashboardRouteForProfile(profile), true);
+      return;
+    } catch (error) {
+      Logger.warn('[CompleteProfile] Admin profile setup failed; redirecting to admin dashboard.', error);
+      await navigateTo(AUTH_ROUTES.ADMIN, true);
+      return;
+    }
   }
 
   try {

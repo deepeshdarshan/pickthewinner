@@ -48,7 +48,7 @@ export const appSettings = Object.freeze({
   timezone: 'Asia/Kolkata',
   timezoneLabel: 'IST (GMT+05:30)',
   locale: 'en-IN',
-  defaultPredictionLockMinutes: 15,
+  defaultPredictionLockMinutes: 10,
   dateFormat: 'dd MMM yyyy',
   dateTimeFormat: 'dd MMM yyyy HH:mm',
   timeFormat: 'HH:mm',

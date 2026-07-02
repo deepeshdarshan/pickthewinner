@@ -26,7 +26,17 @@ export const UserDomain = {
   },
 
   /**
+   * Returns whether a user is an administrator.
+   * @param {UserProfile|null|undefined} profile
+   * @returns {boolean}
+   */
+  isAdmin(profile) {
+    return profile?.role === USER_ROLES.ADMIN;
+  },
+
+  /**
    * Returns whether a Firestore profile is complete enough for protected routes.
+   * Administrators skip contestant onboarding fields (phone, district, PS).
    * @param {UserProfile|null|undefined} profile
    * @returns {boolean}
    */
@@ -37,6 +47,10 @@ export const UserDomain = {
 
     if (profile.status && profile.status !== USER_STATUS.ACTIVE) {
       return false;
+    }
+
+    if (this.isAdmin(profile)) {
+      return true;
     }
 
     return Boolean(

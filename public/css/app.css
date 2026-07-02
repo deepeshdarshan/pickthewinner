@@ -54,12 +54,21 @@
 
 .invalid-feedback {
   display: none;
-  color: var(--ptw-color-danger-text);
+  width: 100%;
+  margin-top: var(--ptw-space-2);
+  padding: var(--ptw-space-2) var(--ptw-space-3);
+  border-radius: var(--ptw-radius-sm);
+  color: var(--ptw-color-validation-text);
+  background-color: var(--ptw-color-validation-bg);
+  border: 1px solid var(--ptw-color-validation-border);
   font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-medium);
+  line-height: 1.45;
 }
 
 .is-invalid ~ .invalid-feedback,
 .ptw-icon-input:has(.is-invalid) ~ .invalid-feedback,
+.invalid-feedback.ptw-invalid-feedback--visible,
 .was-validated .form-control:invalid ~ .invalid-feedback,
 .was-validated .form-select:invalid ~ .invalid-feedback,
 .was-validated .ptw-icon-input:has(.form-control:invalid) ~ .invalid-feedback,

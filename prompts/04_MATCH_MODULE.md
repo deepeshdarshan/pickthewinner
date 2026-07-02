@@ -140,15 +140,12 @@ Round
 
 Match Number
 
-Home Team
+Home Team (with flag)
 
-Away Team
+Away Team (with flag)
 
 Venue
 
-City
-
-Country
 
 Kickoff Date
 
@@ -166,7 +163,7 @@ Prediction Opens
 
 Prediction Closes
 
-Can End In Draw
+Can End In Draw (football)
 
 Requires Winner
 
@@ -248,6 +245,10 @@ based on Tournament configuration.
 
 # Automatic Prediction Lock
 
+The prediction window opens automatically
+
+X hours before kickoff.
+
 The prediction window closes automatically
 
 X minutes before kickoff.
@@ -288,21 +289,10 @@ The Match module must not hardcode football logic.
 
 Support
 
-NORMAL_TIME
-
-EXTRA_TIME
+NORMAL_TIME+EXTRA_TIME
 
 PENALTIES
 
-Future values
-
-WALKOVER
-
-ABANDONED
-
-CANCELLED
-
-POSTPONED
 
 ---
 
@@ -765,6 +755,8 @@ Implement
 The implementation is complete only when
 
 ✓ Administrators can create matches.
+
+✓ Administrators can update match result once the match is over based on which the points are being calculated (including penalty shootout)
 
 ✓ Matches can be published.
 

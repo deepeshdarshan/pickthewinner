@@ -258,9 +258,7 @@ Shown only once.
 Collect
 
 - Phone Number
-- Country (optional)
 - District and Pradeshika Sabha
-- Notification Preferences
 
 Timezone is assigned automatically as IST (`Asia/Kolkata`, GMT+05:30).
 
