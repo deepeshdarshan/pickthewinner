@@ -15,7 +15,7 @@ import { formatDateTime } from '../utils/date.util.js';
  * @property {Record<string, unknown>|null} [prediction]
  * @property {boolean} [showResult]
  * @property {boolean} [showPoints]
- * @property {number} [pointsEarned]
+ * @property {number} [pointsEarned] Fallback when prediction has no calculatedPoints
  */
 
 /**
@@ -24,7 +24,16 @@ import { formatDateTime } from '../utils/date.util.js';
  * @returns {string}
  */
 export function renderMatchCard(options) {
-  const { match, showPrediction = false, prediction = null, showResult = false, showPoints = false, pointsEarned = 0 } = options;
+  const {
+    match,
+    showPrediction = false,
+    prediction = null,
+    showResult = false,
+    showPoints = false,
+    pointsEarned,
+  } = options;
+
+  const resolvedPointsEarned = Number(prediction?.calculatedPoints ?? pointsEarned ?? 0);
 
   const homeTeam = match.homeTeam?.name || 'TBD';
   const awayTeam = match.awayTeam?.name || 'TBD';
@@ -73,7 +82,7 @@ export function renderMatchCard(options) {
         ${showPrediction && prediction ? renderPredictionDisplay(prediction, match) : ''}
         
         <!-- Points Display -->
-        ${showPoints && showResult ? renderPointsDisplay(pointsEarned, prediction, match) : ''}
+        ${showPoints && showResult ? renderPointsDisplay(resolvedPointsEarned, prediction, match) : ''}
         
         <!-- Action Buttons -->
         ${renderActionButtons(match, prediction, predictionStatus)}

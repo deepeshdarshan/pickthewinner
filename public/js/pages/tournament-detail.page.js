@@ -149,7 +149,6 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
     prediction: predictionsMap.get(match.id) || null,
     showResult: match.result?.published || false,
     showPoints: match.result?.published || false,
-    pointsEarned: 0,
   })).join('')}
       </div>
     </section>

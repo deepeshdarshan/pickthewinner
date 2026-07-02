@@ -197,7 +197,6 @@ function renderScorePage(options) {
               prediction: predictionsMap.get(match.id) || null,
               showResult: true,
               showPoints: true,
-              pointsEarned: 0, // TODO: Get from scoring calculation
             })).join('')}
           ` : `
             <div class="card ptw-card">

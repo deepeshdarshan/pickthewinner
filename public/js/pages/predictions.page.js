@@ -271,7 +271,6 @@ function renderPredictionsPage(matches, predictionsMap) {
             prediction: predictionsMap.get(match.id) || null,
             showResult: match.result?.published || false,
             showPoints: match.result?.published || false,
-            pointsEarned: 0, // TODO: Calculate from match result and prediction
           })).join('')}
         </div>
       `).join('')}
