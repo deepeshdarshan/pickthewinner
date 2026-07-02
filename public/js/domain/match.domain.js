@@ -119,9 +119,20 @@ export const MatchDomain = {
    * @param {number} openHours
    * @param {number} lockMinutes
    * @param {Date} [now]
+   * @param {{ predictionOverride?: { isActive?: boolean, status?: string } }} [match]
    * @returns {string}
    */
-  resolveEffectiveStatus(status, kickoffUtc, openHours, lockMinutes, now = new Date()) {
+  resolveEffectiveStatus(status, kickoffUtc, openHours, lockMinutes, now = new Date(), match = {}) {
+    // Priority 1: Check for manual override
+    if (match.predictionOverride?.isActive && match.predictionOverride?.status) {
+      // Return override status if it's a valid prediction-related status
+      const overrideStatus = match.predictionOverride.status;
+      if (overrideStatus === MATCH_STATUS.PREDICTION_OPEN || overrideStatus === MATCH_STATUS.PREDICTION_LOCKED) {
+        return overrideStatus;
+      }
+    }
+
+    // Priority 2: Automatic scheduling based on timestamps
     if (!CONTESTANT_VISIBLE_STATUSES.has(status) || status === MATCH_STATUS.COMPLETED || status === MATCH_STATUS.RESULT_PUBLISHED) {
       return status;
     }

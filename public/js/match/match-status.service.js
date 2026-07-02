@@ -52,6 +52,13 @@ export async function applyLifecycleAction(match, action) {
       break;
     case MATCH_LIFECYCLE_ACTIONS.OPEN_PREDICTIONS:
       updates.status = MATCH_STATUS.PREDICTION_OPEN;
+      updates.predictionOverride = {
+        isActive: true,
+        status: MATCH_STATUS.PREDICTION_OPEN,
+        timestamp: serverTimestamp(),
+        performedBy: user?.uid ?? '',
+        reason: 'Manual override by administrator',
+      };
       await writeAuditLog({
         action: 'match_prediction_opened',
         entityType: 'match',
@@ -61,6 +68,13 @@ export async function applyLifecycleAction(match, action) {
       break;
     case MATCH_LIFECYCLE_ACTIONS.CLOSE_PREDICTIONS:
       updates.status = MATCH_STATUS.PREDICTION_LOCKED;
+      updates.predictionOverride = {
+        isActive: true,
+        status: MATCH_STATUS.PREDICTION_LOCKED,
+        timestamp: serverTimestamp(),
+        performedBy: user?.uid ?? '',
+        reason: 'Manual override by administrator',
+      };
       await writeAuditLog({
         action: 'match_prediction_closed',
         entityType: 'match',
@@ -134,9 +148,14 @@ export async function getMatchWithEffectiveStatus(matchId) {
       kickoff,
       openHours,
       lockMinutes,
+      new Date(),
+      match,
     );
 
-    if (effectiveStatus !== match.status && MatchDomain.canTransitionTo(match.status, effectiveStatus)) {
+    // Only update status automatically if no manual override is active
+    const hasActiveOverride = match.predictionOverride?.isActive ?? false;
+
+    if (effectiveStatus !== match.status && MatchDomain.canTransitionTo(match.status, effectiveStatus) && !hasActiveOverride) {
       await matchRepository.update(matchId, { status: effectiveStatus });
       return normalizeMatchDocument(matchId, { ...data, status: effectiveStatus });
     }
@@ -165,10 +184,35 @@ function normalizeMatchDocument(id, data) {
     visible: Boolean(data.visible),
     result: data.result ?? null,
     scoringStatus: data.scoringStatus ?? null,
+    predictionOverride: normalizePredictionOverride(data.predictionOverride),
     createdBy: String(data.createdBy ?? ''),
     updatedBy: String(data.updatedBy ?? ''),
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null,
+  };
+}
+
+/**
+ * @param {unknown} value
+ * @returns {import('./match.service.js').PredictionOverride|null}
+ */
+function normalizePredictionOverride(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const override = /** @type {Record<string, unknown>} */ (value);
+
+  if (!override.isActive) {
+    return null;
+  }
+
+  return {
+    isActive: Boolean(override.isActive),
+    status: String(override.status ?? ''),
+    timestamp: override.timestamp ?? null,
+    performedBy: String(override.performedBy ?? ''),
+    reason: override.reason ? String(override.reason) : undefined,
   };
 }
 

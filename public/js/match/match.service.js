@@ -42,10 +42,20 @@ import { Logger } from '../utils/logger.util.js';
  * @property {boolean} visible
  * @property {Record<string, unknown>|null} result
  * @property {string|null} scoringStatus
+ * @property {PredictionOverride|null} predictionOverride
  * @property {string} createdBy
  * @property {string} updatedBy
  * @property {import('firebase/firestore').Timestamp|Date|null} createdAt
  * @property {import('firebase/firestore').Timestamp|Date|null} updatedAt
+ */
+
+/**
+ * @typedef {Object} PredictionOverride
+ * @property {boolean} isActive
+ * @property {string} status
+ * @property {import('firebase/firestore').Timestamp|Date} timestamp
+ * @property {string} performedBy
+ * @property {string} [reason]
  */
 
 /**
@@ -131,10 +141,35 @@ export function normalizeMatchDocument(id, data) {
     visible: Boolean(data.visible),
     result: /** @type {Record<string, unknown>|null} */ (data.result ?? null),
     scoringStatus: data.scoringStatus ? String(data.scoringStatus) : null,
+    predictionOverride: normalizePredictionOverride(data.predictionOverride),
     createdBy: String(data.createdBy ?? ''),
     updatedBy: String(data.updatedBy ?? ''),
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null,
+  };
+}
+
+/**
+ * @param {unknown} value
+ * @returns {PredictionOverride|null}
+ */
+function normalizePredictionOverride(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const override = /** @type {Record<string, unknown>} */ (value);
+
+  if (!override.isActive) {
+    return null;
+  }
+
+  return {
+    isActive: Boolean(override.isActive),
+    status: String(override.status ?? ''),
+    timestamp: override.timestamp ?? null,
+    performedBy: String(override.performedBy ?? ''),
+    reason: override.reason ? String(override.reason) : undefined,
   };
 }
 

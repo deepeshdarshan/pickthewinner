@@ -97,6 +97,32 @@ export function validateLifecycleAction(action, match) {
     return { valid: false, errors };
   }
 
+  // Special validation for OPEN_PREDICTIONS
+  if (action === MATCH_LIFECYCLE_ACTIONS.OPEN_PREDICTIONS) {
+    // OPEN_PREDICTIONS is only available from PUBLISHED or PREDICTION_LOCKED
+    if (status !== MATCH_STATUS.PUBLISHED && status !== MATCH_STATUS.PREDICTION_LOCKED) {
+      errors.lifecycle = 'Predictions can only be opened from Published or Prediction Locked status.';
+      return { valid: false, errors };
+    }
+
+    // If already manually opened, don't allow opening again
+    const hasActiveOpenOverride = match.predictionOverride?.isActive &&
+                                   match.predictionOverride?.status === MATCH_STATUS.PREDICTION_OPEN;
+    if (hasActiveOpenOverride) {
+      errors.lifecycle = 'Predictions are already manually opened.';
+      return { valid: false, errors };
+    }
+  }
+
+  // Special validation for CLOSE_PREDICTIONS
+  if (action === MATCH_LIFECYCLE_ACTIONS.CLOSE_PREDICTIONS) {
+    // Can only close if currently in PREDICTION_OPEN status
+    if (status !== MATCH_STATUS.PREDICTION_OPEN) {
+      errors.lifecycle = 'Predictions can only be closed when they are currently open.';
+      return { valid: false, errors };
+    }
+  }
+
   if (action === MATCH_LIFECYCLE_ACTIONS.PUBLISH) {
     if (!match.tournamentId || !match.homeTeamId || !match.awayTeamId || !match.kickoffUtc) {
       errors.lifecycle = 'Cannot publish without tournament, teams, and kickoff time.';

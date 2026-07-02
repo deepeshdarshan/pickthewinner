@@ -43,9 +43,12 @@ export function renderMatchDetailPage(match, options) {
     `
     : renderLifecycleButtons(match);
 
+  const overrideIndicator = renderOverrideIndicator(match);
+
   return `
     <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
       ${formHtml}
+      ${overrideIndicator}
       <div class="ptw-match-detail-actions card ptw-card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0">Match Status</h2>
@@ -68,6 +71,7 @@ export function renderMatchDetailPage(match, options) {
  */
 function renderLifecycleButtons(match) {
   const buttons = [];
+  const hasActiveOverride = match.predictionOverride?.isActive ?? false;
 
   if (match.status === MATCH_STATUS.DRAFT) {
     buttons.push(actionButton('Schedule', MATCH_LIFECYCLE_ACTIONS.SCHEDULE, 'btn-outline-light'));
@@ -81,13 +85,29 @@ function renderLifecycleButtons(match) {
     buttons.push(actionButton('Hide', MATCH_LIFECYCLE_ACTIONS.HIDE, 'btn-warning'));
   }
 
+  // Only show OPEN_PREDICTIONS if in PUBLISHED or PREDICTION_LOCKED status
+  // and not already manually opened
   if ([MATCH_STATUS.PUBLISHED, MATCH_STATUS.PREDICTION_LOCKED].includes(match.status)) {
-    buttons.push(actionButton('Open Predictions', MATCH_LIFECYCLE_ACTIONS.OPEN_PREDICTIONS, 'btn-outline-success'));
+    const hasActiveOpenOverride = hasActiveOverride &&
+                                   match.predictionOverride?.status === MATCH_STATUS.PREDICTION_OPEN;
+    if (!hasActiveOpenOverride) {
+      buttons.push(actionButton('Open Predictions', MATCH_LIFECYCLE_ACTIONS.OPEN_PREDICTIONS, 'btn-outline-success'));
+    }
   }
 
+  // Only show CLOSE_PREDICTIONS if predictions are currently open
   if (match.status === MATCH_STATUS.PREDICTION_OPEN) {
     buttons.push(actionButton('Close Predictions', MATCH_LIFECYCLE_ACTIONS.CLOSE_PREDICTIONS, 'btn-outline-warning'));
-    buttons.push(actionButton('Reopen Predictions', MATCH_LIFECYCLE_ACTIONS.REOPEN_PREDICTIONS, 'btn-outline-success'));
+  }
+
+  // Show REOPEN_PREDICTIONS if in PREDICTION_LOCKED but remove if manually closed
+  if (match.status === MATCH_STATUS.PREDICTION_LOCKED) {
+    const hasActiveCloseOverride = hasActiveOverride &&
+                                    match.predictionOverride?.status === MATCH_STATUS.PREDICTION_LOCKED;
+    // Only allow reopening if not manually closed
+    if (!hasActiveCloseOverride) {
+      buttons.push(actionButton('Reopen Predictions', MATCH_LIFECYCLE_ACTIONS.REOPEN_PREDICTIONS, 'btn-outline-success'));
+    }
   }
 
   if ([MATCH_STATUS.PREDICTION_LOCKED, MATCH_STATUS.PREDICTION_OPEN, MATCH_STATUS.PUBLISHED].includes(match.status)) {
@@ -119,6 +139,62 @@ function renderLifecycleButtons(match) {
  */
 function actionButton(label, action, className) {
   return `<button type="button" class="btn ${className}" data-ptw-lifecycle="${escapeHtml(action)}">${escapeHtml(label)}</button>`;
+}
+
+/**
+ * @param {EnrichedMatch} match
+ * @returns {string}
+ */
+function renderOverrideIndicator(match) {
+  const override = match.predictionOverride;
+
+  if (!override?.isActive) {
+    return '';
+  }
+
+  const overrideStatusLabel = override.status === MATCH_STATUS.PREDICTION_OPEN
+    ? 'Manually Opened'
+    : 'Manually Closed';
+
+  const timestamp = formatTimestamp(override.timestamp);
+
+  return `
+    <div class="alert alert-info mb-3" role="alert">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>
+          <strong>Manual Override Active</strong>
+          <p class="mb-0 small">
+            Predictions ${overrideStatusLabel} by administrator ${timestamp ? `on ${timestamp}` : ''}. 
+            Automatic scheduling is disabled for this match.
+            ${override.reason ? `<br><em>${escapeHtml(override.reason)}</em>` : ''}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function formatTimestamp(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = value instanceof Date
+    ? value
+    : (typeof value === 'object' && value !== null && 'toDate' in value && typeof value.toDate === 'function'
+      ? value.toDate()
+      : null);
+
+  if (!date) {
+    return '';
+  }
+
+  return date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
 }
 
 /**
