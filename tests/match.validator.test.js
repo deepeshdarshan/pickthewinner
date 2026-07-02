@@ -25,6 +25,7 @@ describe('MatchValidator', () => {
     });
 
     assert.equal(result.valid, false);
+    assert.ok(result.errors.homeTeamId);
     assert.ok(result.errors.awayTeamId);
   });
 

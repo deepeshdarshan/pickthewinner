@@ -8,6 +8,7 @@ import {
   renderIconInputField,
   renderIconSelectField,
 } from '../../../shared/form/icon-input.component.js';
+import { renderFlagSelect } from '../../shared/flag-select.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
 import {
   SPORT_OPTIONS,
@@ -67,17 +68,14 @@ export function renderTeamFormPage(team = null, options = {}) {
     label: 'Country',
     icon: 'bi-globe',
     value: data.country ?? defaults.country,
-    required: true,
+    optional: true,
     errorId: 'ptw-team-country-error',
   })}
-            ${renderIconInputField({
+            ${renderFlagSelect({
     id: 'ptw-team-flagUrl',
     name: 'flagUrl',
-    label: 'Flag / Logo URL',
-    icon: 'bi-image',
-    type: 'url',
+    label: 'Flag',
     value: data.flagUrl ?? defaults.flagUrl,
-    placeholder: 'https://…',
     errorId: 'ptw-team-flagUrl-error',
   })}
             ${renderIconSelectField({

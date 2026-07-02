@@ -10,6 +10,22 @@ import { escapeHtml } from '../../utils/html.util.js';
 import { MATCH_ROUTES, MATCH_ROUNDS } from '../match.constants.js';
 
 /**
+ * @param {string} placeholder
+ * @param {Array<{ value: string, label: string }>} options
+ * @param {string} [selectedValue]
+ * @returns {string}
+ */
+function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
+  const placeholderOption = `<option value="" disabled${selectedValue ? '' : ' selected'}>${escapeHtml(placeholder)}</option>`;
+  const items = options.map((option) => {
+    const selected = option.value === selectedValue ? ' selected' : '';
+    return `<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`;
+  }).join('');
+
+  return `${placeholderOption}${items}`;
+}
+
+/**
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
  * @typedef {import('../../master-data/teams/team.service.js').Team} Team
  * @typedef {import('../../master-data/venues/venue.service.js').Venue} Venue
@@ -25,6 +41,7 @@ import { MATCH_ROUTES, MATCH_ROUNDS } from '../match.constants.js';
  *   inheritedConfig?: Record<string, unknown>|null,
  *   isCreate?: boolean,
  *   readOnly?: boolean,
+ *   includePageWrapper?: boolean,
  * }} options
  * @returns {string}
  */
@@ -37,6 +54,7 @@ export function renderMatchFormPage(options) {
     inheritedConfig = null,
     isCreate = false,
     readOnly = false,
+    includePageWrapper = true,
   } = options;
 
   const data = match ?? {};
@@ -45,16 +63,20 @@ export function renderMatchFormPage(options) {
   const kickoffDate = kickoff ? kickoff.toISOString().slice(0, 10) : '';
   const kickoffTime = kickoff ? kickoff.toTimeString().slice(0, 5) : '';
 
-  const selectedTournament = tournaments.find((item) => item.id === data.tournamentId);
-  const selectedHome = teams.find((item) => item.id === data.homeTeamId);
-  const selectedAway = teams.find((item) => item.id === data.awayTeamId);
   const selectedVenue = venues.find((item) => item.id === data.venueId);
+  const tournamentOptions = tournaments.map((tournament) => ({
+    value: tournament.id,
+    label: `${tournament.name} (${tournament.season})`,
+  }));
+  const teamOptions = teams.map((team) => ({
+    value: team.id,
+    label: `${team.name} (${team.country})`,
+  }));
 
-  return `
-    <div class="ptw-match-form-page ptw-page-content">
+  const content = `
       ${renderPageHeader({
     title,
-    subtitle: isCreate ? 'Matches inherit tournament configuration automatically' : escapeHtml(selectedTournament?.name ?? ''),
+    subtitle: isCreate ? 'Matches inherit tournament configuration automatically' : escapeHtml(tournaments.find((item) => item.id === data.tournamentId)?.name ?? ''),
     actionsHtml: `
           <a class="btn btn-outline-light w-100 w-md-auto" href="${MATCH_ROUTES.ADMIN_LIST}" data-route>
             <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to Matches
@@ -65,21 +87,15 @@ export function renderMatchFormPage(options) {
         <div class="card ptw-card mb-3">
           <div class="card-header"><h2 class="h5 mb-0">Match Details</h2></div>
           <div class="card-body ptw-match-form__grid">
-            ${renderSearchableSelect({
+            ${renderIconSelectField({
     id: 'ptw-match-tournamentId',
     name: 'tournamentId',
     label: 'Tournament',
     icon: 'bi-trophy',
     required: true,
-    readOnly,
-    value: data.tournamentId ?? '',
-    selectedLabel: selectedTournament?.name ?? '',
-    options: tournaments.map((tournament) => ({
-      value: tournament.id,
-      label: tournament.name,
-      sublabel: tournament.season,
-      searchText: `${tournament.name} ${tournament.season}`,
-    })),
+    disabled: readOnly,
+    optionsHtml: renderSelectOptionsHtml('Select tournament…', tournamentOptions, data.tournamentId ?? ''),
+    errorId: 'ptw-match-tournamentId-error',
   })}
             ${renderIconSelectField({
     id: 'ptw-match-round',
@@ -94,47 +110,34 @@ export function renderMatchFormPage(options) {
     }).join(''),
     errorId: 'ptw-match-round-error',
   })}
-            ${renderIconInputField({
+            ${isCreate ? '' : renderIconInputField({
     id: 'ptw-match-matchNumber',
     name: 'matchNumber',
     label: 'Match Number',
     icon: 'bi-hash',
-    value: data.matchNumber ? String(data.matchNumber) : 'Auto',
+    value: data.matchNumber ? String(data.matchNumber) : '',
     readOnly: true,
+    helpText: 'Assigned automatically when the match is created.',
   })}
-            ${renderSearchableSelect({
+            ${renderIconSelectField({
     id: 'ptw-match-homeTeamId',
     name: 'homeTeamId',
-    label: 'Home Team',
-    icon: 'bi-house',
+    label: 'Team 1',
+    icon: 'bi-1-circle',
     required: true,
-    readOnly,
-    value: data.homeTeamId ?? '',
-    selectedLabel: selectedHome ? `${selectedHome.name} (${selectedHome.country})` : '',
-    options: teams.map((team) => ({
-      value: team.id,
-      label: team.name,
-      sublabel: team.country,
-      imageUrl: team.flagUrl,
-      searchText: `${team.name} ${team.country}`,
-    })),
+    disabled: readOnly,
+    optionsHtml: renderSelectOptionsHtml('Select team 1…', teamOptions, data.homeTeamId ?? ''),
+    errorId: 'ptw-match-homeTeamId-error',
   })}
-            ${renderSearchableSelect({
+            ${renderIconSelectField({
     id: 'ptw-match-awayTeamId',
     name: 'awayTeamId',
-    label: 'Away Team',
-    icon: 'bi-airplane',
+    label: 'Team 2',
+    icon: 'bi-2-circle',
     required: true,
-    readOnly,
-    value: data.awayTeamId ?? '',
-    selectedLabel: selectedAway ? `${selectedAway.name} (${selectedAway.country})` : '',
-    options: teams.map((team) => ({
-      value: team.id,
-      label: team.name,
-      sublabel: team.country,
-      imageUrl: team.flagUrl,
-      searchText: `${team.name} ${team.country}`,
-    })),
+    disabled: readOnly,
+    optionsHtml: renderSelectOptionsHtml('Select team 2…', teamOptions, data.awayTeamId ?? ''),
+    errorId: 'ptw-match-awayTeamId-error',
   })}
             ${renderSearchableSelect({
     id: 'ptw-match-venueId',
@@ -182,6 +185,15 @@ export function renderMatchFormPage(options) {
           </div>
         `}
       </form>
+  `;
+
+  if (!includePageWrapper) {
+    return content;
+  }
+
+  return `
+    <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
+      ${content}
     </div>
   `;
 }

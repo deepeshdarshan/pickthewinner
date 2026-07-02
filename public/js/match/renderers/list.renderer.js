@@ -6,6 +6,7 @@
 import { renderPageHeader } from '../../components/page-header.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderCountdown } from '../../components/countdown.component.js';
+import { renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import {
   MATCH_MESSAGES,
@@ -211,8 +212,8 @@ function renderMatchCard(match) {
 function renderTeamsCell(match) {
   const home = match.homeTeam;
   const away = match.awayTeam;
-  const homeFlag = home?.flagUrl ? `<img src="${escapeHtml(home.flagUrl)}" alt="" class="ptw-team-flag me-1" width="20" height="15">` : '';
-  const awayFlag = away?.flagUrl ? `<img src="${escapeHtml(away.flagUrl)}" alt="" class="ptw-team-flag me-1" width="20" height="15">` : '';
+  const homeFlag = renderTeamFlagHtml(home?.flagUrl, { marginClass: 'me-1' });
+  const awayFlag = renderTeamFlagHtml(away?.flagUrl, { marginClass: 'me-1' });
 
   return `
     <div class="d-flex align-items-center gap-2 flex-wrap">

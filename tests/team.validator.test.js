@@ -14,18 +14,22 @@ describe('TeamValidator', () => {
     assert.ok(result.errors.name);
   });
 
-  it('requires country', () => {
+  it('allows empty country', () => {
     const result = validateCountry('');
-    assert.equal(result.valid, false);
-    assert.ok(result.errors.country);
+    assert.equal(result.valid, true);
   });
 
-  it('accepts valid flag URL', () => {
+  it('accepts flag-icons value', () => {
+    const result = validateFlagUrl('fi:br');
+    assert.equal(result.valid, true);
+  });
+
+  it('accepts valid legacy flag URL', () => {
     const result = validateFlagUrl('https://example.com/flag.png');
     assert.equal(result.valid, true);
   });
 
-  it('rejects invalid flag URL', () => {
+  it('rejects invalid flag value', () => {
     const result = validateFlagUrl('not-a-url');
     assert.equal(result.valid, false);
     assert.ok(result.errors.flagUrl);
@@ -35,7 +39,7 @@ describe('TeamValidator', () => {
     const result = validateCreatePayload({
       name: 'Brazil',
       country: 'Brazil',
-      flagUrl: 'https://example.com/br.png',
+      flagUrl: 'fi:br',
     });
     assert.equal(result.valid, true);
   });

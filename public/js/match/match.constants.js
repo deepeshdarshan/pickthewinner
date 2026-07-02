@@ -59,9 +59,9 @@ export const MATCH_STATUS_LABELS = Object.freeze({
 /** @type {Readonly<Record<string, string>>} */
 export const MATCH_VALIDATION_MESSAGES = Object.freeze({
   TOURNAMENT_REQUIRED: 'Select a tournament.',
-  HOME_TEAM_REQUIRED: 'Select a home team.',
-  AWAY_TEAM_REQUIRED: 'Select an away team.',
-  TEAMS_MUST_DIFFER: 'Home and away teams must be different.',
+  HOME_TEAM_REQUIRED: 'Select team 1.',
+  AWAY_TEAM_REQUIRED: 'Select team 2.',
+  TEAMS_MUST_DIFFER: 'Team 1 and team 2 must be different.',
   VENUE_REQUIRED: 'Select a venue.',
   ROUND_REQUIRED: 'Select a round.',
   KICKOFF_REQUIRED: 'Match date and kickoff time are required.',

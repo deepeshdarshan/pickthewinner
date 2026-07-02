@@ -45,15 +45,8 @@ export function validateName(value) {
  * @param {unknown} value
  * @returns {TeamValidationResult}
  */
-export function validateCountry(value) {
-  const errors = {};
-
-  if (typeof value !== 'string' || !value.trim()) {
-    errors.country = TEAM_VALIDATION_MESSAGES.COUNTRY_REQUIRED;
-    return { valid: false, errors };
-  }
-
-  return { valid: true, errors };
+export function validateCountry() {
+  return { valid: true, errors: {} };
 }
 
 /**
@@ -67,15 +60,28 @@ export function validateFlagUrl(value) {
     return { valid: true, errors };
   }
 
+  const trimmed = value.trim();
+
+  if (trimmed.startsWith('fi:')) {
+    const code = trimmed.slice(3).toLowerCase();
+
+    if (/^[a-z]{2}(-[a-z]{3,})?$/i.test(code)) {
+      return { valid: true, errors };
+    }
+
+    errors.flagUrl = TEAM_VALIDATION_MESSAGES.FLAG_INVALID;
+    return { valid: false, errors };
+  }
+
   try {
-    const url = new URL(value.trim());
+    const url = new URL(trimmed);
 
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      errors.flagUrl = TEAM_VALIDATION_MESSAGES.FLAG_URL_INVALID;
+      errors.flagUrl = TEAM_VALIDATION_MESSAGES.FLAG_INVALID;
       return { valid: false, errors };
     }
   } catch {
-    errors.flagUrl = TEAM_VALIDATION_MESSAGES.FLAG_URL_INVALID;
+    errors.flagUrl = TEAM_VALIDATION_MESSAGES.FLAG_INVALID;
     return { valid: false, errors };
   }
 

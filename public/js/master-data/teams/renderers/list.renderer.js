@@ -6,6 +6,7 @@
 import { renderPageHeader } from '../../../components/page-header.component.js';
 import { renderEmptyState } from '../../../components/empty-state.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
+import { renderTeamFlagHtml } from '../team-flag.util.js';
 import { TEAM_MESSAGES, TEAM_ROUTES } from '../team.constants.js';
 
 /**
@@ -87,9 +88,7 @@ export function renderTeamListPage(teams) {
  */
 function renderTeamRow(team) {
   const editUrl = `${TEAM_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(team.id)}`;
-  const flag = team.flagUrl
-    ? `<img src="${escapeHtml(team.flagUrl)}" alt="" class="ptw-team-flag me-2" width="24" height="18" loading="lazy">`
-    : '<span class="ptw-team-flag-placeholder me-2" aria-hidden="true"><i class="bi bi-flag"></i></span>';
+  const flag = renderTeamFlagHtml(team.flagUrl);
 
   return `
     <tr>

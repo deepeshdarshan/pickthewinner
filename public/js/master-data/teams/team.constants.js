@@ -28,7 +28,7 @@ export const TEAM_VALIDATION_MESSAGES = Object.freeze({
   NAME_REQUIRED: 'Team name is required.',
   NAME_TOO_SHORT: 'Team name must be at least 2 characters.',
   COUNTRY_REQUIRED: 'Country is required.',
-  FLAG_URL_INVALID: 'Flag URL must be a valid http or https URL.',
+  FLAG_INVALID: 'Select a valid flag.',
 });
 
 /** @type {Readonly<Record<string, string>>} */

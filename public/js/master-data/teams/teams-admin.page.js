@@ -9,6 +9,7 @@ import { showSuccessToast, showErrorToast } from '../../utils/toast.util.js';
 import { AuthorizationService } from '../../authorization/authorization.service.js';
 import { Permissions } from '../../authorization/permission.constants.js';
 import { TEAM_MESSAGES } from './team.constants.js';
+import { bindFlagSelects } from '../shared/flag-select.component.js';
 import {
   createTeam,
   deleteTeam,
@@ -128,6 +129,16 @@ function bindTeamForm(outlet, team) {
   if (!(form instanceof HTMLFormElement)) {
     return;
   }
+
+  bindFlagSelects(outlet, {
+    onCountrySelect: (countryName) => {
+      const countryInput = form.querySelector('#ptw-team-country');
+
+      if (countryInput instanceof HTMLInputElement && !countryInput.value.trim()) {
+        countryInput.value = countryName;
+      }
+    },
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

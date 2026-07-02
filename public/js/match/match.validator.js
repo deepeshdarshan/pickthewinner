@@ -46,6 +46,7 @@ export function validateCreatePayload(payload) {
   }
 
   if (payload.homeTeamId && payload.awayTeamId && payload.homeTeamId === payload.awayTeamId) {
+    errors.homeTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
     errors.awayTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
   }
 

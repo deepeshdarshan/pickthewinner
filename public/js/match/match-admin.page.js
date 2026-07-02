@@ -14,7 +14,8 @@ import { listVenues } from '../master-data/venues/venue.service.js';
 import { listTournamentsForAdmin } from '../tournament/tournament.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { TOURNAMENT_STATUS } from '../domain/tournament.domain.js';
-import { MATCH_MESSAGES, MATCH_LIFECYCLE_ACTIONS } from './match.constants.js';
+import { MATCH_MESSAGES, MATCH_LIFECYCLE_ACTIONS, MATCH_VALIDATION_MESSAGES } from './match.constants.js';
+import { getMatchValidationMessage, validateCreatePayload } from './match.validator.js';
 import {
   createMatch,
   getMatchById,
@@ -198,9 +199,20 @@ function bindMatchForm(outlet, match, tournaments, teams, venues) {
     return;
   }
 
+  bindTeamValidation(form);
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const payload = readMatchForm(form);
+    const validation = validateCreatePayload(payload);
+
+    if (!validation.valid) {
+      applyFormErrors(form, validation.errors);
+      showErrorToast(getMatchValidationMessage(validation));
+      return;
+    }
+
+    applyFormErrors(form, {});
     showLoadingOverlay(match ? MATCH_MESSAGES.UPDATING : MATCH_MESSAGES.CREATING);
 
     try {
@@ -232,19 +244,67 @@ function bindMatchForm(outlet, match, tournaments, teams, venues) {
 }
 
 /**
+ * @param {HTMLFormElement} form
+ * @returns {void}
+ */
+function bindTeamValidation(form) {
+  const homeField = form.querySelector('#ptw-match-homeTeamId');
+  const awayField = form.querySelector('#ptw-match-awayTeamId');
+
+  if (!(homeField instanceof HTMLSelectElement) || !(awayField instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const syncTeamValidation = () => {
+    const errors = {};
+
+    if (homeField.value && awayField.value && homeField.value === awayField.value) {
+      errors.homeTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
+      errors.awayTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
+    }
+
+    ['homeTeamId', 'awayTeamId'].forEach((field) => {
+      if (errors[field]) {
+        return;
+      }
+
+      const input = form.querySelector(`#ptw-match-${field}`);
+      const errorEl = form.querySelector(`#ptw-match-${field}-error`);
+
+      if (input instanceof HTMLElement) {
+        input.classList.remove('is-invalid');
+        input.removeAttribute('aria-invalid');
+      }
+
+      if (errorEl) {
+        errorEl.textContent = '';
+        errorEl.classList.remove('ptw-invalid-feedback--visible');
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      applyFormErrors(form, errors);
+    }
+  };
+
+  homeField.addEventListener('change', syncTeamValidation);
+  awayField.addEventListener('change', syncTeamValidation);
+}
+
+/**
  * @param {HTMLElement} outlet
  * @param {import('../tournament/tournament.service.js').Tournament[]} tournaments
  * @returns {void}
  */
 function bindTournamentPreview(outlet, tournaments) {
-  const hidden = outlet.querySelector('#ptw-match-tournamentId');
+  const tournamentField = outlet.querySelector('#ptw-match-tournamentId');
 
-  if (!(hidden instanceof HTMLInputElement)) {
+  if (!(tournamentField instanceof HTMLSelectElement)) {
     return;
   }
 
-  hidden.addEventListener('change', async () => {
-    const tournament = tournaments.find((item) => item.id === hidden.value);
+  tournamentField.addEventListener('change', async () => {
+    const tournament = tournaments.find((item) => item.id === tournamentField.value);
     const panel = outlet.querySelector('#ptw-match-inherited-config');
 
     if (!panel) {

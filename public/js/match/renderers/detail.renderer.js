@@ -32,11 +32,13 @@ export function renderMatchDetailPage(match, options) {
     match,
     ...options,
     readOnly: !MatchDomain.canEditMatch(match.status),
+    includePageWrapper: false,
   });
 
   return `
-    ${formHtml}
-    <div class="ptw-match-detail-actions card ptw-card mb-3">
+    <div class="container-fluid px-3 px-lg-4 ptw-match-form-page ptw-page-content">
+      ${formHtml}
+      <div class="ptw-match-detail-actions card ptw-card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0">Match Status</h2>
         ${renderMatchStatusBadge(match.status)}
@@ -45,9 +47,10 @@ export function renderMatchDetailPage(match, options) {
         ${renderLifecycleButtons(match)}
       </div>
     </div>
-    ${MatchDomain.canEnterResult(match.status) || match.status === MATCH_STATUS.RESULT_PUBLISHED
+      ${MatchDomain.canEnterResult(match.status) || match.status === MATCH_STATUS.RESULT_PUBLISHED
     ? renderResultForm(match, options.inheritedConfig ?? null)
     : ''}
+    </div>
   `;
 }
 
