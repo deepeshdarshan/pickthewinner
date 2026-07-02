@@ -570,11 +570,7 @@ export async function publishTournament(id, uid) {
 
   emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_PUBLISHED, tournament);
 
-  const activeTournament = await getActiveTournament();
-
-  if (!activeTournament) {
-    tournament = await setActiveTournament(id, uid);
-  }
+  tournament = await setActiveTournament(id, uid);
 
   return tournament;
 }

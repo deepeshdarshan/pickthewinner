@@ -320,8 +320,10 @@ export function validateLifecycleAction(action, tournament) {
       }
       break;
     case LIFECYCLE_ACTIONS.SET_ACTIVE:
-      if (status === TOURNAMENT_STATUS.ARCHIVED || tournament.archived) {
-        errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
+      if (!TournamentDomain.canSetActiveTournament(tournament)) {
+        errors.lifecycle = tournament.active
+          ? TOURNAMENT_VALIDATION_MESSAGES.ALREADY_ACTIVE
+          : TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
       }
       break;
     default:

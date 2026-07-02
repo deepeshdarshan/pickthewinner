@@ -160,12 +160,20 @@ function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
   }
 
   if (
-    !tournament.active
+    TournamentDomain.canSetActiveTournament(tournament)
+  ) {
+    actions.push(renderActionButton('set-active', 'Set Active', 'btn-outline-success'));
+  } else if (
+    tournament.active
     && tournament.status !== TOURNAMENT_STATUS.ARCHIVED
     && tournament.status !== TOURNAMENT_STATUS.COMPLETED
     && !tournament.archived
   ) {
-    actions.push(renderActionButton('set-active', 'Set Active', 'btn-outline-success'));
+    const title = TournamentDomain.isActiveStateLocked(tournament)
+      ? 'Published tournaments stay active and cannot be deactivated.'
+      : 'This tournament is active and cannot be deactivated manually.';
+
+    actions.push(renderDisabledActionButton('Inactive', title, 'btn-outline-secondary'));
   }
 
   if (TournamentDomain.canArchiveTournament(tournament.status)) {
@@ -216,11 +224,12 @@ function renderActionButton(action, label, buttonClass) {
 /**
  * @param {string} label
  * @param {string} title
+ * @param {string} [buttonClass]
  * @returns {string}
  */
-function renderDisabledActionButton(label, title) {
+function renderDisabledActionButton(label, title, buttonClass = 'btn-warning') {
   return `
-    <button type="button" class="btn btn-warning" disabled title="${escapeHtml(title)}">
+    <button type="button" class="btn ${buttonClass}" disabled title="${escapeHtml(title)}">
       ${escapeHtml(label)}
     </button>
   `;

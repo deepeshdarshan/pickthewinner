@@ -135,6 +135,39 @@ export const TournamentDomain = {
   },
 
   /**
+   * @param {{ status?: string, archived?: boolean, active?: boolean }} tournament
+   * @returns {boolean}
+   */
+  canSetActiveTournament(tournament) {
+    if (this.isTournamentArchived(tournament)) {
+      return false;
+    }
+
+    if (tournament.active) {
+      return false;
+    }
+
+    const status = tournament.status ?? TOURNAMENT_STATUS.DRAFT;
+
+    return status !== TOURNAMENT_STATUS.COMPLETED;
+  },
+
+  /**
+   * Published and later lifecycle states keep the active flag locked once set.
+   * @param {{ status?: string, active?: boolean }} tournament
+   * @returns {boolean}
+   */
+  isActiveStateLocked(tournament) {
+    if (!tournament.active) {
+      return false;
+    }
+
+    const status = tournament.status ?? TOURNAMENT_STATUS.DRAFT;
+
+    return status !== TOURNAMENT_STATUS.DRAFT;
+  },
+
+  /**
    * @param {string} status
    * @param {boolean} [archived]
    * @returns {boolean}

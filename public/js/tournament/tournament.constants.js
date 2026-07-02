@@ -126,6 +126,7 @@ export const TOURNAMENT_VALIDATION_MESSAGES = Object.freeze({
   REGISTRATION_END_BEFORE_START: 'Registration end must be after registration start.',
   CANNOT_EDIT: 'This tournament cannot be edited in its current state.',
   LIFECYCLE_INVALID: 'This lifecycle action is not allowed for the current tournament state.',
+  ALREADY_ACTIVE: 'This tournament is already active.',
   CANNOT_COMPLETE_INCOMPLETE_MATCHES: 'Cannot complete this tournament until all visible matches are marked completed or have published results.',
   VISIBILITY_INVALID: 'Select a valid visibility option.',
 });
@@ -156,7 +157,7 @@ export const TOURNAMENT_MESSAGES = Object.freeze({
   GENERIC_ERROR: 'Something went wrong. Please try again.',
   PERMISSION_DENIED: 'You do not have permission to manage tournaments.',
   CONFIRM_ARCHIVE: 'Archive this tournament? Historical data will be preserved.',
-  CONFIRM_PUBLISH: 'Publish this tournament? It will become visible to contestants. If no other tournament is active, this one will be set as active automatically.',
+  CONFIRM_PUBLISH: 'Publish this tournament? It will become visible to contestants and will be set as the active tournament.',
   CONFIRM_GO_LIVE: 'Mark this tournament as live?',
   CONFIRM_COMPLETE: 'Mark this tournament as completed? It will become read-only.',
   CONFIRM_SET_ACTIVE: 'Set this as the active tournament? Only one tournament can be active.',

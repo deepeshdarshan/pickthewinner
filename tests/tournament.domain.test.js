@@ -135,4 +135,15 @@ describe('TournamentDomain', () => {
     );
     assert.equal(TournamentDomain.getIncompleteVisibleMatches(matches).length, 0);
   });
+
+  it('controls manual active state for draft and published tournaments', () => {
+    const draftInactive = { status: TOURNAMENT_STATUS.DRAFT, active: false, archived: false };
+    const draftActive = { status: TOURNAMENT_STATUS.DRAFT, active: true, archived: false };
+    const publishedActive = { status: TOURNAMENT_STATUS.PUBLISHED, active: true, archived: false };
+
+    assert.equal(TournamentDomain.canSetActiveTournament(draftInactive), true);
+    assert.equal(TournamentDomain.canSetActiveTournament(draftActive), false);
+    assert.equal(TournamentDomain.isActiveStateLocked(draftActive), false);
+    assert.equal(TournamentDomain.isActiveStateLocked(publishedActive), true);
+  });
 });

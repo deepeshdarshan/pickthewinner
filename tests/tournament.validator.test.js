@@ -6,9 +6,11 @@ import {
   validateRegistrationDates,
   validateCreatePayload,
   validateScoringConfiguration,
+  validateLifecycleAction,
   getTournamentValidationMessage,
 } from '../public/js/tournament/tournament.validator.js';
-import { createDefaultConfiguration, TOURNAMENT_MESSAGES } from '../public/js/tournament/tournament.constants.js';
+import { createDefaultConfiguration, TOURNAMENT_MESSAGES, LIFECYCLE_ACTIONS, TOURNAMENT_VALIDATION_MESSAGES } from '../public/js/tournament/tournament.constants.js';
+import { TOURNAMENT_STATUS } from '../public/js/domain/tournament.domain.js';
 
 /** @returns {Record<string, unknown>} */
 function validConfiguration() {
@@ -112,5 +114,16 @@ describe('TournamentValidator', () => {
     });
 
     assert.equal(message, TOURNAMENT_MESSAGES.VALIDATION_SUMMARY);
+  });
+
+  it('rejects set active when tournament is already active', () => {
+    const result = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_ACTIVE, {
+      status: TOURNAMENT_STATUS.DRAFT,
+      active: true,
+      archived: false,
+    });
+
+    assert.equal(result.valid, false);
+    assert.equal(result.errors.lifecycle, TOURNAMENT_VALIDATION_MESSAGES.ALREADY_ACTIVE);
   });
 });
