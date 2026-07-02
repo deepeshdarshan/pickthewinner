@@ -25,6 +25,20 @@ describe('TournamentDomain', () => {
     );
   });
 
+  it('allows completed to archived transition', () => {
+    assert.equal(
+      TournamentDomain.canTransitionTo(TOURNAMENT_STATUS.COMPLETED, TOURNAMENT_STATUS.ARCHIVED),
+      true,
+    );
+    assert.equal(TournamentDomain.canArchiveTournament(TOURNAMENT_STATUS.COMPLETED), true);
+  });
+
+  it('marks completed tournaments as read-only but not archived', () => {
+    assert.equal(TournamentDomain.isTournamentReadOnly(TOURNAMENT_STATUS.COMPLETED), true);
+    assert.equal(TournamentDomain.canArchiveTournament(TOURNAMENT_STATUS.COMPLETED), true);
+    assert.equal(TournamentDomain.canRestoreTournament(TOURNAMENT_STATUS.COMPLETED), false);
+  });
+
   it('marks only draft as editable', () => {
     assert.equal(TournamentDomain.canEditTournament(TOURNAMENT_STATUS.DRAFT), true);
     assert.equal(TournamentDomain.canEditTournament(TOURNAMENT_STATUS.PUBLISHED), false);
@@ -47,6 +61,29 @@ describe('TournamentDomain', () => {
     assert.equal(
       TournamentDomain.isTournamentVisibleToContestants(TOURNAMENT_STATUS.PUBLISHED, TOURNAMENT_VISIBILITY.HIDDEN),
       false,
+    );
+  });
+
+  it('hides archived tournaments from contestants', () => {
+    assert.equal(
+      TournamentDomain.isTournamentVisibleToContestants(TOURNAMENT_STATUS.ARCHIVED, TOURNAMENT_VISIBILITY.VISIBLE),
+      false,
+    );
+    assert.equal(
+      TournamentDomain.isTournamentVisibleToContestants(TOURNAMENT_STATUS.COMPLETED, TOURNAMENT_VISIBILITY.ARCHIVED),
+      false,
+    );
+    assert.equal(
+      TournamentDomain.isTournamentVisibleToContestants(TOURNAMENT_STATUS.COMPLETED, TOURNAMENT_VISIBILITY.VISIBLE, true),
+      false,
+    );
+    assert.equal(
+      TournamentDomain.isTournamentArchived({
+        status: TOURNAMENT_STATUS.ARCHIVED,
+        visibility: TOURNAMENT_VISIBILITY.VISIBLE,
+        archived: true,
+      }),
+      true,
     );
   });
 

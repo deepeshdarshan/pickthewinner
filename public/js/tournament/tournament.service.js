@@ -373,10 +373,12 @@ export async function listTournamentsForContestant() {
 
   const all = await listTournamentsForAdmin({ includeArchived: false });
 
-  contestantListCache = all.filter((tournament) => TournamentDomain.isTournamentVisibleToContestants(
-    tournament.status,
-    tournament.visibility,
-  ));
+  contestantListCache = all.filter((tournament) => !TournamentDomain.isTournamentArchived(tournament)
+    && TournamentDomain.isTournamentVisibleToContestants(
+      tournament.status,
+      tournament.visibility,
+      tournament.archived,
+    ));
 
   return contestantListCache;
 }
@@ -401,6 +403,11 @@ export async function getActiveTournament() {
 
   const docSnap = snapshot.docs[0];
   const tournament = normalizeTournamentDocument(docSnap.id, docSnap.data());
+
+  if (TournamentDomain.isTournamentArchived(tournament)) {
+    return null;
+  }
+
   cacheTournament(tournament);
   return tournament;
 }

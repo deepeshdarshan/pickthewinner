@@ -6,7 +6,7 @@
 import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
-import { TournamentDomain } from '../../domain/tournament.domain.js';
+import { TournamentDomain, TOURNAMENT_STATUS } from '../../domain/tournament.domain.js';
 import { TOURNAMENT_ROUTES, TOURNAMENT_TIMEZONE_LABEL, TOURNAMENT_VALIDATION_MESSAGES } from '../tournament.constants.js';
 import { renderStatusBadge, renderVisibilityBadge, renderActiveBadge } from './status-badge.renderer.js';
 import { renderTournamentFormPage } from './form.renderer.js';
@@ -37,7 +37,8 @@ export function renderTournamentDetailPage(tournament, options = {}) {
  * @returns {string}
  */
 function renderStatusPanel(tournament, readOnly, incompleteVisibleMatchCount = 0) {
-  const lifecycleActions = readOnly
+  const isArchived = tournament.archived || tournament.status === TOURNAMENT_STATUS.ARCHIVED;
+  const lifecycleActions = isArchived
     ? ''
     : renderLifecycleActions(tournament, incompleteVisibleMatchCount);
 
@@ -158,12 +159,25 @@ function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
     }
   }
 
-  if (!tournament.active && tournament.status !== 'archived' && !tournament.archived) {
+  if (
+    !tournament.active
+    && tournament.status !== TOURNAMENT_STATUS.ARCHIVED
+    && tournament.status !== TOURNAMENT_STATUS.COMPLETED
+    && !tournament.archived
+  ) {
     actions.push(renderActionButton('set-active', 'Set Active', 'btn-outline-success'));
   }
 
   if (TournamentDomain.canArchiveTournament(tournament.status)) {
     actions.push(renderActionButton('archive', 'Archive', 'btn-outline-danger'));
+  }
+
+  if (tournament.status === TOURNAMENT_STATUS.COMPLETED && actions.length > 0) {
+    actions.unshift(`
+      <p class="text-muted small mb-2 w-100" role="status">
+        This tournament is completed. Archive it to remove it from active lists while preserving historical data.
+      </p>
+    `);
   }
 
   if (!tournament.active) {

@@ -157,11 +157,29 @@ export const TournamentDomain = {
   },
 
   /**
-   * @param {string} status
-   * @param {string} [visibility]
+   * @param {{ status?: string, visibility?: string, archived?: boolean }} tournament
    * @returns {boolean}
    */
-  isTournamentVisibleToContestants(status, visibility = TOURNAMENT_VISIBILITY.VISIBLE) {
+  isTournamentArchived(tournament) {
+    const status = tournament.status ?? TOURNAMENT_STATUS.DRAFT;
+    const visibility = tournament.visibility ?? TOURNAMENT_VISIBILITY.VISIBLE;
+
+    return Boolean(tournament.archived)
+      || status === TOURNAMENT_STATUS.ARCHIVED
+      || visibility === TOURNAMENT_VISIBILITY.ARCHIVED;
+  },
+
+  /**
+   * @param {string} status
+   * @param {string} [visibility]
+   * @param {boolean} [archived]
+   * @returns {boolean}
+   */
+  isTournamentVisibleToContestants(status, visibility = TOURNAMENT_VISIBILITY.VISIBLE, archived = false) {
+    if (archived || status === TOURNAMENT_STATUS.ARCHIVED || visibility === TOURNAMENT_VISIBILITY.ARCHIVED) {
+      return false;
+    }
+
     if (visibility !== TOURNAMENT_VISIBILITY.VISIBLE) {
       return false;
     }

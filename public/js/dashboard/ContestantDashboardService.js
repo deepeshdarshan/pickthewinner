@@ -102,13 +102,21 @@ export const ContestantDashboardService = {
       || 'Contestant';
 
     const visibleTournaments = await listTournamentsForContestant();
-    const activeTournament = await getActiveTournament();
+    const visibleTournamentIds = new Set(visibleTournaments.map((tournament) => tournament.id));
+    let activeTournament = await getActiveTournament();
+
+    if (activeTournament && !visibleTournamentIds.has(activeTournament.id)) {
+      activeTournament = null;
+    }
+
     const activeTournamentCount = visibleTournaments.length;
 
     await TournamentConfigurationService.load();
     const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
 
-    const allMatches = await listMatchesForContestant();
+    const allMatches = (await listMatchesForContestant()).filter(
+      (match) => visibleTournamentIds.has(match.tournamentId),
+    );
     const now = new Date();
     const acceptingPredictionsTournamentIds = new Set(
       visibleTournaments
