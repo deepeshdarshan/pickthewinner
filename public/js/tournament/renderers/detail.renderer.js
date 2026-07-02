@@ -72,7 +72,7 @@ function renderSummaryList(tournament) {
       <dt class="col-sm-4">Timezone</dt>
       <dd class="col-sm-8">${escapeHtml(TOURNAMENT_TIMEZONE_LABEL)}</dd>
       <dt class="col-sm-4">Require Winner for Draw</dt>
-      <dd class="col-sm-8" id="ptw-tournament-status-require-winner-for-draw">${formatBooleanLabel(config.requireWinnerForDraw)}</dd>
+      <dd class="col-sm-8" id="ptw-tournament-status-require-winner-for-draw">${formatBooleanLabel(config.requireWinnerSelectionForDrawPrediction ?? config.requireWinnerForDraw)}</dd>
       <dt class="col-sm-4">Match Score Points</dt>
       <dd class="col-sm-8">${escapeHtml(formatScoringPoints(scoring.correctMatchScorePoints))}</dd>
       <dt class="col-sm-4">Penalty Winner Points</dt>

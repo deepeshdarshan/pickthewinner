@@ -181,14 +181,14 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
 
     // Load tournament configuration
     await TournamentConfigurationService.load(match.tournamentId);
-    const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
+    const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
 
     outlet.innerHTML = `
       <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
         <button class="btn btn-outline-light mb-3" onclick="history.back()">
           <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to Predictions
         </button>
-        ${renderPredictionForm({ match, existingPrediction, isEdit, requireWinnerForDraw })}
+        ${renderPredictionForm({ match, existingPrediction, isEdit, requireWinnerSelectionForDrawPrediction })}
       </div>
     `;
 
@@ -319,11 +319,11 @@ function attachFormHandlers(outlet) {
     return;
   }
 
-  const requireWinnerForDraw = TournamentConfigurationService.requireWinnerForDraw();
+  const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
 
   attachPredictionFormHandlers(
     form,
-    requireWinnerForDraw,
+    requireWinnerSelectionForDrawPrediction,
     async (payload) => {
       try {
         if (isEditing) {

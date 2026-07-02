@@ -46,7 +46,7 @@ export function renderPredictionComparison(data) {
             <h3 class="h6">My Prediction</h3>
             <p class="mb-1">${escapeHtml(match.homeTeam?.name ?? 'Home')} <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong></p>
             <p class="mb-1">${escapeHtml(match.awayTeam?.name ?? 'Away')} <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong></p>
-            ${prediction.penaltyWinner ? `<p class="mb-0"><strong>Penalty Winner:</strong> ${escapeHtml(String(prediction.penaltyWinner))}</p>` : ''}
+            ${(prediction.predictedWinner ?? prediction.penaltyWinner) ? `<p class="mb-0"><strong>Predicted Winner:</strong> ${escapeHtml(String(prediction.predictedWinner ?? prediction.penaltyWinner))}</p>` : ''}
           </div>
         </div>
         <hr>

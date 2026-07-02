@@ -143,7 +143,7 @@ function renderPredictionStatusBadge(status) {
 function renderPredictionDisplay(prediction, match) {
   const homeScore = prediction.homeScore ?? '-';
   const awayScore = prediction.awayScore ?? '-';
-  const penaltyWinner = prediction.penaltyWinner;
+  const predictedWinner = prediction.predictedWinner ?? prediction.penaltyWinner;
   const homeTeam = match.homeTeam?.name || 'Home';
   const awayTeam = match.awayTeam?.name || 'Away';
 
@@ -161,7 +161,7 @@ function renderPredictionDisplay(prediction, match) {
           <small class="ptw-text-muted">${escapeHtml(awayTeam)}</small>
         </div>
       </div>
-      ${penaltyWinner ? `<div class="text-center mt-2"><small class="ptw-text-muted">Penalty Winner: <span class="text-warning">${escapeHtml(penaltyWinner === 'HOME' ? homeTeam : awayTeam)}</span></small></div>` : ''}
+      ${predictedWinner ? `<div class="text-center mt-2"><small class="ptw-text-muted">Predicted Winner: <span class="text-warning">${escapeHtml(predictedWinner === 'HOME' ? homeTeam : awayTeam)}</span></small></div>` : ''}
     </div>
   `;
 }

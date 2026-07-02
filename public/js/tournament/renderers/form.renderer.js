@@ -218,7 +218,9 @@ function renderVisibilitySettingsSection(config, readOnly) {
  * @returns {string}
  */
 function renderConfigurationSection(config, readOnly) {
-  const requireWinnerForDraw = Boolean(config.requireWinnerForDraw);
+  const requireWinnerForDraw = Boolean(
+    config.requireWinnerSelectionForDrawPrediction ?? config.requireWinnerForDraw,
+  );
 
   return `
     <section class="card ptw-card ptw-tournament-form__section" aria-labelledby="ptw-tournament-match-heading">
@@ -445,6 +447,10 @@ export function readTournamentForm(form) {
   const lockMinutesRaw = formData.get('predictionLockMinutes');
   const openHoursRaw = formData.get('predictionOpenHoursBeforeKickoff');
 
+  const requireWinnerSelectionForDrawPrediction = form.querySelector('[name="requireWinnerForDraw"]') instanceof HTMLInputElement
+    ? /** @type {HTMLInputElement} */ (form.querySelector('[name="requireWinnerForDraw"]')).checked
+    : false;
+
   return {
     name: formData.get('name'),
     description: formData.get('description'),
@@ -453,9 +459,8 @@ export function readTournamentForm(form) {
     logo: formData.get('logo'),
     configuration: {
       timezone: formData.get('timezone') || 'Asia/Kolkata',
-      requireWinnerForDraw: form.querySelector('[name="requireWinnerForDraw"]') instanceof HTMLInputElement
-        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="requireWinnerForDraw"]')).checked
-        : false,
+      requireWinnerSelectionForDrawPrediction,
+      requireWinnerForDraw: requireWinnerSelectionForDrawPrediction,
       leaderboardVisible: form.querySelector('[name="leaderboardVisible"]') instanceof HTMLInputElement
         ? /** @type {HTMLInputElement} */ (form.querySelector('[name="leaderboardVisible"]')).checked
         : false,
