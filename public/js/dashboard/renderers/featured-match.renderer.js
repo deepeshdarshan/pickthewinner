@@ -31,12 +31,9 @@ export function renderFeaturedMatchSection(data) {
   const awayName = match.awayTeam?.name ?? 'Away';
   const homeFlag = renderTeamFlagHtml(match.homeTeam?.flagUrl, { marginClass: 'me-2' });
   const awayFlag = renderTeamFlagHtml(match.awayTeam?.flagUrl, { marginClass: 'me-2' });
-  const predictionUrl = `/predictions?action=create&matchId=${encodeURIComponent(match.id)}`;
-  const hasPrediction = Boolean(data.featuredMatchPrediction);
-  const primaryLabel = hasPrediction ? 'Edit Prediction' : 'Predict Match';
-  const primaryUrl = hasPrediction
-    ? `/predictions?action=edit&matchId=${encodeURIComponent(match.id)}`
-    : predictionUrl;
+  const prediction = data.featuredMatchPrediction ?? null;
+  const predictionStatus = getPredictionStatus(match, prediction);
+  const actionButtons = renderFeaturedActionButtons(match, prediction, predictionStatus);
 
   return `
     <section class="card ptw-card ptw-featured-match h-100" aria-labelledby="ptw-featured-match-heading">
@@ -65,11 +62,69 @@ export function renderFeaturedMatchSection(data) {
           ${match.venueName ? `<div class="ptw-text-muted mt-1"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>${escapeHtml(match.venueName)}</div>` : ''}
         </div>
         <div class="d-flex flex-wrap gap-2 justify-content-center">
-          <a href="${primaryUrl}" class="btn btn-ptw-primary" data-route>${escapeHtml(primaryLabel)}</a>
-          <button type="button" class="btn btn-outline-light" disabled title="Coming soon">Set Reminder</button>
+          ${actionButtons}
         </div>
       </div>
     </section>
+  `;
+}
+
+/**
+ * @param {import('../../match/match.service.js').EnrichedMatch} match
+ * @param {Record<string, unknown>|null} prediction
+ * @returns {string}
+ */
+function getPredictionStatus(match, prediction) {
+  if (!prediction) {
+    return match.predictionStatus === 'Open' ? 'pending' : 'locked';
+  }
+
+  if (prediction.locked) {
+    return 'locked';
+  }
+
+  if (match.predictionStatus === 'Open') {
+    return 'submitted';
+  }
+
+  return 'locked';
+}
+
+/**
+ * @param {import('../../match/match.service.js').EnrichedMatch} match
+ * @param {Record<string, unknown>|null} prediction
+ * @param {string} predictionStatus
+ * @returns {string}
+ */
+function renderFeaturedActionButtons(match, prediction, predictionStatus) {
+  if (match.result?.published) {
+    return `
+      <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-outline-primary" data-route>
+        View Details
+      </a>
+    `;
+  }
+
+  if (predictionStatus === 'locked') {
+    return `
+      <button type="button" class="btn btn-secondary" disabled>
+        <i class="bi bi-lock me-2" aria-hidden="true"></i>Prediction Locked
+      </button>
+    `;
+  }
+
+  if (prediction && predictionStatus === 'submitted') {
+    return `
+      <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary" data-route>
+        <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
+      </a>
+    `;
+  }
+
+  return `
+    <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary" data-route>
+      <i class="bi bi-bullseye me-2" aria-hidden="true"></i>Predict Match
+    </a>
   `;
 }
 

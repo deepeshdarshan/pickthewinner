@@ -14,6 +14,7 @@ import { listMatchesForContestant } from '../match/match.service.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
+import { TournamentDomain } from '../domain/tournament.domain.js';
 
 /**
  * @typedef {Object} ContestantActivityItem
@@ -107,10 +108,27 @@ export const ContestantDashboardService = {
 
     const allMatches = await listMatchesForContestant();
     const now = new Date();
+    const acceptingPredictionsTournamentIds = new Set(
+      visibleTournaments
+        .filter((tournament) => !TournamentDomain.isTournamentReadOnly(tournament.status))
+        .map((tournament) => tournament.id),
+    );
     const upcomingMatches = allMatches
       .filter((match) => {
         const kickoff = toDate(match.kickoffUtc);
-        return kickoff && kickoff > now;
+        if (!kickoff || kickoff <= now) {
+          return false;
+        }
+
+        if (!acceptingPredictionsTournamentIds.has(match.tournamentId)) {
+          return false;
+        }
+
+        if (match.result?.published) {
+          return false;
+        }
+
+        return true;
       })
       .sort((a, b) => {
         const aKickoff = toDate(a.kickoffUtc)?.getTime() ?? 0;
