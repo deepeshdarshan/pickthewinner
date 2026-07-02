@@ -3,6 +3,8 @@
  * @module domain/tournament.domain
  */
 
+import { MATCH_STATUS } from './match.domain.js';
+
 /** @enum {string} */
 export const TOURNAMENT_STATUS = Object.freeze({
   DRAFT: 'draft',
@@ -42,6 +44,12 @@ const ALLOWED_TRANSITIONS = Object.freeze({
   ]),
 });
 
+/** @type {ReadonlySet<string>} */
+const FINISHED_VISIBLE_MATCH_STATUSES = new Set([
+  MATCH_STATUS.COMPLETED,
+  MATCH_STATUS.RESULT_PUBLISHED,
+]);
+
 export const TournamentDomain = {
   /**
    * @param {string} fromStatus
@@ -79,6 +87,35 @@ export const TournamentDomain = {
    */
   canCompleteTournament(status) {
     return status === TOURNAMENT_STATUS.LIVE || status === TOURNAMENT_STATUS.PUBLISHED;
+  },
+
+  /**
+   * Returns visible, non-archived matches that are not yet completed or result-published.
+   * @param {ReadonlyArray<{ visible?: boolean, status?: string }>} matches
+   * @returns {Array<{ visible?: boolean, status?: string }>}
+   */
+  getIncompleteVisibleMatches(matches) {
+    return matches.filter((match) => {
+      if (!match.visible || match.status === MATCH_STATUS.ARCHIVED) {
+        return false;
+      }
+
+      return !FINISHED_VISIBLE_MATCH_STATUSES.has(String(match.status ?? ''));
+    });
+  },
+
+  /**
+   * Whether a tournament may be completed given its current visible match states.
+   * @param {string} status
+   * @param {ReadonlyArray<{ visible?: boolean, status?: string }>} matches
+   * @returns {boolean}
+   */
+  canCompleteTournamentWithMatches(status, matches) {
+    if (!this.canCompleteTournament(status)) {
+      return false;
+    }
+
+    return this.getIncompleteVisibleMatches(matches).length === 0;
   },
 
   /**

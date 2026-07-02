@@ -27,6 +27,7 @@ import {
   createDefaultConfiguration,
   createDefaultTournamentFields,
   TOURNAMENT_MESSAGES,
+  TOURNAMENT_VALIDATION_MESSAGES,
   LIFECYCLE_ACTIONS,
 } from './tournament.constants.js';
 import {
@@ -601,6 +602,22 @@ export async function completeTournament(id, uid) {
 
   if (!validation.valid) {
     throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
+  }
+
+  const matches = await matchRepository.listByTournament(id);
+
+  if (!TournamentDomain.canCompleteTournamentWithMatches(existing.status, matches)) {
+    const incompleteCount = TournamentDomain.getIncompleteVisibleMatches(matches).length;
+    const matchValidation = {
+      valid: false,
+      errors: {
+        lifecycle: incompleteCount > 0
+          ? `${TOURNAMENT_VALIDATION_MESSAGES.CANNOT_COMPLETE_INCOMPLETE_MATCHES} (${incompleteCount} match${incompleteCount === 1 ? '' : 'es'} remaining.)`
+          : TOURNAMENT_VALIDATION_MESSAGES.CANNOT_COMPLETE_INCOMPLETE_MATCHES,
+      },
+    };
+
+    throw Object.assign(new Error(getTournamentValidationMessage(matchValidation)), { validation: matchValidation });
   }
 
   return transitionTournamentStatus(id, uid, STATUS.COMPLETED, { active: false });

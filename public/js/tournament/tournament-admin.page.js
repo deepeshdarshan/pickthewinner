@@ -12,6 +12,7 @@ import { AuthorizationService } from '../authorization/authorization.service.js'
 import { Permissions } from '../authorization/permission.constants.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
 import { TournamentConfigurationService } from './configuration/TournamentConfigurationService.js';
+import { matchRepository } from '../match/match.repository.js';
 import { TOURNAMENT_MESSAGES, TOURNAMENT_ROUTES } from './tournament.constants.js';
 import {
   archiveTournament,
@@ -112,12 +113,17 @@ async function renderEditView(outlet, tournamentId, forceReadOnly = false) {
   showLoadingOverlay(TOURNAMENT_MESSAGES.LOADING_TOURNAMENT);
 
   try {
-    const tournament = await getTournamentById(tournamentId, { forceRefresh: true });
+    const [tournament, matches] = await Promise.all([
+      getTournamentById(tournamentId, { forceRefresh: true }),
+      matchRepository.listByTournament(tournamentId),
+    ]);
 
     if (!tournament) {
       outlet.innerHTML = renderTournamentNotFound();
       return;
     }
+
+    const incompleteVisibleMatchCount = TournamentDomain.getIncompleteVisibleMatches(matches).length;
 
     const readOnly = forceReadOnly || TournamentDomain.isTournamentReadOnly(tournament.status) || tournament.archived;
 
@@ -126,7 +132,7 @@ async function renderEditView(outlet, tournamentId, forceReadOnly = false) {
       return;
     }
 
-    outlet.innerHTML = renderTournamentDetailPage(tournament);
+    outlet.innerHTML = renderTournamentDetailPage(tournament, { incompleteVisibleMatchCount });
     bindTournamentForm(outlet, tournament);
     bindTournamentMatchBehaviourPreview(outlet);
     bindLifecycleActions(outlet, tournament);

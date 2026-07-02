@@ -126,6 +126,7 @@ export const TOURNAMENT_VALIDATION_MESSAGES = Object.freeze({
   REGISTRATION_END_BEFORE_START: 'Registration end must be after registration start.',
   CANNOT_EDIT: 'This tournament cannot be edited in its current state.',
   LIFECYCLE_INVALID: 'This lifecycle action is not allowed for the current tournament state.',
+  CANNOT_COMPLETE_INCOMPLETE_MATCHES: 'Cannot complete this tournament until all visible matches are marked completed or have published results.',
   VISIBILITY_INVALID: 'Select a valid visibility option.',
 });
 

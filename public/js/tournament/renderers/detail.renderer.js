@@ -7,32 +7,39 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { TournamentDomain } from '../../domain/tournament.domain.js';
-import { TOURNAMENT_ROUTES, TOURNAMENT_TIMEZONE_LABEL } from '../tournament.constants.js';
+import { TOURNAMENT_ROUTES, TOURNAMENT_TIMEZONE_LABEL, TOURNAMENT_VALIDATION_MESSAGES } from '../tournament.constants.js';
 import { renderStatusBadge, renderVisibilityBadge, renderActiveBadge } from './status-badge.renderer.js';
 import { renderTournamentFormPage } from './form.renderer.js';
 
 /**
  * @typedef {import('../tournament.service.js').Tournament} Tournament
+ * @typedef {Object} TournamentDetailPageOptions
+ * @property {number} [incompleteVisibleMatchCount=0]
  */
 
 /**
  * @param {Tournament} tournament
+ * @param {TournamentDetailPageOptions} [options]
  * @returns {string}
  */
-export function renderTournamentDetailPage(tournament) {
+export function renderTournamentDetailPage(tournament, options = {}) {
+  const { incompleteVisibleMatchCount = 0 } = options;
   const readOnly = TournamentDomain.isTournamentReadOnly(tournament.status) || tournament.archived;
   const formHtml = renderTournamentFormPage(tournament, { readOnly, isCreate: false });
 
-  return formHtml.replace('</form>', `</form>${renderStatusPanel(tournament, readOnly)}`);
+  return formHtml.replace('</form>', `</form>${renderStatusPanel(tournament, readOnly, incompleteVisibleMatchCount)}`);
 }
 
 /**
  * @param {Tournament} tournament
  * @param {boolean} readOnly
+ * @param {number} incompleteVisibleMatchCount
  * @returns {string}
  */
-function renderStatusPanel(tournament, readOnly) {
-  const lifecycleActions = readOnly ? '' : renderLifecycleActions(tournament);
+function renderStatusPanel(tournament, readOnly, incompleteVisibleMatchCount = 0) {
+  const lifecycleActions = readOnly
+    ? ''
+    : renderLifecycleActions(tournament, incompleteVisibleMatchCount);
 
   return `
     <section class="card ptw-card ptw-tournament-form__section mt-4" aria-labelledby="ptw-tournament-status-heading">
@@ -123,9 +130,10 @@ function formatScoringPoints(value) {
 
 /**
  * @param {Tournament} tournament
+ * @param {number} incompleteVisibleMatchCount
  * @returns {string}
  */
-function renderLifecycleActions(tournament) {
+function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
   const actions = [];
 
   if (TournamentDomain.canPublishTournament(tournament.status)) {
@@ -137,7 +145,17 @@ function renderLifecycleActions(tournament) {
   }
 
   if (TournamentDomain.canCompleteTournament(tournament.status)) {
-    actions.push(renderActionButton('complete', 'Mark Completed', 'btn-warning'));
+    if (incompleteVisibleMatchCount > 0) {
+      actions.push(`
+        <p class="text-warning small mb-2 w-100" role="status">
+          ${escapeHtml(TOURNAMENT_VALIDATION_MESSAGES.CANNOT_COMPLETE_INCOMPLETE_MATCHES)}
+          (${incompleteVisibleMatchCount} match${incompleteVisibleMatchCount === 1 ? '' : 'es'} remaining.)
+        </p>
+      `);
+      actions.push(renderDisabledActionButton('Mark Completed', 'Complete all visible matches before marking the tournament as completed.'));
+    } else {
+      actions.push(renderActionButton('complete', 'Mark Completed', 'btn-warning'));
+    }
   }
 
   if (!tournament.active && tournament.status !== 'archived' && !tournament.archived) {
@@ -176,6 +194,19 @@ function renderLifecycleActions(tournament) {
 function renderActionButton(action, label, buttonClass) {
   return `
     <button type="button" class="btn ${buttonClass}" data-ptw-lifecycle="${action}">
+      ${escapeHtml(label)}
+    </button>
+  `;
+}
+
+/**
+ * @param {string} label
+ * @param {string} title
+ * @returns {string}
+ */
+function renderDisabledActionButton(label, title) {
+  return `
+    <button type="button" class="btn btn-warning" disabled title="${escapeHtml(title)}">
       ${escapeHtml(label)}
     </button>
   `;

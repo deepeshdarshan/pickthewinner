@@ -17,6 +17,8 @@ import {
 import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getMatchById } from '../match/match.service.js';
+import { getTournamentById } from '../tournament/tournament.service.js';
+import { TournamentDomain } from '../domain/tournament.domain.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { MatchDomain } from '../domain/match.domain.js';
 import { Logger } from '../utils/logger.util.js';
@@ -102,6 +104,12 @@ export async function canEditPrediction(matchId) {
 
     if (!match.visible) {
       return { canEdit: false, reason: 'Match is not visible' };
+    }
+
+    const tournament = await getTournamentById(match.tournamentId);
+
+    if (!tournament || TournamentDomain.isTournamentReadOnly(tournament.status)) {
+      return { canEdit: false, reason: 'This tournament is no longer accepting predictions' };
     }
 
     const kickoff = match.kickoffUtc instanceof Date
