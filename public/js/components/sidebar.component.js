@@ -23,15 +23,7 @@ const ADMIN_NAV_SECTIONS = Object.freeze([
       { path: '/admin/tournaments', label: 'All Tournaments' },
     ],
   },
-  {
-    type: 'group',
-    label: 'Master Data',
-    icon: 'bi-database',
-    children: [
-      { path: '/admin/teams', label: 'Teams' },
-      { path: '/admin/venues', label: 'Venues' },
-    ],
-  },
+  { type: 'item', path: '/admin/teams', label: 'Teams', icon: 'bi-people' },
   {
     type: 'group',
     label: 'Match Management',

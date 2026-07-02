@@ -1396,8 +1396,7 @@
 }
 
 /* Master data admin forms */
-.ptw-team-form-page,
-.ptw-venue-form-page {
+.ptw-team-form-page {
   width: 100%;
   max-width: 52rem;
   margin-inline: auto;
@@ -1405,20 +1404,17 @@
   padding-bottom: var(--ptw-space-6);
 }
 
-.ptw-team-form__grid,
-.ptw-venue-form__grid {
+.ptw-team-form__grid {
   display: grid;
   gap: var(--ptw-space-4);
 }
 
 @media (min-width: 768px) {
-  .ptw-team-form__grid,
-  .ptw-venue-form__grid {
+  .ptw-team-form__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ptw-team-form__field--switch,
-  .ptw-venue-form__field--switch {
+  .ptw-team-form__field--switch {
     grid-column: 1 / -1;
   }
 }
@@ -1569,3 +1565,162 @@
 .ptw-match-card .ptw-countdown {
   margin-top: var(--ptw-space-2);
 }
+
+/* Additional Match Card Styles */
+.ptw-match-card {
+  transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
+}
+
+.ptw-match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.ptw-match-cards {
+  display: grid;
+  gap: var(--ptw-space-3);
+}
+
+.ptw-team-flag {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: var(--ptw-radius-sm);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ptw-match-card .card-header {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-bottom: 1px solid var(--ptw-color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-match-card .badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
+/* Prediction Form */
+#prediction-form input[type="number"] {
+  font-size: 1.5rem;
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-primary-blue);
+}
+
+#prediction-form .form-control:focus {
+  border-color: var(--ptw-color-primary-blue);
+  box-shadow: 0 0 0 0.25rem rgba(21, 101, 255, 0.25);
+}
+
+#penalty-winner-section {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Score Display */
+.ptw-score-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--ptw-space-3);
+  align-items: center;
+  padding: var(--ptw-space-3);
+  background-color: var(--ptw-color-bg-tertiary);
+  border-radius: var(--ptw-radius-base);
+}
+
+.ptw-score-team {
+  text-align: center;
+}
+
+.ptw-score-value {
+  font-size: 2rem;
+  font-weight: var(--ptw-font-weight-bold);
+  line-height: 1;
+}
+
+.ptw-score-label {
+  font-size: 0.875rem;
+  color: var(--ptw-color-text-muted);
+  margin-top: var(--ptw-space-1);
+}
+
+/* Result Indicators */
+.ptw-result-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ptw-space-1);
+  padding: var(--ptw-space-2);
+  border-radius: var(--ptw-radius-base);
+  font-size: 0.875rem;
+  font-weight: var(--ptw-font-weight-medium);
+}
+
+.ptw-result-indicator--correct {
+  color: var(--ptw-color-success);
+  background-color: rgba(0, 200, 83, 0.1);
+}
+
+.ptw-result-indicator--incorrect {
+  color: var(--ptw-color-danger);
+  background-color: rgba(213, 0, 50, 0.1);
+}
+
+/* Dashboard Quick Actions */
+.ptw-quick-action {
+  transition: all var(--ptw-transition-base);
+  cursor: pointer;
+}
+
+.ptw-quick-action:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.ptw-quick-action i {
+  transition: transform var(--ptw-transition-base);
+}
+
+.ptw-quick-action:hover i {
+  transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+  .ptw-team-flag {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ptw-score-value {
+    font-size: 1.5rem;
+  }
+
+  #prediction-form input[type="number"] {
+    font-size: 1.25rem;
+  }
+
+  .ptw-match-card .card-header {
+    font-size: 0.875rem;
+  }
+}
+
+/* Prediction Status Transitions */
+.ptw-match-card .badge {
+  transition: background-color var(--ptw-transition-fast), color var(--ptw-transition-fast);
+}
+

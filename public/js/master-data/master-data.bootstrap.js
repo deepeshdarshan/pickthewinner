@@ -5,7 +5,6 @@
 
 import { AUTH_EVENTS, onAuthEvent } from '../auth/authentication.events.js';
 import { clearTeamCache } from './teams/team.service.js';
-import { clearVenueCache } from './venues/venue.service.js';
 
 /** @type {(() => void)|null} */
 let unsubscribeLogout = null;
@@ -16,7 +15,6 @@ let unsubscribeLogout = null;
 export async function initMasterDataModule() {
   unsubscribeLogout = onAuthEvent(AUTH_EVENTS.LOGOUT, () => {
     clearTeamCache();
-    clearVenueCache();
   });
 }
 
@@ -30,5 +28,4 @@ export function destroyMasterDataModule() {
   }
 
   clearTeamCache();
-  clearVenueCache();
 }

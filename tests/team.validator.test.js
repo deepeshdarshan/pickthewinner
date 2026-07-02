@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {
   validateCreatePayload,
   validateName,
-  validateCountry,
   validateFlagUrl,
 } from '../public/js/master-data/teams/team.validator.js';
 
@@ -12,11 +11,6 @@ describe('TeamValidator', () => {
     const result = validateName('');
     assert.equal(result.valid, false);
     assert.ok(result.errors.name);
-  });
-
-  it('allows empty country', () => {
-    const result = validateCountry('');
-    assert.equal(result.valid, true);
   });
 
   it('accepts flag-icons value', () => {
@@ -38,7 +32,6 @@ describe('TeamValidator', () => {
   it('validates complete create payload', () => {
     const result = validateCreatePayload({
       name: 'Brazil',
-      country: 'Brazil',
       flagUrl: 'fi:br',
     });
     assert.equal(result.valid, true);

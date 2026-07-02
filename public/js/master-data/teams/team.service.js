@@ -139,9 +139,7 @@ function buildFirestorePayload(payload) {
   return {
     name: String(payload.name ?? '').trim(),
     shortName: String(payload.shortName ?? '').trim(),
-    country: String(payload.country ?? '').trim(),
     flagUrl: String(payload.flagUrl ?? '').trim(),
-    sport: String(payload.sport ?? createDefaultTeamFields().sport),
     active: payload.active !== false,
   };
 }

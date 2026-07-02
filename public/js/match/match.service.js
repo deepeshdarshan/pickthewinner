@@ -12,7 +12,6 @@ import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { getTournamentById } from '../tournament/tournament.service.js';
 import { getTeamsByIds } from '../master-data/teams/team.service.js';
-import { getVenuesByIds } from '../master-data/venues/venue.service.js';
 import {
   MATCH_MESSAGES,
   MATCH_VALIDATION_MESSAGES,
@@ -36,7 +35,6 @@ import { Logger } from '../utils/logger.util.js';
  * @property {string} round
  * @property {string} homeTeamId
  * @property {string} awayTeamId
- * @property {string} venueId
  * @property {import('firebase/firestore').Timestamp|Date|null} kickoffUtc
  * @property {string} status
  * @property {boolean} visible
@@ -53,7 +51,6 @@ import { Logger } from '../utils/logger.util.js';
  *   tournamentName?: string,
  *   homeTeam?: import('../master-data/teams/team.service.js').Team,
  *   awayTeam?: import('../master-data/teams/team.service.js').Team,
- *   venue?: import('../master-data/venues/venue.service.js').Venue,
  *   predictionStatus?: string,
  * }} EnrichedMatch
  */
@@ -127,7 +124,6 @@ export function normalizeMatchDocument(id, data) {
     round: String(data.round ?? ''),
     homeTeamId: String(data.homeTeamId ?? ''),
     awayTeamId: String(data.awayTeamId ?? ''),
-    venueId: String(data.venueId ?? ''),
     kickoffUtc: data.kickoffUtc ?? null,
     status: String(data.status ?? defaults.status),
     visible: Boolean(data.visible),
@@ -151,7 +147,6 @@ function buildFirestorePayload(payload) {
     round: String(payload.round ?? ''),
     homeTeamId: String(payload.homeTeamId ?? ''),
     awayTeamId: String(payload.awayTeamId ?? ''),
-    venueId: String(payload.venueId ?? ''),
     kickoffUtc: toFirestoreTimestamp(payload.kickoffUtc),
     status: payload.status ?? MATCH_STATUS.DRAFT,
     visible: Boolean(payload.visible),
@@ -190,10 +185,9 @@ function toFirestoreTimestamp(value) {
  * @returns {Promise<EnrichedMatch>}
  */
 export async function enrichMatch(match) {
-  const [tournament, teams, venues] = await Promise.all([
+  const [tournament, teams] = await Promise.all([
     getTournamentById(match.tournamentId),
     getTeamsByIds([match.homeTeamId, match.awayTeamId]),
-    getVenuesByIds([match.venueId]),
   ]);
 
   const kickoff = toDate(match.kickoffUtc);
@@ -216,7 +210,6 @@ export async function enrichMatch(match) {
     tournamentName: tournament?.name ?? '',
     homeTeam: teams.get(match.homeTeamId),
     awayTeam: teams.get(match.awayTeamId),
-    venue: venues.get(match.venueId),
     predictionStatus,
   };
 }

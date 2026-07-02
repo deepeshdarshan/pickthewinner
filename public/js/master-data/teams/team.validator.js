@@ -45,14 +45,6 @@ export function validateName(value) {
  * @param {unknown} value
  * @returns {TeamValidationResult}
  */
-export function validateCountry() {
-  return { valid: true, errors: {} };
-}
-
-/**
- * @param {unknown} value
- * @returns {TeamValidationResult}
- */
 export function validateFlagUrl(value) {
   const errors = {};
 
@@ -95,7 +87,6 @@ export function validateFlagUrl(value) {
 export function validateCreatePayload(payload) {
   return mergeValidationResults([
     validateName(payload.name),
-    validateCountry(payload.country),
     validateFlagUrl(payload.flagUrl),
   ]);
 }

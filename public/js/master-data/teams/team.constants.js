@@ -27,7 +27,6 @@ export const PROTECTED_TEAM_FIELDS = new Set([
 export const TEAM_VALIDATION_MESSAGES = Object.freeze({
   NAME_REQUIRED: 'Team name is required.',
   NAME_TOO_SHORT: 'Team name must be at least 2 characters.',
-  COUNTRY_REQUIRED: 'Country is required.',
   FLAG_INVALID: 'Select a valid flag.',
 });
 

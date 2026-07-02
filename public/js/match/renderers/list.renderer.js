@@ -194,7 +194,6 @@ function renderMatchCard(match) {
         </div>
         <div class="small ptw-text-muted mb-2">
           <div>${escapeHtml(match.tournamentName ?? '')} · ${escapeHtml(getRoundLabel(match.round))}</div>
-          <div>${escapeHtml(match.venue?.name ?? '')}</div>
           <div>${escapeHtml(formatKickoff(match))}</div>
         </div>
         ${kickoffIso ? renderCountdown({ targetDate: kickoffIso, label: 'Kickoff in', id: `ptw-countdown-${match.id}` }) : ''}

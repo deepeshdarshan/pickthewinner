@@ -5,6 +5,8 @@
 
 import { renderPageHeader } from '../components/page-header.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
+import { renderStatisticCard } from '../components/statistic-card.component.js';
+import { renderCompactMatchCard } from '../match/match-card.component.js';
 import { USER_ROLES } from '../users/user.constants.js';
 import { AdminDashboardService } from '../dashboard/AdminDashboardService.js';
 import { ContestantDashboardService } from '../dashboard/ContestantDashboardService.js';
@@ -41,6 +43,146 @@ async function initDashboard(outlet) {
  * @returns {string}
  */
 function renderContestantDashboard(data) {
+  if (!data.hasActiveTournaments) {
+    return renderEmptyDashboard(data);
+  }
+
+  const leaderboardCard = data.leaderboardVisible
+    ? renderLeaderboardSummaryCard(data)
+    : renderLeaderboardPendingCard(data);
+
+  return `
+    <div class="container-fluid px-3 px-lg-4 ptw-page-content">
+      ${renderPageHeader({
+        title: 'Dashboard',
+        subtitle: data.welcomeMessage,
+      })}
+
+      <!-- Active Tournament Stats -->
+      ${data.activeTournament ? `
+        <div class="card ptw-card mb-4">
+          <div class="card-header">
+            <h2 class="h5 mb-0">
+              <i class="bi bi-trophy me-2" aria-hidden="true"></i>
+              ${escapeHtml(data.activeTournament.name)} ${escapeHtml(data.activeTournament.season)}
+            </h2>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              ${renderStatisticCard({
+                icon: 'bi-bullseye',
+                title: 'Total Matches',
+                value: data.predictionStats.total,
+                variant: 'primary',
+              })}
+              ${renderStatisticCard({
+                icon: 'bi-check-circle',
+                title: 'Submitted',
+                value: data.predictionStats.submitted,
+                variant: 'success',
+              })}
+              ${renderStatisticCard({
+                icon: 'bi-clock',
+                title: 'Pending',
+                value: data.predictionStats.pending,
+                variant: 'warning',
+              })}
+              ${data.leaderboardVisible ? renderStatisticCard({
+                icon: 'bi-trophy',
+                title: 'Points',
+                value: 0, // TODO: Get actual points
+                variant: 'info',
+              }) : ''}
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Quick Actions -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+          <div class="card ptw-card h-100">
+            <div class="card-body text-center">
+              <i class="bi bi-bullseye display-4 text-primary mb-3" aria-hidden="true"></i>
+              <h3 class="h5 mb-2">Make Predictions</h3>
+              <p class="ptw-text-muted mb-3">Submit your predictions for upcoming matches</p>
+              <a href="/predictions" class="btn btn-ptw-primary" data-route>
+                <i class="bi bi-arrow-right me-2" aria-hidden="true"></i>Go to Predictions
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="card ptw-card h-100">
+            <div class="card-body text-center">
+              <i class="bi bi-flag display-4 text-success mb-3" aria-hidden="true"></i>
+              <h3 class="h5 mb-2">View Matches</h3>
+              <p class="ptw-text-muted mb-3">See all published matches and results</p>
+              <a href="/matches" class="btn btn-outline-primary" data-route>
+                <i class="bi bi-arrow-right me-2" aria-hidden="true"></i>View Matches
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Matches -->
+      ${data.upcomingMatches.length > 0 ? `
+        <div class="card ptw-card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">
+              <i class="bi bi-calendar-event me-2" aria-hidden="true"></i>
+              Upcoming Matches
+            </h2>
+            <a href="/matches" class="btn btn-sm btn-outline-primary" data-route>View All</a>
+          </div>
+          <div class="card-body">
+            ${data.upcomingMatches.slice(0, 3).map((match) => renderCompactMatchCard(match, null)).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Leaderboard -->
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          ${leaderboardCard}
+        </div>
+        
+        <!-- Tournaments -->
+        <div class="col-12 col-lg-6">
+          <div class="card ptw-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h2 class="h5 mb-0">
+                <i class="bi bi-calendar-event me-2" aria-hidden="true"></i>
+                Tournaments
+              </h2>
+              <a href="/tournaments" class="btn btn-sm btn-outline-primary" data-route>View All</a>
+            </div>
+            <div class="card-body">
+              ${data.tournaments.slice(0, 3).map((tournament) => `
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                  <div>
+                    <strong>${escapeHtml(tournament.name)}</strong>
+                    <div><small class="ptw-text-muted">${escapeHtml(tournament.season)}</small></div>
+                  </div>
+                  <span class="badge ${tournament.active ? 'bg-success' : 'bg-secondary'}">${tournament.status}</span>
+                </div>
+              `).join('')}
+              ${data.tournaments.length === 0 ? '<p class="ptw-text-muted mb-0">No tournaments available</p>' : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Renders empty dashboard for contestants with no tournaments.
+ * @param {import('../dashboard/ContestantDashboardService.js').ContestantDashboardDto} data
+ * @returns {string}
+ */
+function renderEmptyDashboard(data) {
   const leaderboardCard = data.leaderboardVisible
     ? renderLeaderboardSummaryCard(data)
     : renderLeaderboardPendingCard(data);

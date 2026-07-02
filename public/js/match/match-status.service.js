@@ -160,7 +160,6 @@ function normalizeMatchDocument(id, data) {
     round: String(data.round ?? ''),
     homeTeamId: String(data.homeTeamId ?? ''),
     awayTeamId: String(data.awayTeamId ?? ''),
-    venueId: String(data.venueId ?? ''),
     kickoffUtc: data.kickoffUtc ?? null,
     status: String(data.status ?? MATCH_STATUS.DRAFT),
     visible: Boolean(data.visible),

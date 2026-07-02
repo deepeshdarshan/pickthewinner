@@ -27,7 +27,6 @@ export const FIRESTORE_COLLECTIONS = Object.freeze({
   USERS: 'users',
   TOURNAMENTS: 'tournaments',
   TEAMS: 'teams',
-  VENUES: 'venues',
   MATCHES: 'matches',
   PREDICTIONS: 'predictions',
   SETTINGS: 'settings',

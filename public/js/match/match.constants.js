@@ -62,7 +62,6 @@ export const MATCH_VALIDATION_MESSAGES = Object.freeze({
   HOME_TEAM_REQUIRED: 'Select team 1.',
   AWAY_TEAM_REQUIRED: 'Select team 2.',
   TEAMS_MUST_DIFFER: 'Team 1 and team 2 must be different.',
-  VENUE_REQUIRED: 'Select a venue.',
   ROUND_REQUIRED: 'Select a round.',
   KICKOFF_REQUIRED: 'Match date and kickoff time are required.',
   DUPLICATE_MATCH: 'A match with these teams on this date already exists.',

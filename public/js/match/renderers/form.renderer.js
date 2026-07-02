@@ -5,7 +5,6 @@
 
 import { renderPageHeader } from '../../components/page-header.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
-import { renderSearchableSelect } from '../../master-data/shared/searchable-select.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { MATCH_ROUTES, MATCH_ROUNDS } from '../match.constants.js';
 
@@ -28,7 +27,6 @@ function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
 /**
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
  * @typedef {import('../../master-data/teams/team.service.js').Team} Team
- * @typedef {import('../../master-data/venues/venue.service.js').Venue} Venue
  * @typedef {import('../../tournament/tournament.service.js').Tournament} Tournament
  */
 
@@ -37,7 +35,6 @@ function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
  *   match?: Partial<EnrichedMatch>|null,
  *   tournaments: Tournament[],
  *   teams: Team[],
- *   venues: Venue[],
  *   inheritedConfig?: Record<string, unknown>|null,
  *   isCreate?: boolean,
  *   readOnly?: boolean,
@@ -50,7 +47,6 @@ export function renderMatchFormPage(options) {
     match = null,
     tournaments,
     teams,
-    venues,
     inheritedConfig = null,
     isCreate = false,
     readOnly = false,
@@ -63,7 +59,6 @@ export function renderMatchFormPage(options) {
   const kickoffDate = kickoff ? kickoff.toISOString().slice(0, 10) : '';
   const kickoffTime = kickoff ? kickoff.toTimeString().slice(0, 5) : '';
 
-  const selectedVenue = venues.find((item) => item.id === data.venueId);
   const tournamentOptions = tournaments.map((tournament) => ({
     value: tournament.id,
     label: `${tournament.name} (${tournament.season})`,
@@ -138,22 +133,6 @@ export function renderMatchFormPage(options) {
     disabled: readOnly,
     optionsHtml: renderSelectOptionsHtml('Select team 2…', teamOptions, data.awayTeamId ?? ''),
     errorId: 'ptw-match-awayTeamId-error',
-  })}
-            ${renderSearchableSelect({
-    id: 'ptw-match-venueId',
-    name: 'venueId',
-    label: 'Venue',
-    icon: 'bi-geo-alt',
-    required: true,
-    readOnly,
-    value: data.venueId ?? '',
-    selectedLabel: selectedVenue ? `${selectedVenue.name}, ${selectedVenue.city}` : '',
-    options: venues.map((venue) => ({
-      value: venue.id,
-      label: venue.name,
-      sublabel: `${venue.city}, ${venue.country}`,
-      searchText: `${venue.name} ${venue.city} ${venue.country}`,
-    })),
   })}
             ${renderIconInputField({
     id: 'ptw-match-kickoffDate',
@@ -250,7 +229,6 @@ export function readMatchForm(form) {
     round: form.elements.namedItem('round')?.value ?? '',
     homeTeamId: form.elements.namedItem('homeTeamId')?.value ?? '',
     awayTeamId: form.elements.namedItem('awayTeamId')?.value ?? '',
-    venueId: form.elements.namedItem('venueId')?.value ?? '',
     kickoffUtc,
   };
 }

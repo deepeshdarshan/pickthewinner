@@ -8,9 +8,7 @@ import { showConfirmationModal } from '../components/confirmation-modal.componen
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { Permissions } from '../authorization/permission.constants.js';
-import { bindSearchableSelects } from '../master-data/shared/searchable-select.component.js';
 import { listTeams } from '../master-data/teams/team.service.js';
-import { listVenues } from '../master-data/venues/venue.service.js';
 import { listTournamentsForAdmin } from '../tournament/tournament.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { TOURNAMENT_STATUS } from '../domain/tournament.domain.js';
@@ -108,21 +106,18 @@ async function renderCreateView(outlet) {
   showLoadingOverlay(MATCH_MESSAGES.LOADING);
 
   try {
-    const [tournaments, teams, venues] = await Promise.all([
+    const [tournaments, teams] = await Promise.all([
       listActiveTournaments(),
       listTeams({ activeOnly: true }),
-      listVenues({ activeOnly: true }),
     ]);
 
     outlet.innerHTML = renderMatchFormPage({
       tournaments,
       teams,
-      venues,
       isCreate: true,
     });
 
-    bindSearchableSelects(outlet);
-    bindMatchForm(outlet, null, tournaments, teams, venues);
+    bindMatchForm(outlet, null, tournaments, teams);
   } catch (error) {
     outlet.innerHTML = renderMatchNotFound(getMatchErrorMessage(error));
     showErrorToast(getMatchErrorMessage(error));
@@ -148,22 +143,19 @@ async function renderEditView(outlet, matchId) {
       return;
     }
 
-    const [tournaments, teams, venues, config] = await Promise.all([
+    const [tournaments, teams, config] = await Promise.all([
       listActiveTournaments(),
       listTeams({ activeOnly: true }),
-      listVenues({ activeOnly: true }),
       TournamentConfigurationService.load(match.tournamentId),
     ]);
 
     outlet.innerHTML = renderMatchDetailPage(match, {
       tournaments,
       teams,
-      venues,
       inheritedConfig: config,
     });
 
-    bindSearchableSelects(outlet);
-    bindMatchForm(outlet, match, tournaments, teams, venues);
+    bindMatchForm(outlet, match, tournaments, teams);
     bindLifecycleActions(outlet, match);
     bindResultForm(outlet, match);
   } catch (error) {
@@ -189,10 +181,9 @@ async function listActiveTournaments() {
  * @param {import('./match.service.js').EnrichedMatch|null} match
  * @param {import('../tournament/tournament.service.js').Tournament[]} tournaments
  * @param {import('../master-data/teams/team.service.js').Team[]} teams
- * @param {import('../master-data/venues/venue.service.js').Venue[]} venues
  * @returns {void}
  */
-function bindMatchForm(outlet, match, tournaments, teams, venues) {
+function bindMatchForm(outlet, match, tournaments, teams) {
   const form = outlet.querySelector('#ptw-match-form');
 
   if (!(form instanceof HTMLFormElement)) {
@@ -238,7 +229,6 @@ function bindMatchForm(outlet, match, tournaments, teams, venues) {
   });
 
   void teams;
-  void venues;
 
   bindTournamentPreview(outlet, tournaments);
 }
@@ -318,7 +308,6 @@ function bindTournamentPreview(outlet, tournaments) {
 
     const config = await TournamentConfigurationService.load(tournament.id);
     panel.outerHTML = renderInheritedConfigPanel(config);
-    bindSearchableSelects(outlet);
   });
 }
 

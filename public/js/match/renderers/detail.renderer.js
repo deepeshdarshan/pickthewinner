@@ -14,7 +14,6 @@ import { MatchDomain } from '../../domain/match.domain.js';
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
  * @typedef {import('../../tournament/tournament.service.js').Tournament} Tournament
  * @typedef {import('../../master-data/teams/team.service.js').Team} Team
- * @typedef {import('../../master-data/venues/venue.service.js').Venue} Venue
  */
 
 /**
@@ -22,7 +21,6 @@ import { MatchDomain } from '../../domain/match.domain.js';
  * @param {{
  *   tournaments: Tournament[],
  *   teams: Team[],
- *   venues: Venue[],
  *   inheritedConfig?: Record<string, unknown>|null,
  * }} options
  * @returns {string}
@@ -126,7 +124,6 @@ export function renderContestantMatchDetail(match) {
           </div>
           ${renderMatchStatusBadge(match.status)}
         </div>
-        <p class="mb-1"><strong>Venue:</strong> ${escapeHtml(match.venue?.name ?? '—')}</p>
         <p class="mb-1"><strong>Kickoff:</strong> ${escapeHtml(formatKickoff(match.kickoffUtc))}</p>
         <p class="mb-0"><strong>Prediction:</strong> ${escapeHtml(match.predictionStatus ?? '—')}</p>
         ${result?.published ? renderPublishedResult(match, result) : ''}

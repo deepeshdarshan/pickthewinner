@@ -130,15 +130,7 @@ function bindTeamForm(outlet, team) {
     return;
   }
 
-  bindFlagSelects(outlet, {
-    onCountrySelect: (countryName) => {
-      const countryInput = form.querySelector('#ptw-team-country');
-
-      if (countryInput instanceof HTMLInputElement && !countryInput.value.trim()) {
-        countryInput.value = countryName;
-      }
-    },
-  });
+  bindFlagSelects(outlet);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

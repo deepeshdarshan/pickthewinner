@@ -4,14 +4,10 @@
  */
 
 import { renderPageHeader } from '../../../components/page-header.component.js';
-import {
-  renderIconInputField,
-  renderIconSelectField,
-} from '../../../shared/form/icon-input.component.js';
+import { renderIconInputField } from '../../../shared/form/icon-input.component.js';
 import { renderFlagSelect } from '../../shared/flag-select.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
 import {
-  SPORT_OPTIONS,
   TEAM_ROUTES,
   createDefaultTeamFields,
 } from '../team.constants.js';
@@ -62,29 +58,12 @@ export function renderTeamFormPage(team = null, options = {}) {
     value: data.shortName ?? defaults.shortName,
     errorId: 'ptw-team-shortName-error',
   })}
-            ${renderIconInputField({
-    id: 'ptw-team-country',
-    name: 'country',
-    label: 'Country',
-    icon: 'bi-globe',
-    value: data.country ?? defaults.country,
-    optional: true,
-    errorId: 'ptw-team-country-error',
-  })}
             ${renderFlagSelect({
     id: 'ptw-team-flagUrl',
     name: 'flagUrl',
     label: 'Flag',
     value: data.flagUrl ?? defaults.flagUrl,
     errorId: 'ptw-team-flagUrl-error',
-  })}
-            ${renderIconSelectField({
-    id: 'ptw-team-sport',
-    name: 'sport',
-    label: 'Sport',
-    icon: 'bi-dribbble',
-    value: data.sport ?? defaults.sport,
-    options: SPORT_OPTIONS.map((sport) => ({ value: sport, label: sport })),
   })}
             <div class="ptw-team-form__field ptw-team-form__field--switch">
               <div class="form-check form-switch ptw-form-switch">
@@ -113,9 +92,7 @@ export function readTeamForm(form) {
   return {
     name: form.elements.namedItem('name')?.value ?? '',
     shortName: form.elements.namedItem('shortName')?.value ?? '',
-    country: form.elements.namedItem('country')?.value ?? '',
     flagUrl: form.elements.namedItem('flagUrl')?.value ?? '',
-    sport: form.elements.namedItem('sport')?.value ?? createDefaultTeamFields().sport,
     active: activeInput instanceof HTMLInputElement ? activeInput.checked : true,
   };
 }

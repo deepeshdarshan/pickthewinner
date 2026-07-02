@@ -50,10 +50,6 @@ export function validateCreatePayload(payload) {
     errors.awayTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
   }
 
-  if (!payload.venueId) {
-    errors.venueId = MATCH_VALIDATION_MESSAGES.VENUE_REQUIRED;
-  }
-
   if (!payload.round) {
     errors.round = MATCH_VALIDATION_MESSAGES.ROUND_REQUIRED;
   }
