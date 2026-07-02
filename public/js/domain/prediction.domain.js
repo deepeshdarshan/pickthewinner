@@ -127,6 +127,104 @@ export const PredictionDomain = {
 
     return { valid: true, errors: {} };
   },
+
+  /**
+   * Resolves the official winner side from a published match result.
+   * @param {Record<string, unknown>} result
+   * @param {{ homeTeamId?: string, awayTeamId?: string }} match
+   * @returns {string|null} 'HOME', 'AWAY', or null for a true draw
+   */
+  resolveResultWinnerSide(result, match) {
+    const winnerId = String(result.winningTeamId ?? '');
+
+    if (winnerId) {
+      if (winnerId === String(match.homeTeamId ?? '')) {
+        return PENALTY_WINNER.HOME;
+      }
+
+      if (winnerId === String(match.awayTeamId ?? '')) {
+        return PENALTY_WINNER.AWAY;
+      }
+    }
+
+    const homeScore = Number(result.homeScore ?? 0);
+    const awayScore = Number(result.awayScore ?? 0);
+
+    if (homeScore > awayScore) {
+      return PENALTY_WINNER.HOME;
+    }
+
+    if (awayScore > homeScore) {
+      return PENALTY_WINNER.AWAY;
+    }
+
+    return null;
+  },
+
+  /**
+   * Resolves the predicted winner side from scores and optional winner selection.
+   * @param {Record<string, unknown>} prediction
+   * @returns {string|null}
+   */
+  resolvePredictedWinnerSide(prediction) {
+    const homeScore = Number(prediction.homeScore ?? 0);
+    const awayScore = Number(prediction.awayScore ?? 0);
+    const predictedWinner = prediction.predictedWinner ?? prediction.penaltyWinner ?? null;
+
+    if (homeScore > awayScore) {
+      return PENALTY_WINNER.HOME;
+    }
+
+    if (awayScore > homeScore) {
+      return PENALTY_WINNER.AWAY;
+    }
+
+    return predictedWinner ? String(predictedWinner) : null;
+  },
+
+  /**
+   * Returns whether the contestant correctly predicted the match winner.
+   * @param {Record<string, unknown>|null} prediction
+   * @param {Record<string, unknown>|null} result
+   * @param {{ homeTeamId?: string, awayTeamId?: string }} match
+   * @returns {boolean}
+   */
+  isWinnerPredictionCorrect(prediction, result, match) {
+    if (!prediction || !result) {
+      return false;
+    }
+
+    const actualSide = PredictionDomain.resolveResultWinnerSide(result, match);
+    const predictedSide = PredictionDomain.resolvePredictedWinnerSide(prediction);
+
+    if (!actualSide) {
+      const homeScore = Number(prediction.homeScore ?? 0);
+      const awayScore = Number(prediction.awayScore ?? 0);
+      return homeScore === awayScore && !predictedSide;
+    }
+
+    return predictedSide === actualSide;
+  },
+
+  /**
+   * Resolves the display name for the official match winner.
+   * @param {Record<string, unknown>} result
+   * @param {{ homeTeamId?: string, awayTeamId?: string, homeTeam?: { name?: string }, awayTeam?: { name?: string } }} match
+   * @returns {string|null}
+   */
+  resolveResultWinnerName(result, match) {
+    const side = PredictionDomain.resolveResultWinnerSide(result, match);
+
+    if (side === PENALTY_WINNER.HOME) {
+      return match.homeTeam?.name ?? 'Home';
+    }
+
+    if (side === PENALTY_WINNER.AWAY) {
+      return match.awayTeam?.name ?? 'Away';
+    }
+
+    return null;
+  },
 };
 
 /**

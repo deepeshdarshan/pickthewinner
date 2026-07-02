@@ -36,4 +36,25 @@ describe('ScoringDomain', () => {
 
     assert.equal(evaluation.totalPoints, 15);
   });
+
+  it('awards penalty winner points using predictedWinner field', () => {
+    const evaluation = ScoringDomain.evaluatePrediction(
+      {
+        homeScore: 2,
+        awayScore: 2,
+        predictedWinner: PENALTY_WINNER.HOME,
+      },
+      {
+        homeScore: 2,
+        awayScore: 2,
+        winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        winningTeamId: 'home-team',
+        homeTeamId: 'home-team',
+        awayTeamId: 'away-team',
+      },
+      { correctMatchScorePoints: 10, correctPenaltyWinnerPoints: 5 },
+    );
+
+    assert.equal(evaluation.totalPoints, 15);
+  });
 });

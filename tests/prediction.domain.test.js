@@ -69,3 +69,42 @@ describe('PredictionDomain winner selection workflow', () => {
     assert.equal(result.valid, true);
   });
 });
+
+describe('PredictionDomain winner result evaluation', () => {
+  const match = {
+    homeTeamId: 'home-team',
+    awayTeamId: 'away-team',
+    homeTeam: { name: 'Argentina' },
+    awayTeam: { name: 'France' },
+  };
+
+  it('marks draw winner correct when predicted winner matches official winner', () => {
+    const prediction = { homeScore: 3, awayScore: 3, predictedWinner: PENALTY_WINNER.HOME };
+    const result = { homeScore: 3, awayScore: 3, winningTeamId: 'home-team' };
+
+    assert.equal(PredictionDomain.isWinnerPredictionCorrect(prediction, result, match), true);
+    assert.equal(PredictionDomain.resolveResultWinnerName(result, match), 'Argentina');
+  });
+
+  it('marks draw winner incorrect when predicted winner differs', () => {
+    const prediction = { homeScore: 3, awayScore: 3, predictedWinner: PENALTY_WINNER.AWAY };
+    const result = { homeScore: 3, awayScore: 3, winningTeamId: 'home-team' };
+
+    assert.equal(PredictionDomain.isWinnerPredictionCorrect(prediction, result, match), false);
+  });
+
+  it('marks league-style draw predictions correct without winner selection', () => {
+    const prediction = { homeScore: 1, awayScore: 1 };
+    const result = { homeScore: 1, awayScore: 1 };
+
+    assert.equal(PredictionDomain.isWinnerPredictionCorrect(prediction, result, match), true);
+    assert.equal(PredictionDomain.resolveResultWinnerName(result, match), null);
+  });
+
+  it('compares non-draw winners from score direction', () => {
+    const prediction = { homeScore: 2, awayScore: 1 };
+    const result = { homeScore: 2, awayScore: 0 };
+
+    assert.equal(PredictionDomain.isWinnerPredictionCorrect(prediction, result, match), true);
+  });
+});

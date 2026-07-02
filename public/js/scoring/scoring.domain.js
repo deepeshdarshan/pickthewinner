@@ -42,7 +42,7 @@ export const ScoringDomain = {
     totalPoints += scorePoints;
 
     if (String(result.winnerResolution) === WINNER_RESOLUTION.PENALTIES) {
-      const predictedWinner = String(prediction.penaltyWinner ?? '');
+      const predictedWinner = String(prediction.predictedWinner ?? prediction.penaltyWinner ?? '');
       const actualWinner = resolvePenaltyWinner(result);
       const penaltyPoints = predictedWinner && predictedWinner === actualWinner
         ? config.correctPenaltyWinnerPoints

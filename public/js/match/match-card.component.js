@@ -7,6 +7,7 @@ import { renderCountdown } from '../components/countdown.component.js';
 import { renderStatusBadge } from '../components/status-badge.component.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
+import { PredictionDomain } from '../domain/prediction.domain.js';
 
 /**
  * @typedef {Object} MatchCardOptions
@@ -77,6 +78,8 @@ export function renderMatchCard(options) {
         <div class="mt-3 text-center">
           ${kickoff ? `<div class="ptw-text-muted mb-1"><i class="bi bi-clock me-1" aria-hidden="true"></i>${escapeHtml(formatDateTime(kickoff))}</div>` : ''}
         </div>
+
+        ${showResult && match.result?.published ? renderOfficialResultDisplay(match) : ''}
         
         <!-- Prediction Display -->
         ${showPrediction && prediction ? renderPredictionDisplay(prediction, match) : ''}
@@ -173,13 +176,40 @@ function renderPredictionDisplay(prediction, match) {
  * @param {import('./match.service.js').EnrichedMatch} match
  * @returns {string}
  */
+function renderOfficialResultDisplay(match) {
+  const result = /** @type {Record<string, unknown>} */ (match.result);
+  const homeScore = Number(result.homeScore ?? 0);
+  const awayScore = Number(result.awayScore ?? 0);
+  const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
+
+  if (homeScore !== awayScore || !winnerName) {
+    return '';
+  }
+
+  return `
+    <div class="mt-3 text-center">
+      <small class="ptw-text-muted">Match Winner: <span class="text-warning">${escapeHtml(winnerName)}</span></small>
+    </div>
+  `;
+}
+
+/**
+ * Renders points display.
+ * @param {number} pointsEarned
+ * @param {Record<string, unknown>|null} prediction
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {string}
+ */
 function renderPointsDisplay(pointsEarned, prediction, match) {
   if (!match.result?.published) {
     return '';
   }
 
-  const isCorrectWinner = checkCorrectWinner(prediction, match);
+  const result = /** @type {Record<string, unknown>} */ (match.result);
+  const isCorrectWinner = PredictionDomain.isWinnerPredictionCorrect(prediction, result, match);
   const isExactScore = checkExactScore(prediction, match);
+  const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
+  const isDrawResult = Number(result.homeScore ?? 0) === Number(result.awayScore ?? 0);
 
   return `
     <div class="mt-3 pt-3 border-top">
@@ -190,6 +220,7 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
             <i class="bi ${isCorrectWinner ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
             Winner
           </div>
+          ${isDrawResult && winnerName ? `<small class="ptw-text-muted d-block mt-1">${escapeHtml(winnerName)}</small>` : ''}
         </div>
         <div>
           <div class="${isExactScore ? 'text-success' : 'text-danger'}">
@@ -206,37 +237,6 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
       </div>
     </div>
   `;
-}
-
-/**
- * Checks if winner prediction is correct.
- * @param {Record<string, unknown>|null} prediction
- * @param {import('./match.service.js').EnrichedMatch} match
- * @returns {boolean}
- */
-function checkCorrectWinner(prediction, match) {
-  if (!prediction || !match.result) {
-    return false;
-  }
-
-  const predHome = Number(prediction.homeScore ?? 0);
-  const predAway = Number(prediction.awayScore ?? 0);
-  const actualHome = Number(match.result.homeScore ?? 0);
-  const actualAway = Number(match.result.awayScore ?? 0);
-
-  if (predHome > predAway && actualHome > actualAway) {
-    return true;
-  }
-
-  if (predHome < predAway && actualHome < actualAway) {
-    return true;
-  }
-
-  if (predHome === predAway && actualHome === actualAway) {
-    return true;
-  }
-
-  return false;
 }
 
 /**
