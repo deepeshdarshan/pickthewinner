@@ -62,7 +62,7 @@ export const MATCH_LIST_PAGE_SIZE = 20;
 export function renderMatchListPage(matches, options = {}) {
   const {
     title = 'Matches',
-    subtitle = 'Create, schedule, and manage tournament matches',
+    subtitle = 'Create and manage tournament matches',
     actionsHtml = '',
     showCreateFab = true,
     allowDelete = false,

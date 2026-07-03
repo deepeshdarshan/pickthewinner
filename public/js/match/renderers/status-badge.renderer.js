@@ -9,7 +9,6 @@ import { MATCH_STATUS, MATCH_STATUS_LABELS } from '../match.constants.js';
 /** @type {Readonly<Record<string, string>>} */
 const STATUS_BADGE_CLASS = Object.freeze({
   [MATCH_STATUS.DRAFT]: 'bg-secondary',
-  [MATCH_STATUS.SCHEDULED]: 'bg-info',
   [MATCH_STATUS.PUBLISHED]: 'bg-primary',
   [MATCH_STATUS.PREDICTION_OPEN]: 'bg-success',
   [MATCH_STATUS.PREDICTION_LOCKED]: 'bg-warning text-dark',

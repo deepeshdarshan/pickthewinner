@@ -40,9 +40,6 @@ export async function applyLifecycleAction(match, action) {
   };
 
   switch (action) {
-    case MATCH_LIFECYCLE_ACTIONS.SCHEDULE:
-      updates.status = MATCH_STATUS.SCHEDULED;
-      break;
     case MATCH_LIFECYCLE_ACTIONS.PUBLISH:
       updates.status = MATCH_STATUS.PUBLISHED;
       updates.visible = true;
@@ -180,7 +177,7 @@ function normalizeMatchDocument(id, data) {
     homeTeamId: String(data.homeTeamId ?? ''),
     awayTeamId: String(data.awayTeamId ?? ''),
     kickoffUtc: data.kickoffUtc ?? null,
-    status: String(data.status ?? MATCH_STATUS.DRAFT),
+    status: MatchDomain.normalizeStatus(String(data.status ?? MATCH_STATUS.DRAFT)),
     visible: Boolean(data.visible),
     result: data.result ?? null,
     scoringStatus: data.scoringStatus ?? null,

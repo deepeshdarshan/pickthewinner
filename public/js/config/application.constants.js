@@ -12,7 +12,6 @@ export const USER_ROLES = Object.freeze({
 /** @enum {string} */
 export const MATCH_STATES = Object.freeze({
   DRAFT: 'draft',
-  SCHEDULED: 'scheduled',
   PUBLISHED: 'published',
   PREDICTION_OPEN: 'prediction_open',
   PREDICTION_LOCKED: 'prediction_locked',

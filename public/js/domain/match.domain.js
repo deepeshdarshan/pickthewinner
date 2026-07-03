@@ -6,7 +6,6 @@
 /** @enum {string} */
 export const MATCH_STATUS = Object.freeze({
   DRAFT: 'draft',
-  SCHEDULED: 'scheduled',
   PUBLISHED: 'published',
   PREDICTION_OPEN: 'prediction_open',
   PREDICTION_LOCKED: 'prediction_locked',
@@ -24,11 +23,9 @@ export const WINNER_RESOLUTION = Object.freeze({
 
 /** @type {Readonly<Record<string, ReadonlySet<string>>>} */
 const ALLOWED_TRANSITIONS = Object.freeze({
-  [MATCH_STATUS.DRAFT]: new Set([MATCH_STATUS.SCHEDULED, MATCH_STATUS.ARCHIVED]),
-  [MATCH_STATUS.SCHEDULED]: new Set([MATCH_STATUS.PUBLISHED, MATCH_STATUS.DRAFT, MATCH_STATUS.ARCHIVED]),
+  [MATCH_STATUS.DRAFT]: new Set([MATCH_STATUS.PUBLISHED, MATCH_STATUS.ARCHIVED]),
   [MATCH_STATUS.PUBLISHED]: new Set([
     MATCH_STATUS.PREDICTION_OPEN,
-    MATCH_STATUS.SCHEDULED,
     MATCH_STATUS.ARCHIVED,
   ]),
   [MATCH_STATUS.PREDICTION_OPEN]: new Set([
@@ -59,6 +56,15 @@ const CONTESTANT_VISIBLE_STATUSES = new Set([
 ]);
 
 export const MatchDomain = {
+  /**
+   * Normalizes legacy stored statuses for backward compatibility.
+   * @param {string} status
+   * @returns {string}
+   */
+  normalizeStatus(status) {
+    return status === 'scheduled' ? MATCH_STATUS.DRAFT : status;
+  },
+
   /**
    * @param {string} from
    * @param {string} to

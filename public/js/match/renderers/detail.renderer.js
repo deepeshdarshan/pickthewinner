@@ -75,10 +75,6 @@ function renderLifecycleButtons(match) {
   const hasActiveOverride = match.predictionOverride?.isActive ?? false;
 
   if (match.status === MATCH_STATUS.DRAFT) {
-    buttons.push(actionButton('Schedule', MATCH_LIFECYCLE_ACTIONS.SCHEDULE, 'btn-outline-light'));
-  }
-
-  if (match.status === MATCH_STATUS.SCHEDULED || match.status === MATCH_STATUS.DRAFT) {
     buttons.push(actionButton('Publish', MATCH_LIFECYCLE_ACTIONS.PUBLISH, 'btn-success'));
   }
 

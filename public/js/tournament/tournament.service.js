@@ -40,7 +40,7 @@ import { TOURNAMENT_EVENTS, emitTournamentEvent } from './tournament.events.js';
 import { ApplicationContext } from '../app/application-context.js';
 import { Logger } from '../utils/logger.util.js';
 import { matchRepository } from '../match/match.repository.js';
-import { MATCH_STATUS } from '../domain/match.domain.js';
+import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 import { MATCH_COLLECTIONS } from '../match/match.constants.js';
 import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
 import { writeAuditLog } from '../audit/audit.service.js';
@@ -785,7 +785,7 @@ export async function restoreTournament(id, uid) {
 
         transaction.update(snap.ref, {
           status: restoredStatus,
-          visible: restoredStatus !== MATCH_STATUS.DRAFT && restoredStatus !== MATCH_STATUS.SCHEDULED,
+          visible: MatchDomain.normalizeStatus(restoredStatus) !== MATCH_STATUS.DRAFT,
           archivedWithTournament: false,
           statusBeforeArchive: null,
           updatedBy: uid,

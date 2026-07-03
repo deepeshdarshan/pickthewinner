@@ -33,7 +33,6 @@ export const MATCH_ROUNDS = Object.freeze([
 
 /** @enum {string} */
 export const MATCH_LIFECYCLE_ACTIONS = Object.freeze({
-  SCHEDULE: 'schedule',
   PUBLISH: 'publish',
   HIDE: 'hide',
   OPEN_PREDICTIONS: 'open_predictions',
@@ -47,7 +46,6 @@ export const MATCH_LIFECYCLE_ACTIONS = Object.freeze({
 /** @type {Readonly<Record<string, string>>} */
 export const MATCH_STATUS_LABELS = Object.freeze({
   [MATCH_STATUS.DRAFT]: 'Draft',
-  [MATCH_STATUS.SCHEDULED]: 'Scheduled',
   [MATCH_STATUS.PUBLISHED]: 'Published',
   [MATCH_STATUS.PREDICTION_OPEN]: 'Prediction Open',
   [MATCH_STATUS.PREDICTION_LOCKED]: 'Prediction Locked',

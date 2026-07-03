@@ -3,8 +3,12 @@ import assert from 'node:assert/strict';
 import { MatchDomain, MATCH_STATUS } from '../public/js/domain/match.domain.js';
 
 describe('MatchDomain', () => {
-  it('allows draft to scheduled transition', () => {
-    assert.equal(MatchDomain.canTransitionTo(MATCH_STATUS.DRAFT, MATCH_STATUS.SCHEDULED), true);
+  it('allows draft to published transition', () => {
+    assert.equal(MatchDomain.canTransitionTo(MATCH_STATUS.DRAFT, MATCH_STATUS.PUBLISHED), true);
+  });
+
+  it('normalizes legacy scheduled status to draft', () => {
+    assert.equal(MatchDomain.normalizeStatus('scheduled'), MATCH_STATUS.DRAFT);
   });
 
   it('blocks archived transitions', () => {

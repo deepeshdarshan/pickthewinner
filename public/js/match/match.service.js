@@ -137,7 +137,7 @@ export function normalizeMatchDocument(id, data) {
     homeTeamId: String(data.homeTeamId ?? ''),
     awayTeamId: String(data.awayTeamId ?? ''),
     kickoffUtc: data.kickoffUtc ?? null,
-    status: String(data.status ?? defaults.status),
+    status: MatchDomain.normalizeStatus(String(data.status ?? defaults.status)),
     visible: Boolean(data.visible),
     result: /** @type {Record<string, unknown>|null} */ (data.result ?? null),
     scoringStatus: data.scoringStatus ? String(data.scoringStatus) : null,
