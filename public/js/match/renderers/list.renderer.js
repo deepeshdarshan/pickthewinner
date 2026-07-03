@@ -216,12 +216,12 @@ function renderMatchRow(match, options = {}) {
     <tr data-match-id="${escapeHtml(match.id)}">
       <td><input type="checkbox" aria-label="Select match" data-ptw-match-select value="${escapeHtml(match.id)}"></td>
       <td>${match.matchNumber}</td>
-      <td>${renderTeamsCell(match)}</td>
+      <td class="ptw-match-table__match-cell">${renderTeamsCell(match)}</td>
       <td>${escapeHtml(match.tournamentName ?? '')}</td>
       <td>${escapeHtml(formatKickoff(match))}</td>
       <td>${renderMatchStatusBadge(match.status)}</td>
       <td class="text-end">
-        <div class="d-flex gap-1 justify-content-end flex-wrap">
+        <div class="d-flex justify-content-end flex-wrap ptw-match-table__actions">
           <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
           ${options.allowDelete ? `
             <button
@@ -291,7 +291,7 @@ function renderTeamsCell(match) {
   const awayFlag = renderTeamFlagHtml(away?.flagUrl, { marginClass: 'me-1' });
 
   return `
-    <div class="d-flex align-items-center gap-2 flex-nowrap">
+    <div class="d-flex align-items-center gap-2 ptw-match-table__teams">
       <span>${homeFlag}${escapeHtml(home?.name ?? 'Home')}</span>
       <span class="ptw-text-muted">vs</span>
       <span>${awayFlag}${escapeHtml(away?.name ?? 'Away')}</span>
