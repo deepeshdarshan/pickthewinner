@@ -4,7 +4,7 @@
  */
 
 import { renderCountdown } from '../../components/countdown.component.js';
-import { renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
+import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 
@@ -29,8 +29,8 @@ export function renderFeaturedMatchSection(data) {
   const kickoff = toDate(match.kickoffUtc);
   const homeName = match.homeTeam?.name ?? 'Home';
   const awayName = match.awayTeam?.name ?? 'Away';
-  const homeFlag = renderTeamFlagHtml(match.homeTeam?.flagUrl, { marginClass: 'me-2' });
-  const awayFlag = renderTeamFlagHtml(match.awayTeam?.flagUrl, { marginClass: 'me-2' });
+  const homeFlag = renderTeamFlagHtml(getTeamFlagUrl(match.homeTeam), { marginClass: 'me-2', className: 'ptw-team-flag ptw-team-flag--stacked' });
+  const awayFlag = renderTeamFlagHtml(getTeamFlagUrl(match.awayTeam), { marginClass: 'me-2', className: 'ptw-team-flag ptw-team-flag--stacked' });
   const prediction = data.featuredMatchPrediction ?? null;
   const predictionStatus = getPredictionStatus(match, prediction);
   const actionButtons = renderFeaturedActionButtons(match, prediction, predictionStatus);

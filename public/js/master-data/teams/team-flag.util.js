@@ -79,3 +79,87 @@ export function renderTeamFlagHtml(flagUrl, options = {}) {
 
   return `<span class="ptw-team-flag-placeholder ${escapeHtml(marginClass)}" aria-hidden="true"><i class="bi bi-flag"></i></span>`;
 }
+
+/**
+ * @param {{ flagUrl?: string, flag?: string }|null|undefined} team
+ * @returns {string|null}
+ */
+export function getTeamFlagUrl(team) {
+  if (!team || typeof team !== 'object') {
+    return null;
+  }
+
+  const flagUrl = team.flagUrl ?? team.flag;
+  return typeof flagUrl === 'string' && flagUrl.trim() ? flagUrl.trim() : null;
+}
+
+/**
+ * @param {{ name?: string, flagUrl?: string, flag?: string }|null|undefined} team
+ * @param {{ fallback?: string, headingTag?: string, className?: string, extraHtml?: string }} [options]
+ * @returns {string}
+ */
+export function renderTeamStackHtml(team, options = {}) {
+  const {
+    fallback = 'TBD',
+    headingTag = 'h5',
+    className = 'ptw-team-flag ptw-team-flag--stacked mb-2',
+    extraHtml = '',
+  } = options;
+
+  const name = team?.name?.trim() || fallback;
+  const flagHtml = renderTeamFlagHtml(getTeamFlagUrl(team), {
+    className,
+    marginClass: '',
+  });
+
+  return `
+    ${flagHtml}
+    <${headingTag} class="mb-0">${escapeHtml(name)}</${headingTag}>
+    ${extraHtml}
+  `.trim();
+}
+
+/**
+ * @param {{ name?: string, flagUrl?: string, flag?: string }|null|undefined} team
+ * @param {{ fallback?: string, marginClass?: string, className?: string, strong?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderTeamInlineHtml(team, options = {}) {
+  const {
+    fallback = 'Home',
+    marginClass = 'me-1',
+    className = 'ptw-team-flag',
+    strong = false,
+  } = options;
+
+  const name = team?.name?.trim() || fallback;
+  const flagHtml = renderTeamFlagHtml(getTeamFlagUrl(team), { className, marginClass });
+  const nameHtml = strong
+    ? `<strong>${escapeHtml(name)}</strong>`
+    : escapeHtml(name);
+
+  return `<span class="d-inline-flex align-items-center gap-1">${flagHtml}${nameHtml}</span>`;
+}
+
+/**
+ * @param {{ name?: string, flagUrl?: string, flag?: string }|null|undefined} homeTeam
+ * @param {{ name?: string, flagUrl?: string, flag?: string }|null|undefined} awayTeam
+ * @param {{ homeFallback?: string, awayFallback?: string, separator?: string, strong?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderTeamsMatchupHtml(homeTeam, awayTeam, options = {}) {
+  const {
+    homeFallback = 'Home',
+    awayFallback = 'Away',
+    separator = 'vs',
+    strong = false,
+  } = options;
+
+  return `
+    <span class="d-inline-flex align-items-center flex-wrap gap-2 ptw-teams-matchup">
+      ${renderTeamInlineHtml(homeTeam, { fallback: homeFallback, strong })}
+      <span class="ptw-text-muted">${escapeHtml(separator)}</span>
+      ${renderTeamInlineHtml(awayTeam, { fallback: awayFallback, strong })}
+    </span>
+  `.trim();
+}

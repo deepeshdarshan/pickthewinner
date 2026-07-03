@@ -8,6 +8,7 @@ import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.comp
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
 import { renderResultForm } from './result-form.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderTeamInlineHtml, renderTeamsMatchupHtml } from '../../master-data/teams/team-flag.util.js';
 import { MATCH_LIFECYCLE_ACTIONS, MATCH_STATUS, getRoundLabel } from '../match.constants.js';
 import { MatchDomain } from '../../domain/match.domain.js';
 
@@ -208,7 +209,7 @@ export function renderContestantMatchDetail(match) {
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
-            <h2 class="h4 mb-1">${escapeHtml(home?.name ?? 'Home')} vs ${escapeHtml(away?.name ?? 'Away')}</h2>
+            <h2 class="h4 mb-1">${renderTeamsMatchupHtml(home, away)}</h2>
             <p class="ptw-text-muted mb-0">${escapeHtml(match.tournamentName ?? '')} · ${escapeHtml(getRoundLabel(match.round))}</p>
           </div>
           ${renderMatchStatusBadge(match.status)}
@@ -230,15 +231,21 @@ function renderPublishedResult(match, result) {
   const home = match.homeTeam;
   const away = match.awayTeam;
   const winnerId = String(result.winningTeamId ?? '');
-  const winnerName = winnerId === match.homeTeamId
-    ? home?.name
-    : (winnerId === match.awayTeamId ? away?.name : '—');
+  const winnerTeam = winnerId === match.homeTeamId
+    ? home
+    : (winnerId === match.awayTeamId ? away : null);
 
   return `
     <hr>
     <h3 class="h6">Official Result</h3>
-    <p class="mb-1">${escapeHtml(home?.name ?? 'Home')} ${escapeHtml(String(result.homeScore ?? ''))} – ${escapeHtml(String(result.awayScore ?? ''))} ${escapeHtml(away?.name ?? 'Away')}</p>
-    <p class="mb-1"><strong>Winner:</strong> ${escapeHtml(winnerName ?? '—')}</p>
+    <p class="mb-1 d-flex align-items-center flex-wrap gap-2">
+      ${renderTeamInlineHtml(home, { fallback: 'Home' })}
+      <strong>${escapeHtml(String(result.homeScore ?? ''))}</strong>
+      <span class="ptw-text-muted">–</span>
+      <strong>${escapeHtml(String(result.awayScore ?? ''))}</strong>
+      ${renderTeamInlineHtml(away, { fallback: 'Away' })}
+    </p>
+    <p class="mb-1 d-flex align-items-center gap-1 flex-wrap"><strong>Winner:</strong> ${winnerTeam ? renderTeamInlineHtml(winnerTeam, { fallback: '—' }) : escapeHtml('—')}</p>
     <p class="mb-0"><strong>Resolution:</strong> ${escapeHtml(String(result.winnerResolution ?? '—'))}</p>
   `;
 }

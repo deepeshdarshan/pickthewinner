@@ -5,6 +5,11 @@
 
 import { renderCountdown } from '../components/countdown.component.js';
 import { renderStatusBadge } from '../components/status-badge.component.js';
+import {
+  renderTeamInlineHtml,
+  renderTeamStackHtml,
+  renderTeamsMatchupHtml,
+} from '../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
@@ -36,8 +41,6 @@ export function renderMatchCard(options) {
 
   const resolvedPointsEarned = Number(prediction?.calculatedPoints ?? pointsEarned ?? 0);
 
-  const homeTeam = match.homeTeam?.name || 'TBD';
-  const awayTeam = match.awayTeam?.name || 'TBD';
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
 
   const predictionStatus = getPredictionStatus(match, prediction);
@@ -56,9 +59,12 @@ export function renderMatchCard(options) {
         <div class="row align-items-center g-3">
           <!-- Home Team -->
           <div class="col-5 text-center">
-            ${match.homeTeam?.flag ? `<img src="${escapeHtml(match.homeTeam.flag)}" alt="${escapeHtml(homeTeam)}" class="ptw-team-flag mb-2" style="width: 48px; height: 48px; object-fit: contain;">` : ''}
-            <h5 class="mb-0">${escapeHtml(homeTeam)}</h5>
-            ${showResult && match.result ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.homeScore ?? '-'))}</div>` : ''}
+            ${renderTeamStackHtml(match.homeTeam, {
+    fallback: 'TBD',
+    extraHtml: showResult && match.result
+      ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.homeScore ?? '-'))}</div>`
+      : '',
+  })}
           </div>
           
           <!-- VS -->
@@ -68,9 +74,12 @@ export function renderMatchCard(options) {
           
           <!-- Away Team -->
           <div class="col-5 text-center">
-            ${match.awayTeam?.flag ? `<img src="${escapeHtml(match.awayTeam.flag)}" alt="${escapeHtml(awayTeam)}" class="ptw-team-flag mb-2" style="width: 48px; height: 48px; object-fit: contain;">` : ''}
-            <h5 class="mb-0">${escapeHtml(awayTeam)}</h5>
-            ${showResult && match.result ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.awayScore ?? '-'))}</div>` : ''}
+            ${renderTeamStackHtml(match.awayTeam, {
+    fallback: 'TBD',
+    extraHtml: showResult && match.result
+      ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.awayScore ?? '-'))}</div>`
+      : '',
+  })}
           </div>
         </div>
         
@@ -147,8 +156,9 @@ function renderPredictionDisplay(prediction, match) {
   const homeScore = prediction.homeScore ?? '-';
   const awayScore = prediction.awayScore ?? '-';
   const predictedWinner = prediction.predictedWinner ?? prediction.penaltyWinner;
-  const homeTeam = match.homeTeam?.name || 'Home';
-  const awayTeam = match.awayTeam?.name || 'Away';
+  const winnerTeam = predictedWinner === 'HOME'
+    ? match.homeTeam
+    : (predictedWinner === 'AWAY' ? match.awayTeam : null);
 
   return `
     <div class="mt-3 pt-3 border-top">
@@ -156,15 +166,19 @@ function renderPredictionDisplay(prediction, match) {
       <div class="d-flex justify-content-center align-items-center gap-3">
         <div class="text-center">
           <div class="h4 mb-0 text-info">${escapeHtml(String(homeScore))}</div>
-          <small class="ptw-text-muted">${escapeHtml(homeTeam)}</small>
+          <div class="d-flex justify-content-center mt-1">
+            ${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}
+          </div>
         </div>
         <div class="ptw-text-muted">-</div>
         <div class="text-center">
           <div class="h4 mb-0 text-info">${escapeHtml(String(awayScore))}</div>
-          <small class="ptw-text-muted">${escapeHtml(awayTeam)}</small>
+          <div class="d-flex justify-content-center mt-1">
+            ${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}
+          </div>
         </div>
       </div>
-      ${predictedWinner ? `<div class="text-center mt-2"><small class="ptw-text-muted">Predicted Winner: <span class="text-warning">${escapeHtml(predictedWinner === 'HOME' ? homeTeam : awayTeam)}</span></small></div>` : ''}
+      ${winnerTeam ? `<div class="text-center mt-2"><small class="ptw-text-muted">Predicted Winner: <span class="text-warning">${renderTeamInlineHtml(winnerTeam, { fallback: 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm', strong: true })}</span></small></div>` : ''}
     </div>
   `;
 }
@@ -186,9 +200,18 @@ function renderOfficialResultDisplay(match) {
     return '';
   }
 
+  const winnerSide = PredictionDomain.resolveResultWinnerSide(result, match);
+  const winnerTeam = winnerSide === 'HOME'
+    ? match.homeTeam
+    : (winnerSide === 'AWAY' ? match.awayTeam : null);
+
+  if (!winnerTeam) {
+    return '';
+  }
+
   return `
     <div class="mt-3 text-center">
-      <small class="ptw-text-muted">Match Winner: <span class="text-warning">${escapeHtml(winnerName)}</span></small>
+      <small class="ptw-text-muted">Match Winner: <span class="text-warning">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm', strong: true })}</span></small>
     </div>
   `;
 }
@@ -210,6 +233,10 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
   const isExactScore = checkExactScore(prediction, match);
   const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
   const isDrawResult = Number(result.homeScore ?? 0) === Number(result.awayScore ?? 0);
+  const winnerSide = PredictionDomain.resolveResultWinnerSide(result, match);
+  const winnerTeam = winnerSide === 'HOME'
+    ? match.homeTeam
+    : (winnerSide === 'AWAY' ? match.awayTeam : null);
 
   return `
     <div class="mt-3 pt-3 border-top">
@@ -220,7 +247,7 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
             <i class="bi ${isCorrectWinner ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
             Winner
           </div>
-          ${isDrawResult && winnerName ? `<small class="ptw-text-muted d-block mt-1">${escapeHtml(winnerName)}</small>` : ''}
+          ${isDrawResult && winnerTeam ? `<div class="d-flex justify-content-center mt-1">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}</div>` : ''}
         </div>
         <div>
           <div class="${isExactScore ? 'text-success' : 'text-danger'}">
@@ -312,8 +339,6 @@ function renderActionButtons(match, prediction, predictionStatus) {
  * @returns {string}
  */
 export function renderCompactMatchCard(match, prediction = null) {
-  const homeTeam = match.homeTeam?.name || 'TBD';
-  const awayTeam = match.awayTeam?.name || 'TBD';
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
   const predictionStatus = getPredictionStatus(match, prediction);
 
@@ -327,7 +352,7 @@ export function renderCompactMatchCard(match, prediction = null) {
               ${renderPredictionStatusBadge(predictionStatus)}
             </div>
             <div class="mt-1">
-              <strong>${escapeHtml(homeTeam)}</strong> vs <strong>${escapeHtml(awayTeam)}</strong>
+              ${renderTeamsMatchupHtml(match.homeTeam, match.awayTeam, { homeFallback: 'TBD', awayFallback: 'TBD', strong: true })}
             </div>
             ${kickoff ? `<small class="ptw-text-muted">${escapeHtml(formatDateTime(kickoff))}</small>` : ''}
           </div>

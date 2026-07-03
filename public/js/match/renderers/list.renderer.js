@@ -7,7 +7,7 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderCountdown } from '../../components/countdown.component.js';
-import { renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
+import { renderTeamsMatchupHtml } from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderPagination } from '../../components/pagination.component.js';
 import {
@@ -285,18 +285,7 @@ function renderMatchCard(match, options = {}) {
  * @returns {string}
  */
 function renderTeamsCell(match) {
-  const home = match.homeTeam;
-  const away = match.awayTeam;
-  const homeFlag = renderTeamFlagHtml(home?.flagUrl, { marginClass: 'me-1' });
-  const awayFlag = renderTeamFlagHtml(away?.flagUrl, { marginClass: 'me-1' });
-
-  return `
-    <div class="d-flex align-items-center gap-2 ptw-match-table__teams">
-      <span>${homeFlag}${escapeHtml(home?.name ?? 'Home')}</span>
-      <span class="ptw-text-muted">vs</span>
-      <span>${awayFlag}${escapeHtml(away?.name ?? 'Away')}</span>
-    </div>
-  `;
+  return renderTeamsMatchupHtml(match.homeTeam, match.awayTeam);
 }
 
 /**

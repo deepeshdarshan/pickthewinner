@@ -265,13 +265,15 @@ function renderPredictionsPage(matches, predictionsMap) {
       ${orderedGroups.map((round) => `
         <div class="mb-4">
           <h3 class="h5 mb-3">${round}</h3>
-          ${grouped[round].map((match) => renderMatchCard({
+          <div class="ptw-match-cards">
+            ${grouped[round].map((match) => renderMatchCard({
             match,
             showPrediction: true,
             prediction: predictionsMap.get(match.id) || null,
             showResult: match.result?.published || false,
             showPoints: match.result?.published || false,
           })).join('')}
+          </div>
         </div>
       `).join('')}
     </div>

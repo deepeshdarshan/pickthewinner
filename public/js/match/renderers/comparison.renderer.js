@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderTeamInlineHtml } from '../../master-data/teams/team-flag.util.js';
 
 /**
  * @typedef {Object} ComparisonData
@@ -38,14 +39,14 @@ export function renderPredictionComparison(data) {
         <div class="row g-4">
           <div class="col-md-6">
             <h3 class="h6">Official Result</h3>
-            <p class="mb-1">${escapeHtml(match.homeTeam?.name ?? 'Home')} <strong>${escapeHtml(String(result.homeScore ?? ''))}</strong></p>
-            <p class="mb-1">${escapeHtml(match.awayTeam?.name ?? 'Away')} <strong>${escapeHtml(String(result.awayScore ?? ''))}</strong></p>
+            <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })} <strong>${escapeHtml(String(result.homeScore ?? ''))}</strong></p>
+            <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })} <strong>${escapeHtml(String(result.awayScore ?? ''))}</strong></p>
             <p class="mb-0"><strong>Resolution:</strong> ${escapeHtml(String(result.winnerResolution ?? ''))}</p>
           </div>
           <div class="col-md-6">
             <h3 class="h6">My Prediction</h3>
-            <p class="mb-1">${escapeHtml(match.homeTeam?.name ?? 'Home')} <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong></p>
-            <p class="mb-1">${escapeHtml(match.awayTeam?.name ?? 'Away')} <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong></p>
+            <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })} <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong></p>
+            <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })} <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong></p>
             ${(prediction.predictedWinner ?? prediction.penaltyWinner) ? `<p class="mb-0"><strong>Predicted Winner:</strong> ${escapeHtml(String(prediction.predictedWinner ?? prediction.penaltyWinner))}</p>` : ''}
           </div>
         </div>

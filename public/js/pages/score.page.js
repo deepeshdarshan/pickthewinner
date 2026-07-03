@@ -191,13 +191,15 @@ function renderScorePage(options) {
         <!-- Completed Tab -->
         <div class="tab-pane fade show active" id="completed" role="tabpanel" aria-labelledby="completed-tab">
           ${completedMatches.length > 0 ? `
-            ${completedMatches.map((match) => renderMatchCard({
+            <div class="ptw-match-cards">
+              ${completedMatches.map((match) => renderMatchCard({
               match,
               showPrediction: true,
               prediction: predictionsMap.get(match.id) || null,
               showResult: true,
               showPoints: true,
             })).join('')}
+            </div>
           ` : `
             <div class="card ptw-card">
               <div class="card-body">
@@ -214,13 +216,15 @@ function renderScorePage(options) {
         <!-- Pending Tab -->
         <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
           ${pendingMatches.length > 0 ? `
-            ${pendingMatches.map((match) => renderMatchCard({
+            <div class="ptw-match-cards">
+              ${pendingMatches.map((match) => renderMatchCard({
               match,
               showPrediction: true,
               prediction: predictionsMap.get(match.id) || null,
               showResult: false,
               showPoints: false,
             })).join('')}
+            </div>
           ` : `
             <div class="card ptw-card">
               <div class="card-body">

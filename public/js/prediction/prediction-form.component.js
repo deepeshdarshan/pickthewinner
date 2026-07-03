@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../utils/html.util.js';
+import { renderTeamInlineHtml, renderTeamStackHtml } from '../master-data/teams/team-flag.util.js';
 
 /**
  * @typedef {Object} PredictionFormOptions
@@ -37,15 +38,13 @@ export function renderPredictionForm(options) {
         <div class="text-center mb-4">
           <div class="row align-items-center g-3">
             <div class="col-5 text-center">
-              ${match.homeTeam?.flag ? `<img src="${escapeHtml(match.homeTeam.flag)}" alt="${escapeHtml(homeTeam)}" class="ptw-team-flag mb-2" style="width: 48px; height: 48px; object-fit: contain;">` : ''}
-              <h6 class="mb-0">${escapeHtml(homeTeam)}</h6>
+              ${renderTeamStackHtml(match.homeTeam, { fallback: 'Home', headingTag: 'h6' })}
             </div>
             <div class="col-2 text-center">
               <div class="ptw-text-muted">VS</div>
             </div>
             <div class="col-5 text-center">
-              ${match.awayTeam?.flag ? `<img src="${escapeHtml(match.awayTeam.flag)}" alt="${escapeHtml(awayTeam)}" class="ptw-team-flag mb-2" style="width: 48px; height: 48px; object-fit: contain;">` : ''}
-              <h6 class="mb-0">${escapeHtml(awayTeam)}</h6>
+              ${renderTeamStackHtml(match.awayTeam, { fallback: 'Away', headingTag: 'h6' })}
             </div>
           </div>
         </div>
@@ -55,7 +54,7 @@ export function renderPredictionForm(options) {
           <div class="row g-3 mb-4">
             <!-- Home Score -->
             <div class="col-6">
-              <label for="home-score" class="form-label">${escapeHtml(homeTeam)} Score</label>
+              <label for="home-score" class="form-label d-flex align-items-center gap-1">${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })} Score</label>
               <input 
                 type="number" 
                 class="form-control form-control-lg text-center" 
@@ -72,7 +71,7 @@ export function renderPredictionForm(options) {
 
             <!-- Away Score -->
             <div class="col-6">
-              <label for="away-score" class="form-label">${escapeHtml(awayTeam)} Score</label>
+              <label for="away-score" class="form-label d-flex align-items-center gap-1">${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })} Score</label>
               <input 
                 type="number" 
                 class="form-control form-control-lg text-center" 
