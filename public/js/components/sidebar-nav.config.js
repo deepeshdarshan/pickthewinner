@@ -28,8 +28,7 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     label: 'Tournament Management',
     icon: 'bi-calendar-event',
     children: [
-      { path: '/admin/tournaments', label: 'All Tournaments' },
-      { path: '/admin/tournaments/archived', label: 'Archived Tournaments' },
+      { path: '/admin/tournaments', label: 'Tournaments' },
     ],
   },
   { type: 'item', path: '/admin/teams', label: 'Teams', icon: 'bi-people' },
@@ -40,7 +39,6 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     children: [
       { path: '/admin/matches', label: 'Matches' },
       { path: '/admin/predictions', label: 'Predictions' },
-      { path: '/admin/matches/archived', label: 'Archived Matches' },
     ],
   },
   { type: 'item', path: '/leaderboard', label: 'Leaderboard', icon: 'bi-bar-chart' },

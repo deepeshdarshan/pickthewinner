@@ -6,6 +6,7 @@
 import { BaseFirestoreService } from '../../services/BaseFirestoreService.js';
 import { matchRepository } from '../../match/match.repository.js';
 import { normalizeMatchDocument } from '../../match/match.service.js';
+import { getTeamsByIds } from '../../master-data/teams/team.service.js';
 import { getTournamentById } from '../../tournament/tournament.service.js';
 import { PredictionManagementDomain } from '../../domain/prediction-management.domain.js';
 import { predictionManagementRepository } from './PredictionManagementRepository.js';
@@ -61,7 +62,7 @@ class PredictionManagementServiceClass extends BaseFirestoreService {
         throw new Error(PREDICTION_MANAGEMENT_MESSAGES.ERROR_TOURNAMENT);
       }
 
-      const matches = rawMatches.map((match) => normalizeMatchDocument(match.id, match));
+      const matches = await enrichMatchesWithTeams(rawMatches);
       const matchMap = new Map(matches.map((match) => [match.id, match]));
       const userIds = [...new Set(rawPredictions.map((item) => String(item.userId ?? '')))];
       const users = await predictionManagementRepository.getUsersByIds(userIds);
@@ -128,9 +129,22 @@ class PredictionManagementServiceClass extends BaseFirestoreService {
       predictionManagementRepository.getUsersByIds([String(prediction.userId)]),
     ]);
 
-    const match = matchData
+    let match = matchData
       ? normalizeMatchDocument(String(prediction.matchId), matchData)
       : {};
+
+    if (matchData) {
+      const teams = await getTeamsByIds([
+        match.homeTeamId,
+        match.awayTeamId,
+      ].filter(Boolean));
+
+      match = {
+        ...match,
+        homeTeam: teams.get(match.homeTeamId) ?? null,
+        awayTeam: teams.get(match.awayTeamId) ?? null,
+      };
+    }
 
     const enriched = PredictionManagementDomain.enrichPrediction(prediction, match);
 
@@ -179,8 +193,8 @@ class PredictionManagementServiceClass extends BaseFirestoreService {
     }
 
     return contestants.sort((left, right) => {
-      const leftName = String(left.displayName ?? left.fullName ?? left.email ?? '');
-      const rightName = String(right.displayName ?? right.fullName ?? right.email ?? '');
+      const leftName = String(left.name ?? left.displayName ?? left.fullName ?? left.email ?? '');
+      const rightName = String(right.name ?? right.displayName ?? right.fullName ?? right.email ?? '');
       return leftName.localeCompare(rightName);
     });
   }
@@ -218,6 +232,22 @@ class PredictionManagementServiceClass extends BaseFirestoreService {
     await this.loadTournamentData(tournamentId);
     return { format: 'pdf', status: 'not_implemented' };
   }
+}
+
+/**
+ * @param {Array<{ id: string } & Record<string, unknown>>} rawMatches
+ * @returns {Promise<Array<ReturnType<typeof normalizeMatchDocument>>>}
+ */
+async function enrichMatchesWithTeams(rawMatches) {
+  const normalized = rawMatches.map((match) => normalizeMatchDocument(match.id, match));
+  const teamIds = normalized.flatMap((match) => [match.homeTeamId, match.awayTeamId]).filter(Boolean);
+  const teams = await getTeamsByIds(teamIds);
+
+  return normalized.map((match) => ({
+    ...match,
+    homeTeam: teams.get(match.homeTeamId) ?? null,
+    awayTeam: teams.get(match.awayTeamId) ?? null,
+  }));
 }
 
 export const predictionManagementService = new PredictionManagementServiceClass();

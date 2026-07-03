@@ -71,38 +71,102 @@ async function initAdminPredictionsPage(outlet) {
     let currentPage = 1;
     let pageSize = PREDICTION_LIST_PAGE_SIZE;
     let sortField = PREDICTION_SORT_FIELD.SUBMITTED_AT;
-    /** @type {{ search: string, matchId: string, stage: string, contestantId: string, status: string }} */
+    /** @type {{ search: string, matchId: string, contestantId: string, status: string }} */
     let filterState = {
       search: '',
       matchId: '',
-      stage: '',
       contestantId: '',
       status: '',
     };
+    let paintGeneration = 0;
+
+    const createHandlers = () => ({
+      getState: () => ({
+        selectedTournamentId,
+        viewMode,
+        currentPage,
+        pageSize,
+        sortField,
+        filterState,
+      }),
+      setState: (updates) => {
+        if (updates.selectedTournamentId !== undefined) {
+          selectedTournamentId = updates.selectedTournamentId;
+          currentPage = 1;
+          filterState = {
+            search: '',
+            matchId: '',
+            contestantId: '',
+            status: '',
+          };
+        }
+        if (updates.viewMode !== undefined) {
+          viewMode = updates.viewMode;
+          currentPage = 1;
+          if (viewMode !== PREDICTION_VIEW_MODE.MATCH) {
+            filterState = { ...filterState, matchId: '' };
+          }
+        }
+        if (updates.currentPage !== undefined) {
+          currentPage = updates.currentPage;
+        }
+        if (updates.pageSize !== undefined) {
+          pageSize = updates.pageSize;
+          currentPage = 1;
+        }
+        if (updates.sortField !== undefined) {
+          sortField = updates.sortField;
+        }
+        if (updates.filterState) {
+          filterState = { ...filterState, ...updates.filterState };
+          currentPage = 1;
+        }
+      },
+      paint: () => paint(false),
+      refresh: () => paint(true),
+      tournamentData: () => tournamentData,
+    });
 
     const paint = async (refresh = false) => {
-      if (!selectedTournamentId) {
+      const generation = ++paintGeneration;
+      const tournamentIdForLoad = selectedTournamentId;
+      const handlers = createHandlers();
+
+      if (!tournamentIdForLoad) {
         outlet.innerHTML = renderPredictionListPage({
           tournaments,
           selectedTournamentId: '',
+          filterOptions: {
+            viewMode,
+            filterState,
+          },
         });
-        bindStaticHandlers(outlet);
+        bindPageHandlers(outlet, handlers);
         return;
       }
 
       try {
-        tournamentData = await predictionManagementService.loadTournamentData(
-          selectedTournamentId,
+        const data = await predictionManagementService.loadTournamentData(
+          tournamentIdForLoad,
           refresh,
         );
+
+        if (generation !== paintGeneration || tournamentIdForLoad !== selectedTournamentId) {
+          return;
+        }
+
+        tournamentData = data;
       } catch (error) {
+        if (generation !== paintGeneration) {
+          return;
+        }
+
         Logger.error('[AdminPredictions] Load failed:', error);
         outlet.innerHTML = renderErrorState(getErrorMessage(error));
         showErrorToast(getErrorMessage(error));
         return;
       }
 
-      const showResults = tournamentData.matches.some((match) => match.result?.published);
       const filtered = applyViewAndFilters(tournamentData, viewMode, filterState, sortField);
       const pagination = PredictionManagementDomain.paginatePredictions(
         filtered,
@@ -117,11 +181,9 @@ async function initAdminPredictionsPage(outlet) {
         totalPages: pagination.totalPages,
         totalRecords: pagination.totalRecords,
         pageSize,
-        showResults,
       };
 
       const contestants = predictionManagementService.getContestantsWithPredictions(tournamentData);
-      const stages = predictionManagementService.getAvailableStages(tournamentData.matches);
 
       outlet.innerHTML = renderPredictionListPage({
         tournaments,
@@ -134,7 +196,6 @@ async function initAdminPredictionsPage(outlet) {
           viewMode,
           matches: tournamentData.matches,
           contestants,
-          stages,
           filterState,
         },
       });
@@ -153,43 +214,7 @@ async function initAdminPredictionsPage(outlet) {
         tableContainer.innerHTML = contentHtml;
       }
 
-      bindPageHandlers(outlet, {
-        getState: () => ({
-          selectedTournamentId,
-          viewMode,
-          currentPage,
-          pageSize,
-          sortField,
-          filterState,
-        }),
-        setState: (updates) => {
-          if (updates.selectedTournamentId !== undefined) {
-            selectedTournamentId = updates.selectedTournamentId;
-            currentPage = 1;
-          }
-          if (updates.viewMode !== undefined) {
-            viewMode = updates.viewMode;
-            currentPage = 1;
-          }
-          if (updates.currentPage !== undefined) {
-            currentPage = updates.currentPage;
-          }
-          if (updates.pageSize !== undefined) {
-            pageSize = updates.pageSize;
-            currentPage = 1;
-          }
-          if (updates.sortField !== undefined) {
-            sortField = updates.sortField;
-          }
-          if (updates.filterState) {
-            filterState = { ...filterState, ...updates.filterState };
-            currentPage = 1;
-          }
-        },
-        paint: () => paint(false),
-        refresh: () => paint(true),
-        tournamentData: () => tournamentData,
-      });
+      bindPageHandlers(outlet, handlers);
     };
 
     await paint(false);
@@ -220,7 +245,14 @@ function applyViewAndFilters(data, viewMode, filterState, sortField) {
     predictions = predictions.filter((item) => item.userId === filterState.contestantId);
   }
 
-  const filtered = PredictionManagementDomain.filterPredictions(predictions, filterState);
+  const scopedFilters = {
+    search: filterState.search,
+    status: filterState.status,
+    ...(filterState.contestantId ? { contestantId: filterState.contestantId } : {}),
+    ...(viewMode === PREDICTION_VIEW_MODE.MATCH && filterState.matchId ? { matchId: filterState.matchId } : {}),
+  };
+
+  const filtered = PredictionManagementDomain.filterPredictions(predictions, scopedFilters);
   return PredictionManagementDomain.sortPredictions(filtered, sortField, 'desc');
 }
 
@@ -290,21 +322,7 @@ function bindPageHandlers(outlet, handlers) {
     void handlers.paint();
   });
 
-  bindFilterSelect(outlet, '#predictionMatchFilter', 'matchId', handlers);
-  bindFilterSelect(outlet, '#predictionContestantFilter', 'contestantId', handlers);
-  bindFilterSelect(outlet, '#predictionStageFilter', 'stage', handlers);
-  bindFilterSelect(outlet, '#predictionStatusFilter', 'status', handlers);
-
-  const searchInput = outlet.querySelector('#predictionSearchInput');
-  let searchTimeout;
-  searchInput?.addEventListener('input', (event) => {
-    const target = /** @type {HTMLInputElement} */ (event.target);
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      handlers.setState({ filterState: { search: target.value } });
-      void handlers.paint();
-    }, 300);
-  });
+  bindFilterApplyHandlers(outlet, handlers);
 
   const sortSelect = outlet.querySelector('#predictionSortField');
   sortSelect?.addEventListener('change', (event) => {
@@ -342,17 +360,34 @@ function bindStaticHandlers(outlet, handlers) {
 
 /**
  * @param {HTMLElement} outlet
- * @param {string} selector
- * @param {string} key
  * @param {Object} handlers
  * @returns {void}
  */
-function bindFilterSelect(outlet, selector, key, handlers) {
-  const element = outlet.querySelector(selector);
-  element?.addEventListener('change', (event) => {
-    const target = /** @type {HTMLSelectElement} */ (event.target);
-    handlers.setState({ filterState: { [key]: target.value } });
+function bindFilterApplyHandlers(outlet, handlers) {
+  const searchInput = outlet.querySelector('#predictionSearchInput');
+  const searchBtn = outlet.querySelector('#predictionSearchBtn');
+  const matchFilter = outlet.querySelector('#predictionMatchFilter');
+  const contestantFilter = outlet.querySelector('#predictionContestantFilter');
+  const statusFilter = outlet.querySelector('#predictionStatusFilter');
+
+  const applyFilters = () => {
+    handlers.setState({
+      filterState: {
+        search: searchInput instanceof HTMLInputElement ? searchInput.value : '',
+        matchId: matchFilter instanceof HTMLSelectElement ? matchFilter.value : '',
+        contestantId: contestantFilter instanceof HTMLSelectElement ? contestantFilter.value : '',
+        status: statusFilter instanceof HTMLSelectElement ? statusFilter.value : '',
+      },
+    });
     void handlers.paint();
+  };
+
+  searchBtn?.addEventListener('click', applyFilters);
+  searchInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      applyFilters();
+    }
   });
 }
 
@@ -451,14 +486,9 @@ function bindPredictionRowHandlers(outlet, handlers) {
  */
 function updateViewModeVisibility(outlet, viewMode) {
   const matchFilter = outlet.querySelector('#predictionMatchFilter');
-  const contestantFilter = outlet.querySelector('#predictionContestantFilter');
 
   if (matchFilter) {
     matchFilter.disabled = viewMode !== PREDICTION_VIEW_MODE.MATCH;
-  }
-
-  if (contestantFilter) {
-    contestantFilter.disabled = viewMode !== PREDICTION_VIEW_MODE.CONTESTANT;
   }
 }
 

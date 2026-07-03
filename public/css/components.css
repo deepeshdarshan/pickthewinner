@@ -1528,49 +1528,44 @@
 
 .ptw-match-table th:nth-child(2),
 .ptw-match-table td:nth-child(2) {
-  width: 3rem;
+  min-width: 14rem;
+  width: 38%;
+}
+
+.ptw-match-table__match-cell .ptw-teams-matchup {
+  flex-wrap: nowrap;
 }
 
 .ptw-match-table th:nth-child(3),
 .ptw-match-table td:nth-child(3) {
-  min-width: 20rem;
-  width: 36%;
-}
-
-.ptw-match-table__match-cell .ptw-match-table__teams {
-  flex-wrap: wrap;
-  row-gap: var(--ptw-space-1);
+  min-width: 8rem;
+  width: 18%;
 }
 
 .ptw-match-table th:nth-child(4),
 .ptw-match-table td:nth-child(4) {
   min-width: 9rem;
   width: 16%;
+  white-space: nowrap;
 }
 
 .ptw-match-table th:nth-child(5),
 .ptw-match-table td:nth-child(5) {
-  min-width: 8rem;
-  width: 14%;
+  min-width: 5.5rem;
+  width: 8%;
   white-space: nowrap;
 }
 
 .ptw-match-table th:nth-child(6),
 .ptw-match-table td:nth-child(6) {
-  min-width: 4.5rem;
-  width: 8%;
-  white-space: normal;
-}
-
-.ptw-match-table th:nth-child(7),
-.ptw-match-table td:nth-child(7) {
-  min-width: 5.5rem;
-  width: 9%;
+  min-width: 9rem;
+  width: 12%;
   white-space: nowrap;
 }
 
 .ptw-match-table__actions {
   gap: 0.25rem;
+  flex-wrap: nowrap;
 }
 
 .ptw-match-table__actions .btn {
@@ -1658,7 +1653,8 @@
 
 @media (min-width: 1200px) {
   .ptw-match-cards {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ptw-space-4);
   }
 }
 
@@ -2168,6 +2164,10 @@
   max-width: 24rem;
 }
 
+.ptw-filter-bar__field--search .input-group {
+  width: 100%;
+}
+
 @media (min-width: 1200px) {
   .ptw-filter-bar__field {
     max-width: 12rem;
@@ -2207,55 +2207,71 @@
 
 .ptw-prediction-table th:nth-child(2),
 .ptw-prediction-table td:nth-child(2) {
-  min-width: 10rem;
-  width: 18%;
+  min-width: 9rem;
+  width: 14%;
 }
 
 .ptw-prediction-table th:nth-child(3),
 .ptw-prediction-table td:nth-child(3) {
-  min-width: 8rem;
-  width: 12%;
+  min-width: 7rem;
+  width: 10%;
 }
 
 .ptw-prediction-table th:nth-child(4),
 .ptw-prediction-table td:nth-child(4) {
-  min-width: 12rem;
-  width: 20%;
+  min-width: 10rem;
+  width: 16%;
 }
 
 .ptw-prediction-table th:nth-child(5),
 .ptw-prediction-table td:nth-child(5) {
-  min-width: 5rem;
-  width: 8%;
+  min-width: 6rem;
+  width: 11%;
 }
 
 .ptw-prediction-table th:nth-child(6),
 .ptw-prediction-table td:nth-child(6) {
-  min-width: 4rem;
-  width: 7%;
+  min-width: 5rem;
+  width: 8%;
 }
 
 .ptw-prediction-table th:nth-child(7),
 .ptw-prediction-table td:nth-child(7) {
-  min-width: 5rem;
-  width: 8%;
+  min-width: 10rem;
+  width: 16%;
 }
 
 .ptw-prediction-table th:nth-child(8),
 .ptw-prediction-table td:nth-child(8) {
   min-width: 6rem;
-  width: 9%;
+  width: 11%;
 }
 
 .ptw-prediction-table th:nth-child(9),
 .ptw-prediction-table td:nth-child(9) {
-  min-width: 6rem;
-  width: 9%;
+  min-width: 4rem;
+  width: 6%;
 }
 
-.ptw-prediction-table th:nth-child(10),
-.ptw-prediction-table td:nth-child(10) {
-  min-width: 5rem;
-  width: 7%;
+/* Admin list tabs (tournaments / matches) */
+.ptw-admin-list-tabs__nav {
+  border-bottom-color: var(--ptw-color-border);
+}
+
+.ptw-admin-list-tabs__nav .nav-link {
+  color: var(--ptw-color-text-muted);
+  border-color: transparent;
+}
+
+.ptw-admin-list-tabs__nav .nav-link:hover,
+.ptw-admin-list-tabs__nav .nav-link:focus {
+  color: var(--ptw-color-text-primary);
+  border-color: var(--ptw-color-border) var(--ptw-color-border) transparent;
+}
+
+.ptw-admin-list-tabs__nav .nav-link.active {
+  color: var(--ptw-color-text-primary);
+  background-color: transparent;
+  border-color: var(--ptw-color-border) var(--ptw-color-border) var(--ptw-color-bg-secondary);
 }
 

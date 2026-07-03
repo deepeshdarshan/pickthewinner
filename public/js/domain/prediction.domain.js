@@ -3,6 +3,8 @@
  * @module domain/prediction.domain
  */
 
+import { WINNER_RESOLUTION } from './match.domain.js';
+
 /** @enum {string} */
 export const PENALTY_WINNER = Object.freeze({
   HOME: 'HOME',
@@ -135,9 +137,9 @@ export const PredictionDomain = {
    * @returns {string|null} 'HOME', 'AWAY', or null for a true draw
    */
   resolveResultWinnerSide(result, match) {
-    const winnerId = String(result.winningTeamId ?? '');
+    if (String(result.winnerResolution) === WINNER_RESOLUTION.PENALTIES) {
+      const winnerId = String(result.winningTeamId ?? '');
 
-    if (winnerId) {
       if (winnerId === String(match.homeTeamId ?? '')) {
         return PENALTY_WINNER.HOME;
       }
@@ -145,6 +147,8 @@ export const PredictionDomain = {
       if (winnerId === String(match.awayTeamId ?? '')) {
         return PENALTY_WINNER.AWAY;
       }
+
+      return null;
     }
 
     const homeScore = Number(result.homeScore ?? 0);

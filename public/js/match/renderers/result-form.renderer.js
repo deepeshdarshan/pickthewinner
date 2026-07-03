@@ -17,11 +17,13 @@ import { MATCH_STATUS } from '../match.constants.js';
  * @param {Record<string, unknown>|null} tournamentConfig
  * @returns {string}
  */
-export function renderResultForm(match, tournamentConfig) {
+export function renderResultForm(match, _tournamentConfig) {
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-  const requiresWinner = Boolean(tournamentConfig?.requiresWinner ?? true);
+  const resolution = String(result.winnerResolution ?? WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME);
+  const isPenalties = resolution === WINNER_RESOLUTION.PENALTIES;
   const isRecalculate = match.scoringStatus === 'completed';
   const readOnly = match.status === MATCH_STATUS.RESULT_PUBLISHED && !isRecalculate;
+  const storedWinnerId = isPenalties ? String(result.winningTeamId ?? '') : '';
 
   return `
     <div class="card ptw-card mb-3" id="ptw-match-result-panel">
@@ -66,21 +68,22 @@ export function renderResultForm(match, tournamentConfig) {
       return `<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`;
     }).join(''),
   })}
-            ${requiresWinner ? renderIconSelectField({
+            ${renderIconSelectField({
     id: 'ptw-match-result-winningTeamId',
     name: 'winningTeamId',
     label: 'Winning Team',
     icon: 'bi-award',
-    required: true,
-    disabled: readOnly,
+    required: isPenalties,
+    disabled: readOnly || !isPenalties,
     optionsHtml: [
+      { value: '', label: 'Select winning team' },
       { value: match.homeTeamId, label: match.homeTeam?.name ?? 'Home Team' },
       { value: match.awayTeamId, label: match.awayTeam?.name ?? 'Away Team' },
     ].map((option) => {
-      const selected = option.value === String(result.winningTeamId ?? '') ? ' selected' : '';
-      return `<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`;
+      const selected = option.value === storedWinnerId ? ' selected' : '';
+      return `<option value="${escapeHtml(String(option.value))}"${selected}>${escapeHtml(option.label)}</option>`;
     }).join(''),
-  }) : ''}
+  })}
             ${renderIconTextareaField({
     id: 'ptw-match-result-notes',
     name: 'notes',

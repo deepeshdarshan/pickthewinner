@@ -11,6 +11,7 @@ import { escapeHtml } from '../../utils/html.util.js';
 import { renderTeamInlineHtml, renderTeamsMatchupHtml } from '../../master-data/teams/team-flag.util.js';
 import { MATCH_LIFECYCLE_ACTIONS, MATCH_STATUS, getRoundLabel } from '../match.constants.js';
 import { MatchDomain } from '../../domain/match.domain.js';
+import { PredictionDomain } from '../../domain/prediction.domain.js';
 
 /**
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
@@ -230,10 +231,11 @@ export function renderContestantMatchDetail(match) {
 function renderPublishedResult(match, result) {
   const home = match.homeTeam;
   const away = match.awayTeam;
-  const winnerId = String(result.winningTeamId ?? '');
-  const winnerTeam = winnerId === match.homeTeamId
+  const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
+  const winnerSide = PredictionDomain.resolveResultWinnerSide(result, match);
+  const winnerTeam = winnerSide === 'HOME'
     ? home
-    : (winnerId === match.awayTeamId ? away : null);
+    : (winnerSide === 'AWAY' ? away : null);
 
   return `
     <hr>
@@ -245,7 +247,7 @@ function renderPublishedResult(match, result) {
       <strong>${escapeHtml(String(result.awayScore ?? ''))}</strong>
       ${renderTeamInlineHtml(away, { fallback: 'Away' })}
     </p>
-    <p class="mb-1 d-flex align-items-center gap-1 flex-wrap"><strong>Winner:</strong> ${winnerTeam ? renderTeamInlineHtml(winnerTeam, { fallback: '—' }) : escapeHtml('—')}</p>
+    <p class="mb-1 d-flex align-items-center gap-1 flex-wrap"><strong>Winner:</strong> ${winnerTeam ? renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? '—' }) : escapeHtml('—')}</p>
     <p class="mb-0"><strong>Resolution:</strong> ${escapeHtml(String(result.winnerResolution ?? '—'))}</p>
   `;
 }

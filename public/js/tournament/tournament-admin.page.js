@@ -24,17 +24,23 @@ import {
   goLive,
   listTournamentsForAdmin,
   publishTournament,
+  restoreTournament,
   setActiveTournament,
   deactivateTournament,
   updateTournament,
 } from './tournament.service.js';
+import {
+  activateAdminListTab,
+  consumeAdminTabFlag,
+  setAdminTabFlag,
+} from '../components/admin-list-tabs.component.js';
 import {
   applyFormErrors,
   mountTournamentListLoading,
   readTournamentForm,
   renderTournamentDetailPage,
   renderTournamentFormPage,
-  renderTournamentListPage,
+  renderTournamentListPageWithTabs,
   renderTournamentNotFound,
   bindTournamentMatchBehaviourPreview,
 } from './tournament.renderer.js';
@@ -86,14 +92,25 @@ async function initTournamentAdminPage(outlet) {
  * @param {HTMLElement} outlet
  * @returns {Promise<void>}
  */
-async function renderListView(outlet) {
+async function renderListView(outlet, options = {}) {
+  const { activeTabId = consumeAdminTabFlag('tournaments-archived') ? 'archived' : 'active' } = options;
+
   mountTournamentListLoading(outlet);
   showLoadingOverlay(TOURNAMENT_MESSAGES.LOADING);
 
   try {
-    const tournaments = await listTournamentsForAdmin();
-    outlet.innerHTML = renderTournamentListPage(tournaments);
-    bindListDeleteActions(outlet);
+    const [activeTournaments, archivedTournaments] = await Promise.all([
+      listTournamentsForAdmin(),
+      listTournamentsForAdmin({ archivedOnly: true }),
+    ]);
+
+    outlet.innerHTML = renderTournamentListPageWithTabs(activeTournaments, archivedTournaments, { activeTabId });
+    bindListDeleteActions(outlet, () => renderListView(outlet));
+    bindArchivedActions(outlet, () => renderListView(outlet, { activeTabId: 'archived' }));
+
+    if (activeTabId === 'archived') {
+      activateAdminListTab(outlet, 'archived', 'ptw-tournament-list-tabs');
+    }
   } catch (error) {
     Logger.error('[TournamentAdmin] List failed:', error);
     outlet.innerHTML = renderTournamentNotFound(getTournamentErrorMessage(error));
@@ -277,6 +294,7 @@ async function handleLifecycleAction(action, tournamentId, outlet) {
       case 'archive':
         await archiveTournament(tournamentId, authUser.uid);
         showSuccessToast(TOURNAMENT_MESSAGES.ARCHIVED);
+        setAdminTabFlag('tournaments-archived');
         await navigateTo(TOURNAMENT_ROUTES.ADMIN_LIST);
         return;
       case 'set-active':
@@ -372,15 +390,43 @@ function bindDeleteAction(outlet, tournament) {
 
 /**
  * @param {HTMLElement} outlet
+ * @param {() => Promise<void>} onRefresh
  * @returns {void}
  */
-function bindListDeleteActions(outlet) {
-  outlet.querySelectorAll('[data-ptw-tournament-delete]').forEach((button) => {
+function bindListDeleteActions(outlet, onRefresh) {
+  outlet.querySelectorAll('[data-ptw-tournament-tab="active"] [data-ptw-tournament-delete]').forEach((button) => {
     button.addEventListener('click', () => {
       const tournamentId = button.getAttribute('data-tournament-id');
 
       if (tournamentId) {
-        void handleDeleteTournament(tournamentId, TOURNAMENT_ROUTES.ADMIN_LIST);
+        void handleDeleteTournament(tournamentId, onRefresh);
+      }
+    });
+  });
+}
+
+/**
+ * @param {HTMLElement} outlet
+ * @param {() => Promise<void>} onRefresh
+ * @returns {void}
+ */
+function bindArchivedActions(outlet, onRefresh) {
+  outlet.querySelectorAll('[data-ptw-tournament-tab="archived"] [data-ptw-tournament-restore]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const tournamentId = button.getAttribute('data-tournament-id');
+
+      if (tournamentId) {
+        void handleRestore(tournamentId, onRefresh);
+      }
+    });
+  });
+
+  outlet.querySelectorAll('[data-ptw-tournament-tab="archived"] [data-ptw-tournament-delete]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const tournamentId = button.getAttribute('data-tournament-id');
+
+      if (tournamentId) {
+        void handleDeleteTournament(tournamentId, onRefresh);
       }
     });
   });
@@ -388,10 +434,48 @@ function bindListDeleteActions(outlet) {
 
 /**
  * @param {string} tournamentId
- * @param {string} redirectTo
+ * @param {() => Promise<void>} onSuccess
  * @returns {Promise<void>}
  */
-async function handleDeleteTournament(tournamentId, redirectTo) {
+async function handleRestore(tournamentId, onSuccess) {
+  const authUser = getCurrentUser();
+
+  if (!authUser) {
+    showErrorToast(TOURNAMENT_MESSAGES.PERMISSION_DENIED);
+    return;
+  }
+
+  const confirmed = await showConfirmationModal({
+    title: 'Restore Tournament',
+    message: TOURNAMENT_MESSAGES.CONFIRM_RESTORE,
+    confirmLabel: 'Restore',
+    confirmClass: 'btn-success',
+  });
+
+  if (!confirmed) {
+    return;
+  }
+
+  showLoadingOverlay(TOURNAMENT_MESSAGES.UPDATING);
+
+  try {
+    await restoreTournament(tournamentId, authUser.uid);
+    showSuccessToast(TOURNAMENT_MESSAGES.RESTORED);
+    await onSuccess();
+  } catch (error) {
+    Logger.error('[TournamentAdmin] Restore failed:', error);
+    showErrorToast(getTournamentErrorMessage(error));
+  } finally {
+    hideLoadingOverlay();
+  }
+}
+
+/**
+ * @param {string} tournamentId
+ * @param {string | (() => Promise<void>)} redirectToOrCallback
+ * @returns {Promise<void>}
+ */
+async function handleDeleteTournament(tournamentId, redirectToOrCallback) {
   const authUser = getCurrentUser();
 
   if (!authUser) {
@@ -415,7 +499,12 @@ async function handleDeleteTournament(tournamentId, redirectTo) {
   try {
     await deleteTournament(tournamentId, authUser.uid);
     showSuccessToast(TOURNAMENT_MESSAGES.DELETED);
-    await navigateTo(redirectTo);
+
+    if (typeof redirectToOrCallback === 'function') {
+      await redirectToOrCallback();
+    } else {
+      await navigateTo(redirectToOrCallback);
+    }
   } catch (error) {
     Logger.error('[TournamentAdmin] Delete failed:', error);
     showErrorToast(getTournamentErrorMessage(error));

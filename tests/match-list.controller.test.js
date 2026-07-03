@@ -41,6 +41,15 @@ describe('match-list.util', () => {
     assert.equal(filtered[0].id, '1');
   });
 
+  it('filters matches by kickoff date in display timezone', () => {
+    const filtered = filterMatches(sampleMatches, {
+      date: '2026-06-02',
+    });
+
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].id, '1');
+  });
+
   it('paginates match lists', () => {
     const page = paginateMatches(sampleMatches, 1, 2);
     assert.equal(page.pageMatches.length, 2);

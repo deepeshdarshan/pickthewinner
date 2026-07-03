@@ -10,6 +10,10 @@ import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.
 import { PredictionDomain } from '../../../domain/prediction.domain.js';
 import { renderPredictionStatusBadge, renderResultBadge } from './prediction-status-badge.renderer.js';
 import { renderModal } from '../../../components/modal-wrapper.component.js';
+import {
+  resolveContestantDisplayName,
+  renderPredictedWinnerHtml,
+} from './prediction-display.renderer.js';
 
 const DETAIL_MODAL_ID = 'predictionDetailModal';
 
@@ -23,7 +27,7 @@ export function renderPredictionDetailBody(prediction) {
   const tournament = prediction.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
   const hasResult = Boolean(result.published);
-  const contestantName = String(contestant.displayName ?? contestant.fullName ?? contestant.email ?? 'Unknown');
+  const contestantName = resolveContestantDisplayName(contestant);
   const breakdown = /** @type {Array<{ label: string, points: number, correct: boolean }>} */ (
     prediction.scoringBreakdown ?? []
   );
@@ -40,7 +44,6 @@ export function renderPredictionDetailBody(prediction) {
           ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 48 })}
           <div>
             <p class="fw-semibold mb-0">${escapeHtml(contestantName)}</p>
-            <p class="text-muted small mb-0">${escapeHtml(String(contestant.email ?? ''))}</p>
           </div>
         </div>
       </div>
@@ -50,8 +53,6 @@ export function renderPredictionDetailBody(prediction) {
         <dl class="row mb-0 small">
           <dt class="col-5">Tournament</dt>
           <dd class="col-7">${escapeHtml(String(tournament.name ?? ''))}</dd>
-          <dt class="col-5">Stage</dt>
-          <dd class="col-7">${escapeHtml(String(match.stage ?? match.round ?? '—'))}</dd>
           <dt class="col-5">Match #</dt>
           <dd class="col-7">${escapeHtml(String(match.matchNumber ?? '—'))}</dd>
           <dt class="col-5">Kickoff</dt>
@@ -64,17 +65,17 @@ export function renderPredictionDetailBody(prediction) {
       <div class="col-md-6">
         <h3 class="h6 text-muted text-uppercase">Prediction</h3>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
-          ${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })}
+          ${renderTeamInlineHtml(match.homeTeam, { fallback: 'TBD' })}
           <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong>
         </p>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
-          ${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })}
+          ${renderTeamInlineHtml(match.awayTeam, { fallback: 'TBD' })}
           <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong>
         </p>
-        ${prediction.predictedWinnerName ? `<p class="mb-1"><strong>Predicted Winner:</strong> ${escapeHtml(prediction.predictedWinnerName)}</p>` : ''}
-        <p class="mb-1">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
-        <p class="small text-muted mb-0">Submitted ${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</p>
-        <p class="small text-muted mb-0">Updated ${escapeHtml(formatDateTime(prediction.updatedAt) || '—')}</p>
+        <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
+          <strong>Predicted Winner:</strong> ${renderPredictedWinnerHtml(match, prediction)}
+        </p>
+        <p class="mb-0">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
       </div>
 
       ${hasResult ? `
@@ -111,7 +112,7 @@ export function renderPredictionDetailBody(prediction) {
  */
 export function renderPredictionDetailModal(prediction) {
   const contestant = prediction.contestant ?? {};
-  const name = String(contestant.displayName ?? contestant.fullName ?? 'Prediction Detail');
+  const name = resolveContestantDisplayName(contestant);
 
   return renderModal({
     id: DETAIL_MODAL_ID,

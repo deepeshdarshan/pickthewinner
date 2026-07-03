@@ -7,6 +7,7 @@ import { escapeHtml } from '../../../utils/html.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { renderPredictionTable } from './list.renderer.js';
 import { renderStatTileGrid } from '../../../components/statistic-card.component.js';
+import { resolveContestantDisplayName } from './prediction-display.renderer.js';
 
 /**
  * @param {Record<string, unknown>} contestant
@@ -14,7 +15,7 @@ import { renderStatTileGrid } from '../../../components/statistic-card.component
  * @returns {string}
  */
 export function renderContestantHeader(contestant, stats) {
-  const name = String(contestant.displayName ?? contestant.fullName ?? contestant.email ?? 'Unknown');
+  const name = resolveContestantDisplayName(contestant);
 
   return `
     <div class="card ptw-card mb-3">
@@ -23,7 +24,6 @@ export function renderContestantHeader(contestant, stats) {
           ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 40 })}
           <div class="min-w-0">
             <h2 class="h6 mb-0">${escapeHtml(name)}</h2>
-            <p class="small text-muted mb-0 text-truncate">${escapeHtml(String(contestant.email ?? ''))}</p>
           </div>
         </div>
         ${renderStatTileGrid([

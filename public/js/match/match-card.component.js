@@ -12,6 +12,7 @@ import {
 } from '../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
+import { MatchDomain } from '../domain/match.domain.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
 
 /**
@@ -45,15 +46,16 @@ export function renderMatchCard(options) {
 
   const predictionStatus = getPredictionStatus(match, prediction);
   const statusBadge = renderPredictionStatusBadge(predictionStatus);
+  const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
 
   return `
     <div class="card ptw-card ptw-match-card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-          <span class="badge bg-secondary me-2">${escapeHtml(match.round || 'TBD')}</span>
+          ${match.round ? `<span class="badge bg-secondary me-2">${escapeHtml(match.round)}</span>` : ''}
           ${statusBadge}
         </div>
-        ${kickoff ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Time remaining' }) : ''}
+        ${showCountdown ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Time remaining' }) : ''}
       </div>
       <div class="card-body">
         <div class="row align-items-center g-3">
@@ -348,7 +350,7 @@ export function renderCompactMatchCard(match, prediction = null) {
         <div class="d-flex justify-content-between align-items-center">
           <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-secondary">${escapeHtml(match.round || 'TBD')}</span>
+              ${match.round ? `<span class="badge bg-secondary">${escapeHtml(match.round)}</span>` : ''}
               ${renderPredictionStatusBadge(predictionStatus)}
             </div>
             <div class="mt-1">

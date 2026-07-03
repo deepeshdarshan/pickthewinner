@@ -10,6 +10,11 @@ import { renderMatchStatusBadge } from '../../../match/renderers/status-badge.re
 import { renderPredictionTable } from './list.renderer.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { renderStatTileGrid } from '../../../components/statistic-card.component.js';
+import {
+  resolveContestantDisplayName,
+  renderPredictedScoreHtml,
+  renderPredictedWinnerHtml,
+} from './prediction-display.renderer.js';
 
 /**
  * @param {Record<string, unknown>} match
@@ -105,7 +110,8 @@ export function renderMatchWiseView(match, predictions, tableOptions = {}, stats
 export function renderMatchWiseCompactList(predictions) {
   return predictions.map((prediction) => {
     const contestant = prediction.contestant ?? {};
-    const name = String(contestant.displayName ?? contestant.fullName ?? 'Unknown');
+    const match = prediction.match ?? {};
+    const name = resolveContestantDisplayName(contestant);
 
     return `
       <div class="border-bottom border-secondary py-2">
@@ -113,9 +119,8 @@ export function renderMatchWiseCompactList(predictions) {
           ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
           <strong class="small">${escapeHtml(name)}</strong>
         </div>
-        <p class="mb-0 small"><span class="text-muted">Prediction:</span> ${escapeHtml(`${prediction.homeScore} - ${prediction.awayScore}`)}</p>
-        ${prediction.predictedWinnerName ? `<p class="mb-0 small"><span class="text-muted">Winner:</span> ${escapeHtml(prediction.predictedWinnerName)}</p>` : ''}
-        <p class="small text-muted mb-0">Submitted ${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</p>
+        <p class="mb-0 small"><span class="text-muted">Prediction:</span> ${renderPredictedScoreHtml(match, prediction)}</p>
+        <p class="mb-0 small d-flex align-items-center gap-1 flex-wrap"><span class="text-muted">Winner:</span> ${renderPredictedWinnerHtml(match, prediction)}</p>
       </div>
     `;
   }).join('');

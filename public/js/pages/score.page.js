@@ -8,6 +8,7 @@ import { renderContestantPageHeader } from '../components/page-header.component.
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
+import { renderAdminListTabs } from '../components/admin-list-tabs.component.js';
 import { initializeCountdowns } from '../components/countdown.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
@@ -144,100 +145,113 @@ function renderScorePage(options) {
 
       <!-- Statistics -->
       <div class="row g-3 mb-4">
-        ${renderStatisticCard({
-          icon: 'bi-trophy',
-          title: 'Total Points',
-          value: stats.totalPoints,
-          variant: 'primary',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-check-circle',
-          title: 'Correct Winners',
-          value: stats.correctWinners,
-          subtitle: `${stats.accuracy}% accuracy`,
-          variant: 'success',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-bullseye',
-          title: 'Exact Scores',
-          value: stats.exactScores,
-          variant: 'info',
-        })}
-        ${renderStatisticCard({
-          icon: 'bi-graph-up',
-          title: 'Predictions',
-          value: stats.totalPredictions,
-          subtitle: `${stats.totalCompleted} completed`,
-          variant: 'secondary',
-        })}
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            icon: 'bi-trophy',
+            label: 'Total Points',
+            value: stats.totalPoints,
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            icon: 'bi-check-circle',
+            label: 'Correct Winners',
+            value: stats.correctWinners,
+            trend: `${stats.accuracy}% accuracy`,
+            trendDirection: 'neutral',
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            icon: 'bi-bullseye',
+            label: 'Exact Scores',
+            value: stats.exactScores,
+          })}
+        </div>
+        <div class="col-6 col-md-3">
+          ${renderStatisticCard({
+            icon: 'bi-graph-up',
+            label: 'Predictions',
+            value: stats.totalPredictions,
+            trend: `${stats.totalCompleted} completed`,
+            trendDirection: 'neutral',
+          })}
+        </div>
       </div>
 
-      <!-- Tabs -->
-      <ul class="nav nav-tabs mb-3" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="true">
-            Completed (${completedMatches.length})
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">
-            Pending (${pendingMatches.length})
-          </button>
-        </li>
-      </ul>
-
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <!-- Completed Tab -->
-        <div class="tab-pane fade show active" id="completed" role="tabpanel" aria-labelledby="completed-tab">
-          ${completedMatches.length > 0 ? `
-            <div class="ptw-match-cards">
-              ${completedMatches.map((match) => renderMatchCard({
-              match,
-              showPrediction: true,
-              prediction: predictionsMap.get(match.id) || null,
+      ${renderAdminListTabs({
+        groupId: 'ptw-score-tabs',
+        activeTabId: 'completed',
+        tabs: [
+          {
+            id: 'completed',
+            label: 'Completed',
+            count: completedMatches.length,
+            contentHtml: renderScoreMatchTab(completedMatches, predictionsMap, {
+              emptyTitle: 'No Completed Matches',
+              emptyMessage: 'Results will appear here once matches are completed.',
+              emptyIcon: 'bi-calendar-check',
               showResult: true,
               showPoints: true,
-            })).join('')}
-            </div>
-          ` : `
-            <div class="card ptw-card">
-              <div class="card-body">
-                ${renderEmptyState({
-                  title: 'No Completed Matches',
-                  message: 'Results will appear here once matches are completed.',
-                  icon: 'bi-calendar-check',
-                })}
-              </div>
-            </div>
-          `}
-        </div>
-
-        <!-- Pending Tab -->
-        <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
-          ${pendingMatches.length > 0 ? `
-            <div class="ptw-match-cards">
-              ${pendingMatches.map((match) => renderMatchCard({
-              match,
-              showPrediction: true,
-              prediction: predictionsMap.get(match.id) || null,
+            }),
+          },
+          {
+            id: 'pending',
+            label: 'Pending',
+            count: pendingMatches.length,
+            contentHtml: renderScoreMatchTab(pendingMatches, predictionsMap, {
+              emptyTitle: 'No Pending Matches',
+              emptyMessage: 'All matches have been completed.',
+              emptyIcon: 'bi-check-circle',
               showResult: false,
               showPoints: false,
-            })).join('')}
-            </div>
-          ` : `
-            <div class="card ptw-card">
-              <div class="card-body">
-                ${renderEmptyState({
-                  title: 'No Pending Matches',
-                  message: 'All matches have been completed.',
-                  icon: 'bi-check-circle',
-                })}
-              </div>
-            </div>
-          `}
+            }),
+          },
+        ],
+      })}
+    </div>
+  `;
+}
+
+/**
+ * Renders match cards or empty state for a score page tab.
+ * @param {import('../match/match.service.js').EnrichedMatch[]} matches
+ * @param {Map<string, Record<string, unknown>>} predictionsMap
+ * @param {Object} options
+ * @returns {string}
+ */
+function renderScoreMatchTab(matches, predictionsMap, options) {
+  const {
+    emptyTitle,
+    emptyMessage,
+    emptyIcon,
+    showResult,
+    showPoints,
+  } = options;
+
+  if (matches.length === 0) {
+    return `
+      <div class="card ptw-card">
+        <div class="card-body">
+          ${renderEmptyState({
+            title: emptyTitle,
+            message: emptyMessage,
+            icon: emptyIcon,
+          })}
         </div>
       </div>
+    `;
+  }
+
+  return `
+    <div class="ptw-match-cards">
+      ${matches.map((match) => renderMatchCard({
+        match,
+        showPrediction: true,
+        prediction: predictionsMap.get(match.id) || null,
+        showResult,
+        showPoints,
+      })).join('')}
     </div>
   `;
 }

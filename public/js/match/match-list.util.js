@@ -66,8 +66,8 @@ export function filterMatches(matches, filters) {
     }
 
     if (filters.date) {
-      const kickoff = toKickoffDate(match.kickoffUtc);
-      if (!kickoff || kickoff.toISOString().slice(0, 10) !== filters.date) {
+      const kickoffDate = formatKickoffDateForFilter(match.kickoffUtc);
+      if (!kickoffDate || kickoffDate !== filters.date) {
         return false;
       }
     }
@@ -105,6 +105,22 @@ export function paginateMatches(matches, page, pageSize = MATCH_LIST_PAGE_SIZE) 
 function toKickoffTime(value) {
   const date = toKickoffDate(value);
   return date ? date.getTime() : 0;
+}
+
+/** @type {Readonly<string>} */
+const MATCH_DISPLAY_TIMEZONE = 'Asia/Kolkata';
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function formatKickoffDateForFilter(value) {
+  const date = toKickoffDate(value);
+  if (!date) {
+    return '';
+  }
+
+  return date.toLocaleDateString('en-CA', { timeZone: MATCH_DISPLAY_TIMEZONE });
 }
 
 /**

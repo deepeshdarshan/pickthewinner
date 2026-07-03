@@ -7,9 +7,7 @@ import { renderPageHeader } from '../../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../../components/empty-state.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateTime } from '../../../utils/date.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
-import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import {
   PREDICTION_VIEW_MODE,
   PREDICTION_ADMIN_STATUS,
@@ -18,10 +16,17 @@ import {
   PREDICTION_PAGE_SIZE_OPTIONS,
   PREDICTION_MANAGEMENT_MESSAGES,
 } from '../prediction-management.constants.js';
-import { renderPredictionStatusBadge, renderResultBadge } from './prediction-status-badge.renderer.js';
 import { renderPredictionCardList } from './prediction-card.renderer.js';
 import { renderPredictionStatisticsCards } from './statistics-cards.renderer.js';
 import { renderFilterBar, renderFilterField } from '../../../components/filter-bar.component.js';
+import {
+  resolveContestantDisplayName,
+  renderPredictedScoreHtml,
+  renderPredictedWinnerHtml,
+  renderActualScoreHtml,
+  renderActualWinnerHtml,
+  renderPointsHtml,
+} from './prediction-display.renderer.js';
 
 /**
  * @returns {string}
@@ -73,7 +78,6 @@ export function renderPredictionFilters(options) {
     viewMode = PREDICTION_VIEW_MODE.LIST,
     matches = [],
     contestants = [],
-    stages = [],
     tournaments = [],
     selectedTournamentId = '',
     filterState = {},
@@ -86,17 +90,13 @@ export function renderPredictionFilters(options) {
   `).join('');
 
   const contestantOptions = contestants.map((contestant) => {
-    const name = String(contestant.displayName ?? contestant.fullName ?? contestant.email ?? contestant.uid);
+    const name = resolveContestantDisplayName(contestant);
     return `
       <option value="${escapeHtml(String(contestant.uid))}"${filterState.contestantId === contestant.uid ? ' selected' : ''}>
         ${escapeHtml(name)}
       </option>
     `;
   }).join('');
-
-  const stageOptions = stages.map((stage) => `
-    <option value="${escapeHtml(stage)}"${filterState.stage === stage ? ' selected' : ''}>${escapeHtml(stage)}</option>
-  `).join('');
 
   const statusOptions = Object.values(PREDICTION_ADMIN_STATUS).map((status) => `
     <option value="${escapeHtml(status)}"${filterState.status === status ? ' selected' : ''}>
@@ -136,19 +136,9 @@ export function renderPredictionFilters(options) {
       label: 'Contestant',
       id: 'predictionContestantFilter',
       html: `
-        <select class="form-select" id="predictionContestantFilter" aria-label="Filter by contestant"${viewMode !== PREDICTION_VIEW_MODE.CONTESTANT ? ' disabled' : ''}>
-          <option value="">Select contestant</option>
+        <select class="form-select" id="predictionContestantFilter" aria-label="Filter by contestant">
+          <option value="">All Contestants</option>
           ${contestantOptions}
-        </select>
-      `,
-    }),
-    renderFilterField({
-      label: 'Stage',
-      id: 'predictionStageFilter',
-      html: `
-        <select class="form-select" id="predictionStageFilter" aria-label="Filter by stage">
-          <option value="">All Stages</option>
-          ${stageOptions}
         </select>
       `,
     }),
@@ -168,15 +158,22 @@ export function renderPredictionFilters(options) {
       width: 'search',
       html: `
         <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
           <input
-            type="search"
+            type="text"
             class="form-control"
             id="predictionSearchInput"
             placeholder="Search contestants, matches, teams…"
             value="${escapeHtml(filterState.search ?? '')}"
             aria-label="Search predictions"
           >
+          <button
+            type="button"
+            class="btn btn-ptw-primary"
+            id="predictionSearchBtn"
+            aria-label="Search predictions"
+          >
+            <i class="bi bi-search me-1" aria-hidden="true"></i>Search
+          </button>
         </div>
       `,
     }),
@@ -209,7 +206,6 @@ export function renderPredictionTable(predictions, options = {}) {
     totalPages = 1,
     totalRecords = 0,
     pageSize = 20,
-    showResults = false,
   } = options;
 
   if (predictions.length === 0) {
@@ -224,8 +220,7 @@ export function renderPredictionTable(predictions, options = {}) {
     const contestant = prediction.contestant ?? {};
     const match = prediction.match ?? {};
     const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-    const hasResult = Boolean(result.published);
-    const contestantName = String(contestant.displayName ?? contestant.fullName ?? contestant.email ?? 'Unknown');
+    const contestantName = resolveContestantDisplayName(contestant);
     const rowNumber = (currentPage - 1) * pageSize + index + 1;
 
     return `
@@ -234,42 +229,24 @@ export function renderPredictionTable(predictions, options = {}) {
         <td>
           <div class="d-flex align-items-center gap-2">
             ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
-            <div class="min-w-0">
-              <div class="fw-semibold text-truncate">${escapeHtml(contestantName)}</div>
-              <div class="small text-muted text-truncate">${escapeHtml(String(contestant.email ?? ''))}</div>
-            </div>
+            <div class="min-w-0 fw-semibold text-truncate">${escapeHtml(contestantName)}</div>
           </div>
         </td>
         <td class="d-none d-xl-table-cell">${escapeHtml(String(prediction.tournament?.name ?? ''))}</td>
-        <td>
-          <div class="d-flex flex-wrap align-items-center gap-1">
-            ${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })}
-            <span class="text-muted">vs</span>
-            ${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })}
-          </div>
-        </td>
-        <td class="d-none d-lg-table-cell">${escapeHtml(String(match.stage ?? match.round ?? '—'))}</td>
-        <td class="fw-semibold">${escapeHtml(`${prediction.homeScore} - ${prediction.awayScore}`)}</td>
-        <td class="d-none d-md-table-cell">${escapeHtml(prediction.predictedWinnerName ?? '—')}</td>
-        <td>${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</td>
-        <td class="d-none d-lg-table-cell">${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</td>
-        <td class="d-none d-xl-table-cell">${escapeHtml(formatDateTime(prediction.updatedAt) || '—')}</td>
-        ${showResults && hasResult ? `
-          <td class="d-none d-xl-table-cell">${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</td>
-          <td class="d-none d-xl-table-cell">${renderResultBadge(prediction.winnerPredictionCorrect)}</td>
-          <td class="d-none d-xl-table-cell">${renderResultBadge(prediction.exactScoreCorrect)}</td>
-          <td class="fw-semibold">${escapeHtml(String(prediction.calculatedPoints ?? 0))}</td>
-        ` : ''}
+        <td>${renderPredictedScoreHtml(match, prediction)}</td>
+        <td class="d-none d-md-table-cell">${renderPredictedWinnerHtml(match, prediction)}</td>
+        <td>${renderActualScoreHtml(match, result)}</td>
+        <td class="d-none d-lg-table-cell">${renderActualWinnerHtml(match, result)}</td>
+        <td class="fw-semibold">${renderPointsHtml(prediction, result)}</td>
       </tr>
     `;
   }).join('');
 
-  const resultHeaders = showResults ? `
-    <th scope="col" class="d-none d-xl-table-cell">Actual Score</th>
-    <th scope="col" class="d-none d-xl-table-cell">Winner Result</th>
-    <th scope="col" class="d-none d-xl-table-cell">Exact Score</th>
+  const resultHeaders = `
+    <th scope="col">Actual Score</th>
+    <th scope="col" class="d-none d-lg-table-cell">Actual Winner</th>
     <th scope="col">Points</th>
-  ` : '';
+  `;
 
   const startRecord = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endRecord = Math.min(currentPage * pageSize, totalRecords);
@@ -286,13 +263,8 @@ export function renderPredictionTable(predictions, options = {}) {
             <th scope="col">#</th>
             <th scope="col">Contestant</th>
             <th scope="col" class="d-none d-xl-table-cell">Tournament</th>
-            <th scope="col">Match</th>
-            <th scope="col" class="d-none d-lg-table-cell">Stage</th>
             <th scope="col">Predicted Score</th>
             <th scope="col" class="d-none d-md-table-cell">Predicted Winner</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="d-none d-lg-table-cell">Submitted</th>
-            <th scope="col" class="d-none d-xl-table-cell">Updated</th>
             ${resultHeaders}
           </tr>
         </thead>
@@ -301,7 +273,7 @@ export function renderPredictionTable(predictions, options = {}) {
     </div>
 
     <div class="d-lg-none" aria-label="Prediction cards">
-      ${renderPredictionCardList(predictions, showResults)}
+      ${renderPredictionCardList(predictions)}
     </div>
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 px-3 py-2 border-top border-secondary">
@@ -416,8 +388,8 @@ function partitionTournaments(tournaments) {
  * @returns {string}
  */
 function formatMatchLabel(match) {
-  const home = match.homeTeam?.name ?? 'Home';
-  const away = match.awayTeam?.name ?? 'Away';
+  const home = match.homeTeam?.name ?? 'TBD';
+  const away = match.awayTeam?.name ?? 'TBD';
   const stage = match.stage ?? match.round ?? '';
   return stage ? `${home} vs ${away} (${stage})` : `${home} vs ${away}`;
 }

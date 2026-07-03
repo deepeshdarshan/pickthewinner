@@ -108,6 +108,43 @@ export const MatchDomain = {
   },
 
   /**
+   * Whether a kickoff countdown should appear on contestant match cards.
+   * @param {Record<string, unknown>} match
+   * @param {Date|null} kickoffUtc
+   * @param {Date} [now]
+   * @returns {boolean}
+   */
+  shouldShowKickoffCountdown(match, kickoffUtc, now = new Date()) {
+    if (!kickoffUtc) {
+      return false;
+    }
+
+    if (match.result?.published) {
+      return false;
+    }
+
+    const status = this.normalizeStatus(String(match.status ?? ''));
+    if (
+      status === MATCH_STATUS.COMPLETED
+      || status === MATCH_STATUS.RESULT_PUBLISHED
+      || status === MATCH_STATUS.LIVE
+      || status === MATCH_STATUS.ARCHIVED
+    ) {
+      return false;
+    }
+
+    if (match.predictionStatus === 'Locked') {
+      return false;
+    }
+
+    if (now >= kickoffUtc) {
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
    * @param {Date} kickoffUtc
    * @param {number} openHours
    * @param {number} lockMinutes
@@ -239,7 +276,7 @@ export const MatchDomain = {
       errors.winnerResolution = 'Select a valid winner resolution.';
     }
 
-    if (tournamentConfig.requiresWinner) {
+    if (resolution === WINNER_RESOLUTION.PENALTIES) {
       const winningTeamId = String(result.winningTeamId ?? '');
 
       if (!winningTeamId) {

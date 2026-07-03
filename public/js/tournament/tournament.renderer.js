@@ -6,6 +6,9 @@
 export {
   renderTournamentListLoading,
   renderTournamentListPage,
+  renderTournamentListPageWithTabs,
+  renderTournamentTableBody,
+  renderTournamentTabPaneBody,
   mountTournamentListLoading,
 } from './renderers/list.renderer.js';
 

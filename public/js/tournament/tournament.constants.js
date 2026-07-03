@@ -17,7 +17,7 @@ export const TOURNAMENT_COLLECTIONS = Object.freeze({
 /** @enum {string} */
 export const TOURNAMENT_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/tournaments',
-  ARCHIVED_LIST: '/admin/tournaments/archived',
+  ARCHIVED_LIST: '/admin/tournaments',
   CONTESTANT_LIST: '/tournaments',
 });
 

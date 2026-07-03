@@ -57,4 +57,26 @@ describe('ScoringDomain', () => {
 
     assert.equal(evaluation.totalPoints, 15);
   });
+
+  it('does not award penalty points for normal time resolution even with winningTeamId set', () => {
+    const evaluation = ScoringDomain.evaluatePrediction(
+      {
+        homeScore: 2,
+        awayScore: 3,
+        predictedWinner: PENALTY_WINNER.HOME,
+      },
+      {
+        homeScore: 2,
+        awayScore: 3,
+        winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+        winningTeamId: 'home-team',
+        homeTeamId: 'home-team',
+        awayTeamId: 'away-team',
+      },
+      { correctMatchScorePoints: 10, correctPenaltyWinnerPoints: 5 },
+    );
+
+    assert.equal(evaluation.totalPoints, 10);
+    assert.equal(evaluation.breakdown.length, 1);
+  });
 });

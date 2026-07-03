@@ -269,6 +269,7 @@ function matchesSearchTerm(prediction, term) {
   const contestant = prediction.contestant ?? {};
   const match = prediction.match ?? {};
   const haystack = [
+    contestant.name,
     contestant.displayName,
     contestant.fullName,
     contestant.email,
@@ -289,7 +290,13 @@ function matchesSearchTerm(prediction, term) {
  */
 function getContestantName(prediction) {
   const contestant = prediction.contestant ?? {};
-  return String(contestant.displayName ?? contestant.fullName ?? contestant.email ?? '');
+  return String(
+    contestant.name
+    ?? contestant.displayName
+    ?? contestant.fullName
+    ?? contestant.email
+    ?? '',
+  );
 }
 
 /**

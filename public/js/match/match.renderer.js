@@ -6,6 +6,8 @@
 export {
   renderMatchListLoading,
   renderMatchListPage,
+  renderMatchListPageWithTabs,
+  renderMatchListTabContent,
   renderArchivedMatchListPage,
   renderMatchFilters,
   mountMatchListLoading,

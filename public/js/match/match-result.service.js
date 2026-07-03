@@ -5,7 +5,7 @@
 
 import { serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 import { getCurrentUser } from '../auth/auth.service.js';
-import { MATCH_STATUS } from '../domain/match.domain.js';
+import { MATCH_STATUS, WINNER_RESOLUTION } from '../domain/match.domain.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { MATCH_MESSAGES } from './match.constants.js';
 import { validateResultPayload } from './match.validator.js';
@@ -50,16 +50,7 @@ export async function publishMatchResult(matchId, payload) {
   }
 
   const user = getCurrentUser();
-  const result = {
-    homeScore: Number(payload.homeScore),
-    awayScore: Number(payload.awayScore),
-    winnerResolution: String(payload.winnerResolution),
-    winningTeamId: String(payload.winningTeamId ?? ''),
-    notes: String(payload.notes ?? ''),
-    published: true,
-    publishedAt: serverTimestamp(),
-    publishedBy: user?.uid ?? '',
-  };
+  const result = buildPersistedResult(payload, user?.uid ?? '');
 
   await matchRepository.update(matchId, {
     result,
@@ -97,19 +88,26 @@ export async function recalculateMatchScores(matchId, payload) {
     throw new Error('Scores can only be recalculated after a result has been published.');
   }
 
+  await TournamentConfigurationService.load(match.tournamentId);
+  const tournamentConfig = {
+    requiresWinner: TournamentConfigurationService.requiresWinner(),
+  };
+
+  const validation = validateResultPayload(
+    payload,
+    tournamentConfig,
+    match.homeTeamId,
+    match.awayTeamId,
+  );
+
+  if (!validation.valid) {
+    throw Object.assign(new Error(MATCH_MESSAGES.VALIDATION_SUMMARY), { validation });
+  }
+
   await ScoringEngine.resetMatchScores(matchId);
 
   const user = getCurrentUser();
-  const result = {
-    homeScore: Number(payload.homeScore),
-    awayScore: Number(payload.awayScore),
-    winnerResolution: String(payload.winnerResolution),
-    winningTeamId: String(payload.winningTeamId ?? ''),
-    notes: String(payload.notes ?? ''),
-    published: true,
-    publishedAt: serverTimestamp(),
-    publishedBy: user?.uid ?? '',
-  };
+  const result = buildPersistedResult(payload, user?.uid ?? '');
 
   await matchRepository.update(matchId, {
     result,
@@ -127,4 +125,27 @@ export async function recalculateMatchScores(matchId, payload) {
   });
 
   emitMatchEvent(MATCH_EVENTS.MATCH_RESULT_PUBLISHED, { matchId, result });
+}
+
+/**
+ * @param {Record<string, unknown>} payload
+ * @param {string} publishedBy
+ * @returns {Record<string, unknown>}
+ */
+function buildPersistedResult(payload, publishedBy) {
+  const winnerResolution = String(payload.winnerResolution);
+  const winningTeamId = winnerResolution === WINNER_RESOLUTION.PENALTIES
+    ? String(payload.winningTeamId ?? '')
+    : '';
+
+  return {
+    homeScore: Number(payload.homeScore),
+    awayScore: Number(payload.awayScore),
+    winnerResolution,
+    winningTeamId,
+    notes: String(payload.notes ?? ''),
+    published: true,
+    publishedAt: serverTimestamp(),
+    publishedBy,
+  };
 }

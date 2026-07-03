@@ -16,7 +16,7 @@ export const MATCH_COLLECTIONS = Object.freeze({
 /** @enum {string} */
 export const MATCH_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/matches',
-  ARCHIVED_LIST: '/admin/matches/archived',
+  ARCHIVED_LIST: '/admin/matches',
   CONTESTANT_LIST: '/matches',
 });
 
