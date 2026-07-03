@@ -182,7 +182,7 @@ export const ROUTES = Object.freeze([
     path: '/predictions/history',
     name: 'predictions-history',
     title: 'Prediction History',
-    pageModule: '../pages/contestant-section.page.js',
+    pageModule: '../pages/prediction-history.page.js',
     showInNavbar: false,
     showInMobileNav: false,
     requiresAuth: true,

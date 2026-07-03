@@ -75,17 +75,27 @@ Complete prediction management interface:
 ### 5. Enhanced Score Page
 **File:** `public/js/pages/score.page.js`
 
-Prediction history and results viewer:
+Active tournament quick score summary:
 - Statistics dashboard (Points, Correct Winners, Exact Scores, Accuracy)
 - Tabbed interface (Completed / Pending matches)
 - Match cards with result comparisons
-- Points earned display
+- Points earned from stored `calculatedPoints`
+- Link to full cross-tournament history at `/predictions/history`
+
+### 5b. Prediction History Page
+**File:** `public/js/pages/prediction-history.page.js`
+
+Cross-tournament prediction archive:
+- Summary statistics and analytics sidebar
+- Timeline, card, and table views
+- Filters, search, sorting, and pagination
+- Detail view with scoring breakdown and lifecycle timeline
+- Read-only; uses stored scoring data without recalculation
 
 **Features:**
-- Calculates winner prediction accuracy
-- Shows exact score matches
-- Filters completed vs pending matches
-- TODO: Integrate with actual scoring engine for points
+- `PredictionHistoryService` aggregates predictions by user
+- Reuses `PredictionManagementDomain.enrichPrediction` for comparison flags
+- Tournament rank shown when leaderboard is enabled per tournament
 
 ### 6. Enhanced Contestant Dashboard
 **File:** `public/js/pages/dashboard.page.js`

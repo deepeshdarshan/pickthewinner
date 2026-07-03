@@ -69,8 +69,8 @@ export const CONTESTANT_NAV_SECTIONS = Object.freeze([
     label: 'Predictions',
     icon: 'bi-bullseye',
     children: [
-      { path: '/predictions', label: 'My Predictions' },
       { path: '/matches', label: 'Upcoming Matches' },
+      { path: '/predictions', label: 'My Predictions' },
       { path: '/predictions/history', label: 'Prediction History' },
     ],
   },

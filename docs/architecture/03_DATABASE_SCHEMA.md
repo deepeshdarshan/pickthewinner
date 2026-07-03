@@ -184,6 +184,38 @@ Tournament configuration is never duplicated on match documents. Runtime reads u
 
 Penalty shootout goals are never stored.
 
+## Predictions Collection
+
+**Collection:** `predictions`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `userId` | String | Contestant owner (Firebase Auth UID) |
+| `matchId` | String | Parent match reference |
+| `tournamentId` | String | Parent tournament reference |
+| `homeScore` | Integer | Predicted home score |
+| `awayScore` | Integer | Predicted away score |
+| `predictedWinner` | String \| null | `HOME` or `AWAY` when draw winner selection required |
+| `locked` | Boolean | Whether prediction is locked |
+| `status` | String | Lifecycle status (`saved`, `updated`, `locked`, `scored`) |
+| `submittedAt` | Timestamp | Initial submission time |
+| `updatedAt` | Timestamp | Last update time |
+| `calculatedPoints` | Integer | Total points after scoring (read-only for contestants) |
+| `scoringBreakdown` | Array | `{ label, points, correct }` line items from Scoring Engine |
+| `scored` | Boolean | Whether scoring has been applied |
+| `scoredAt` | Timestamp | When scoring was applied |
+
+### Indexes
+
+Contestant prediction history queries use:
+
+```
+Collection: predictions
+Fields: userId ASC, submittedAt DESC
+```
+
+Defined in `firestore.indexes.json`. Contestants may read only documents where `userId == request.auth.uid` (see `firestore.rules`).
+
 ## Audit Logs Collection
 
 **Collection:** `audit_logs`

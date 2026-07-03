@@ -1,0 +1,92 @@
+/**
+ * @fileoverview Card view renderer for prediction history.
+ * @module prediction/history/renderers/prediction-history-card.renderer
+ */
+
+import { escapeHtml } from '../../../utils/html.util.js';
+import { formatDateDisplay } from '../../../utils/date.util.js';
+import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
+import {
+  renderPredictedScoreHtml,
+  renderActualScoreHtml,
+  renderPointsHtml,
+} from '../../admin/renderers/prediction-display.renderer.js';
+import { renderComparisonBadges } from './prediction-comparison.renderer.js';
+import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
+
+/**
+ * @typedef {import('../../../domain/prediction-history.domain.js').HistoryItem} HistoryItem
+ */
+
+/**
+ * @param {HistoryItem} item
+ * @returns {string}
+ */
+export function renderHistoryCard(item) {
+  const match = item.match ?? {};
+  const tournament = item.tournament ?? {};
+  const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
+  const kickoffLabel = formatDateDisplay(match.kickoffUtc, { day: '2-digit', month: 'short', year: 'numeric' });
+  const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
+  const stage = String(match.stage ?? match.round ?? '');
+  const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
+
+  return `
+    <article class="card ptw-card ptw-prediction-history-card mb-3" data-prediction-id="${escapeHtml(String(item.id))}">
+      <div class="ptw-prediction-history-card__banner" style="${tournament.bannerUrl ? `background-image:url('${escapeHtml(String(tournament.bannerUrl))}')` : ''}">
+        <div class="ptw-prediction-history-card__banner-overlay">
+          <p class="mb-0 small">${escapeHtml(tournamentName)}</p>
+          ${stage ? `<p class="mb-0 small opacity-75">${escapeHtml(stage)}</p>` : ''}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+          <time class="small text-muted" datetime="${escapeHtml(String(match.kickoffUtc ?? ''))}">${escapeHtml(kickoffLabel)}</time>
+          <div>${renderPointsHtml(item, result)}</div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6 text-center">
+            ${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })}
+            <p class="mb-0 small fw-semibold mt-1">${escapeHtml(String(match.homeTeam?.name ?? 'Home'))}</p>
+          </div>
+          <div class="col-6 text-center">
+            ${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })}
+            <p class="mb-0 small fw-semibold mt-1">${escapeHtml(String(match.awayTeam?.name ?? 'Away'))}</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <h3 class="h6 text-uppercase text-muted">My Prediction</h3>
+            ${renderPredictedScoreHtml(match, item)}
+          </div>
+          <div class="col-md-6">
+            <h3 class="h6 text-uppercase text-muted">Official Result</h3>
+            ${result.published ? renderActualScoreHtml(match, result) : '<p class="text-muted mb-0 small">Pending</p>'}
+          </div>
+        </div>
+
+        <div class="mt-3">${renderComparisonBadges(item)}</div>
+
+        <div class="d-flex justify-content-end mt-3">
+          <a href="${detailUrl}" class="btn btn-sm btn-outline-primary" data-ph-detail="${escapeHtml(String(item.id))}" aria-label="View prediction details">
+            View Details <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+/**
+ * @param {HistoryItem[]} items
+ * @returns {string}
+ */
+export function renderHistoryCardList(items) {
+  if (items.length === 0) {
+    return '';
+  }
+
+  return items.map((item) => renderHistoryCard(item)).join('');
+}

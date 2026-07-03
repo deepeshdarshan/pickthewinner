@@ -16,6 +16,8 @@ import { getActiveTournament } from '../tournament/tournament.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
 import { renderMatchCard } from '../match/match-card.component.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
+import { PredictionDomain } from '../domain/prediction.domain.js';
+import { PREDICTION_HISTORY_ROUTES } from '../prediction/history/prediction-history.constants.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -94,15 +96,18 @@ async function initScorePage(outlet) {
     completedMatches.forEach((match) => {
       const prediction = predictionsMap.get(match.id);
       if (prediction) {
-        if (checkCorrectWinner(prediction, match)) {
+        const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
+        if (PredictionDomain.isWinnerPredictionCorrect(prediction, result, match)) {
           correctWinners++;
         }
         if (checkExactScore(prediction, match)) {
           exactScores++;
         }
-        // TODO: Get actual points from scoring calculation
+        totalPoints += Number(prediction.calculatedPoints ?? 0);
       }
     });
+
+    const scoredPredictions = completedMatches.filter((match) => predictionsMap.has(match.id)).length;
 
     outlet.innerHTML = renderScorePage({
       tournament,
@@ -115,7 +120,7 @@ async function initScorePage(outlet) {
         correctWinners,
         exactScores,
         totalPoints,
-        accuracy: totalCompleted > 0 ? Math.round((correctWinners / totalCompleted) * 100) : 0,
+        accuracy: scoredPredictions > 0 ? Math.round((correctWinners / scoredPredictions) * 100) : 0,
       },
     });
     initializeCountdowns(outlet);
@@ -142,6 +147,12 @@ function renderScorePage(options) {
         title: 'My Score',
         subtitle: `${tournament.name} ${tournament.season}`,
       })}
+
+      <div class="d-flex justify-content-end mb-3">
+        <a href="${PREDICTION_HISTORY_ROUTES.LIST}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-clock-history me-1" aria-hidden="true"></i>View Full History
+        </a>
+      </div>
 
       <!-- Statistics -->
       <div class="row g-3 mb-4">
@@ -254,37 +265,6 @@ function renderScoreMatchTab(matches, predictionsMap, options) {
       })).join('')}
     </div>
   `;
-}
-
-/**
- * Checks if winner prediction is correct.
- * @param {Record<string, unknown>} prediction
- * @param {import('../match/match.service.js').EnrichedMatch} match
- * @returns {boolean}
- */
-function checkCorrectWinner(prediction, match) {
-  if (!prediction || !match.result) {
-    return false;
-  }
-
-  const predHome = Number(prediction.homeScore ?? 0);
-  const predAway = Number(prediction.awayScore ?? 0);
-  const actualHome = Number(match.result.homeScore ?? 0);
-  const actualAway = Number(match.result.awayScore ?? 0);
-
-  if (predHome > predAway && actualHome > actualAway) {
-    return true;
-  }
-
-  if (predHome < predAway && actualHome < actualAway) {
-    return true;
-  }
-
-  if (predHome === predAway && actualHome === actualAway) {
-    return true;
-  }
-
-  return false;
 }
 
 /**
