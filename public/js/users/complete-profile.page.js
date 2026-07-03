@@ -14,7 +14,6 @@ import { UserDomain } from '../domain/user.domain.js';
 import {
   completeUserProfile,
   ensureAdminProfile,
-  getCachedProfile,
   getUserErrorMessage,
   loadCurrentUser,
 } from './user.service.js';
@@ -70,10 +69,10 @@ async function initCompleteProfilePage(outlet) {
   }
 
   try {
-    const profile = getCachedProfile() ?? await loadCurrentUser();
+    const profile = await loadCurrentUser(true);
 
     if (profile && UserDomain.isProfileComplete(profile)) {
-      await AuthorizationService.resolve(true);
+      AuthorizationService.applyProfile(profile);
       await navigateTo(getDashboardRouteForProfile(profile), true);
       return;
     }
@@ -146,7 +145,7 @@ async function handleCompleteProfileSubmit(form, uid) {
     });
 
     showSuccessToast(USER_MESSAGES.PROFILE_CREATED);
-    await AuthorizationService.resolve(true);
+    AuthorizationService.applyProfile(profile);
     await navigateTo(getDashboardRouteForProfile(profile), true);
   } catch (error) {
     Logger.error('[CompleteProfile] Create failed:', error);

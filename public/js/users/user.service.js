@@ -7,6 +7,7 @@ import {
   doc,
   getDoc,
   getDocFromCache,
+  getDocFromServer,
   runTransaction,
   updateDoc,
   serverTimestamp,
@@ -164,6 +165,17 @@ export function clearProfileCache() {
 }
 
 /**
+ * Writes a profile into in-memory session state for guards and authorization.
+ * @param {UserProfile} profile
+ * @returns {void}
+ */
+function commitProfileToSession(profile) {
+  cachedProfile = profile;
+  ApplicationContext.setProfile(profile);
+  ApplicationContext.setCurrentUser(getCurrentUser());
+}
+
+/**
  * Normalizes a Firestore document into a UserProfile.
  * @param {string} uid
  * @param {import('firebase/firestore').DocumentData} data
@@ -270,14 +282,19 @@ function runSerializedFirestoreWrite(operation) {
 /**
  * @param {import('firebase/firestore').DocumentReference} ref
  * @param {number} [deadlineMs]
+ * @param {(ref: import('firebase/firestore').DocumentReference) => Promise<import('firebase/firestore').DocumentSnapshot>} [readFn]
  * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
  */
-async function getDocWithDeadline(ref, deadlineMs = FIRESTORE_READ_DEADLINE_MS) {
+async function getDocWithDeadline(
+  ref,
+  deadlineMs = FIRESTORE_READ_DEADLINE_MS,
+  readFn = getDoc,
+) {
   let timerId;
 
   try {
     return await Promise.race([
-      getDoc(ref),
+      readFn(ref),
       new Promise((_, reject) => {
         timerId = window.setTimeout(() => {
           reject(Object.assign(new Error('Firestore read timed out'), { code: 'unavailable' }));
@@ -292,23 +309,34 @@ async function getDocWithDeadline(ref, deadlineMs = FIRESTORE_READ_DEADLINE_MS) 
 }
 
 /**
- * Reads a user document — cache first, then server with one retry.
+ * @typedef {Object} FetchUserSnapshotOptions
+ * @property {boolean} [preferServer]
+ */
+
+/**
+ * Reads a user document — cache first by default, or server when preferServer is set.
  * @param {string} uid
+ * @param {FetchUserSnapshotOptions} [options]
  * @returns {Promise<import('firebase/firestore').DocumentSnapshot>}
  */
-async function fetchUserSnapshot(uid) {
+async function fetchUserSnapshot(uid, options = {}) {
   const ref = getUserDocRef(uid);
+  const { preferServer = false } = options;
 
-  try {
-    return await getDocFromCache(ref);
-  } catch {
-    // Not in local cache — fetch from server.
+  if (!preferServer) {
+    try {
+      return await getDocFromCache(ref);
+    } catch {
+      // Not in local cache — fetch from server.
+    }
   }
 
   await ensureFirestoreOnline();
 
+  const readDoc = preferServer ? getDocFromServer : getDoc;
+
   try {
-    return await getDocWithDeadline(ref);
+    return await getDocWithDeadline(ref, FIRESTORE_READ_DEADLINE_MS, readDoc);
   } catch (error) {
     if (!isTransientFirestoreError(error)) {
       throw error;
@@ -317,7 +345,7 @@ async function fetchUserSnapshot(uid) {
     Logger.warn('[UserService] Firestore read failed — one retry…');
     await delay(500);
     await ensureFirestoreOnline();
-    return getDocWithDeadline(ref);
+    return getDocWithDeadline(ref, FIRESTORE_READ_DEADLINE_MS, readDoc);
   }
 }
 
@@ -438,7 +466,7 @@ export async function createUser(uid, data) {
     ? normalizeUserDocument(uid, snapshot.data())
     : buildProfileFromCreatePayload(uid, userDoc);
 
-  cachedProfile = profile;
+  commitProfileToSession(profile);
   emitUserEvent(USER_EVENTS.PROFILE_CREATED, { profile });
 
   return profile;
@@ -466,8 +494,7 @@ export async function completeUserProfile(uid, data) {
       throw error;
     }
 
-    cachedProfile = existing;
-    ApplicationContext.setProfile(existing);
+    commitProfileToSession(existing);
     emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile: existing });
 
     if (UserDomain.isProfileComplete(existing)) {
@@ -486,13 +513,19 @@ export async function completeUserProfile(uid, data) {
 }
 
 /**
+ * @typedef {Object} GetUserOptions
+ * @property {boolean} [preferServer]
+ */
+
+/**
  * Fetches a user profile by UID.
  * @param {string} uid
+ * @param {GetUserOptions} [options]
  * @returns {Promise<UserProfile|null>}
  */
-export async function getUser(uid) {
+export async function getUser(uid, options = {}) {
   try {
-    const snapshot = await fetchUserSnapshot(uid);
+    const snapshot = await fetchUserSnapshot(uid, options);
 
     if (!snapshot.exists()) {
       return null;
@@ -519,9 +552,7 @@ export async function ensureAdminProfile(firebaseUser) {
   const existing = getCachedProfile() ?? await getUser(firebaseUser.uid);
 
   if (existing) {
-    cachedProfile = existing;
-    ApplicationContext.setProfile(existing);
-    ApplicationContext.setCurrentUser(firebaseUser);
+    commitProfileToSession(existing);
     emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile: existing });
     return existing;
   }
@@ -540,9 +571,7 @@ export async function ensureAdminProfile(firebaseUser) {
       const profile = await getUser(firebaseUser.uid);
 
       if (profile) {
-        cachedProfile = profile;
-        ApplicationContext.setProfile(profile);
-        ApplicationContext.setCurrentUser(firebaseUser);
+        commitProfileToSession(profile);
         emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
       }
 
@@ -575,19 +604,22 @@ export async function loadCurrentUser(forceRefresh = false) {
   }
 
   const loadPromise = (async () => {
-    const profile = await getUser(firebaseUser.uid);
+    const profile = await getUser(firebaseUser.uid, { preferServer: forceRefresh });
 
     if (profile) {
-      cachedProfile = profile;
-      ApplicationContext.setProfile(profile);
-      ApplicationContext.setCurrentUser(getCurrentUser());
+      commitProfileToSession(profile);
       emitUserEvent(USER_EVENTS.PROFILE_LOADED, { profile });
-    } else {
-      cachedProfile = null;
-      ApplicationContext.setProfile(null);
+      return profile;
     }
 
-    return profile;
+    if (cachedProfile?.uid === firebaseUser.uid) {
+      Logger.warn('[UserService] Profile refresh failed — keeping last-known-good cache.');
+      return cachedProfile;
+    }
+
+    cachedProfile = null;
+    ApplicationContext.setProfile(null);
+    return null;
   })();
 
   loadCurrentUserInFlight = loadPromise;
@@ -622,7 +654,7 @@ export async function updateUser(uid, data) {
     throw Object.assign(new Error('User not found after update'), { code: 'not-found' });
   }
 
-  cachedProfile = profile;
+  commitProfileToSession(profile);
   emitUserEvent(USER_EVENTS.PROFILE_UPDATED, { profile });
 
   if (data.notificationPreferences || data.timezone) {

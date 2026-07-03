@@ -53,11 +53,12 @@ export async function getPostLoginDestination(firebaseUser, authProvider) {
     return AUTH_ROUTES.ADMIN;
   }
 
-  const profile = getCachedProfile() ?? await loadCurrentUser();
+  const profile = await loadCurrentUser(true);
 
   if (!profile || !UserDomain.isProfileComplete(profile)) {
     return USER_ROUTES.COMPLETE_PROFILE;
   }
 
+  AuthorizationService.applyProfile(profile);
   return getDashboardRouteForProfile(profile);
 }

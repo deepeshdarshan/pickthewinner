@@ -96,6 +96,16 @@ export const AuthorizationService = {
   },
 
   /**
+   * Applies role and permissions from a known-good profile without re-fetching.
+   * @param {import('../users/user.service.js').UserProfile|null|undefined} profile
+   * @returns {{ role: string|null, permissions: ReadonlySet<string> }}
+   */
+  applyProfile(profile) {
+    applyAuthorizationState(profile?.role ?? null);
+    return { role: cachedRole, permissions: this.getCurrentPermissions() };
+  },
+
+  /**
    * Checks whether the current user has a permission.
    * @param {string} permission
    * @returns {boolean}
