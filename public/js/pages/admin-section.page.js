@@ -19,12 +19,6 @@ const ADMIN_SECTIONS = Object.freeze({
     icon: 'bi-flag',
     description: 'Match scheduling and lifecycle management will appear here.',
   },
-  results: {
-    title: 'Results',
-    subtitle: 'Publish match results',
-    icon: 'bi-clipboard-check',
-    description: 'Result publishing will appear here.',
-  },
   users: {
     title: 'Users',
     subtitle: 'Manage contestants',

@@ -40,7 +40,6 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     children: [
       { path: '/admin/matches', label: 'Matches' },
       { path: '/admin/matches/archived', label: 'Archived Matches' },
-      { path: '/admin/results', label: 'Results' },
     ],
   },
   { type: 'item', path: '/leaderboard', label: 'Leaderboard', icon: 'bi-bar-chart' },
