@@ -48,6 +48,7 @@ Pure business logic with no Firestore or DOM access:
 
 ### Data Access
 - `services/BaseFirestoreService.js` — CRUD, caching, batch, transaction helpers
+- `prediction/admin/` — Admin prediction management (read-only views, statistics, export stubs)
 
 ## Event Architecture
 
@@ -87,3 +88,4 @@ Route metadata standardized in `config/routes.js`:
 - `04_SECURITY_MODEL.md`
 - `../engineering/01_CODING_STANDARDS.md`
 - `ADR-001-domain-layer.md`
+- `../PREDICTION_MANAGEMENT_MODULE.md`

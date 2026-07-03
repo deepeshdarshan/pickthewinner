@@ -39,6 +39,7 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     icon: 'bi-flag',
     children: [
       { path: '/admin/matches', label: 'Matches' },
+      { path: '/admin/predictions', label: 'Predictions' },
       { path: '/admin/matches/archived', label: 'Archived Matches' },
     ],
   },
