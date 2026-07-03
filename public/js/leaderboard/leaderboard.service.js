@@ -131,7 +131,7 @@ class LeaderboardService {
           matchesPredicted: userPredictions.length,
           matchesRemaining: matches.length - userPredictions.length,
           previousRank: null, // TODO: Implement historical rank tracking
-          displayName: user.displayName || 'Unknown User',
+          displayName: user.name || user.displayName || user.email?.split('@')[0] || 'Unknown User',
           photoURL: user.photoURL || null,
           country: user.country || null,
           isCurrentUser: userId === currentUserId,
@@ -140,7 +140,7 @@ class LeaderboardService {
 
       // Load tournament configuration for tie-breaker rules
       await TournamentConfigurationService.load(tournamentId);
-      const tieBreakerConfig = TournamentConfigurationService.getTieBreakerConfig();
+      const tieBreakerConfig = TournamentConfigurationService.getTieBreakerConfiguration();
 
       // Rank entries with tie-breakers
       const rankedEntries = LeaderboardDomain.rankEntriesWithTieBreakers(entries, tieBreakerConfig);
