@@ -23,6 +23,27 @@ export function sortMatchesByKickoff(matches, descending = true) {
 }
 
 /**
+ * Returns matches with a future kickoff that have not been completed.
+ * @param {EnrichedMatch[]} matches
+ * @param {Date} [now]
+ * @returns {EnrichedMatch[]}
+ */
+export function filterUpcomingMatches(matches, now = new Date()) {
+  return matches.filter((match) => {
+    const kickoff = toKickoffDate(match.kickoffUtc);
+    if (!kickoff || kickoff <= now) {
+      return false;
+    }
+
+    if (match.result?.published) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+/**
  * @param {EnrichedMatch[]} matches
  * @param {{
  *   search?: string,

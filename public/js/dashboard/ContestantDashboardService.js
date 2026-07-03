@@ -11,6 +11,7 @@ import { getActiveTournament, listTournamentsForContestant } from '../tournament
 import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { listMatchesForContestant } from '../match/match.service.js';
+import { filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
@@ -123,23 +124,8 @@ export const ContestantDashboardService = {
         .filter((tournament) => !TournamentDomain.isTournamentReadOnly(tournament.status))
         .map((tournament) => tournament.id),
     );
-    const upcomingMatches = allMatches
-      .filter((match) => {
-        const kickoff = toDate(match.kickoffUtc);
-        if (!kickoff || kickoff <= now) {
-          return false;
-        }
-
-        if (!acceptingPredictionsTournamentIds.has(match.tournamentId)) {
-          return false;
-        }
-
-        if (match.result?.published) {
-          return false;
-        }
-
-        return true;
-      })
+    const upcomingMatches = filterUpcomingMatches(allMatches, now)
+      .filter((match) => acceptingPredictionsTournamentIds.has(match.tournamentId))
       .sort((a, b) => {
         const aKickoff = toDate(a.kickoffUtc)?.getTime() ?? 0;
         const bKickoff = toDate(b.kickoffUtc)?.getTime() ?? 0;

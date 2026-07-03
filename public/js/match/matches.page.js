@@ -13,6 +13,7 @@ import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { MATCH_MESSAGES, MATCH_ROUTES } from './match.constants.js';
 import { getMatchById, getMatchErrorMessage, listMatchesForContestant } from './match.service.js';
+import { filterUpcomingMatches, sortMatchesByKickoff } from './match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { Logger } from '../utils/logger.util.js';
 
@@ -50,7 +51,8 @@ async function renderListView(outlet) {
 
   try {
     const user = getCurrentUser();
-    const matches = await listMatchesForContestant();
+    const allMatches = await listMatchesForContestant();
+    const matches = sortMatchesByKickoff(filterUpcomingMatches(allMatches), false);
     const predictions = {};
 
     if (user) {
@@ -70,8 +72,8 @@ async function renderListView(outlet) {
         <div class="card ptw-card">
           <div class="card-body">
             ${renderEmptyState({
-      title: 'No Matches',
-      message: 'No published matches are available right now.',
+      title: 'No Upcoming Matches',
+      message: 'No upcoming matches are scheduled right now.',
       icon: 'bi-flag',
     })}
           </div>
