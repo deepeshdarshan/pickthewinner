@@ -21,6 +21,7 @@ import {
 import { renderPredictionStatusBadge, renderResultBadge } from './prediction-status-badge.renderer.js';
 import { renderPredictionCardList } from './prediction-card.renderer.js';
 import { renderPredictionStatisticsCards } from './statistics-cards.renderer.js';
+import { renderFilterBar, renderFilterField } from '../../../components/filter-bar.component.js';
 
 /**
  * @returns {string}
@@ -55,7 +56,7 @@ export function renderTournamentSelector(tournaments, selectedId = '') {
   `).join('');
 
   return `
-    <select class="form-select bg-dark border-secondary text-white" id="predictionTournamentSelector" aria-label="Select tournament">
+    <select class="form-select" id="predictionTournamentSelector" aria-label="Select tournament">
       <option value="">Select a tournament</option>
       ${active.length ? `<optgroup label="Active Tournaments">${renderOptions(active)}</optgroup>` : ''}
       ${archived.length ? `<optgroup label="Archived Tournaments">${renderOptions(archived)}</optgroup>` : ''}
@@ -73,6 +74,8 @@ export function renderPredictionFilters(options) {
     matches = [],
     contestants = [],
     stages = [],
+    tournaments = [],
+    selectedTournamentId = '',
     filterState = {},
   } = options;
 
@@ -101,74 +104,98 @@ export function renderPredictionFilters(options) {
     </option>
   `).join('');
 
-  return `
-    <div class="card ptw-card mb-3">
-      <div class="card-body">
-        <div class="row g-3 align-items-end">
-          <div class="col-12 col-md-6 col-lg-3">
-            <label class="form-label" for="predictionViewMode">View By</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionViewMode" aria-label="View mode">
-              <option value="${PREDICTION_VIEW_MODE.LIST}"${viewMode === PREDICTION_VIEW_MODE.LIST ? ' selected' : ''}>All Predictions</option>
-              <option value="${PREDICTION_VIEW_MODE.MATCH}"${viewMode === PREDICTION_VIEW_MODE.MATCH ? ' selected' : ''}>Match-wise</option>
-              <option value="${PREDICTION_VIEW_MODE.CONTESTANT}"${viewMode === PREDICTION_VIEW_MODE.CONTESTANT ? ' selected' : ''}>Contestant-wise</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-3${viewMode === PREDICTION_VIEW_MODE.MATCH ? '' : ' d-none'}" id="predictionMatchFilterGroup">
-            <label class="form-label" for="predictionMatchFilter">Match</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionMatchFilter" aria-label="Filter by match">
-              <option value="">All Matches</option>
-              ${matchOptions}
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-3${viewMode === PREDICTION_VIEW_MODE.CONTESTANT ? '' : ' d-none'}" id="predictionContestantFilterGroup">
-            <label class="form-label" for="predictionContestantFilter">Contestant</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionContestantFilter" aria-label="Filter by contestant">
-              <option value="">Select contestant</option>
-              ${contestantOptions}
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label" for="predictionStageFilter">Stage</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionStageFilter" aria-label="Filter by stage">
-              <option value="">All Stages</option>
-              ${stageOptions}
-            </select>
-          </div>
-          <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label" for="predictionStatusFilter">Status</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionStatusFilter" aria-label="Filter by status">
-              <option value="">All Status</option>
-              ${statusOptions}
-            </select>
-          </div>
-          <div class="col-12 col-lg-4">
-            <label class="form-label" for="predictionSearchInput">Search</label>
-            <div class="input-group">
-              <span class="input-group-text bg-dark border-secondary text-white"><i class="bi bi-search" aria-hidden="true"></i></span>
-              <input
-                type="search"
-                class="form-control bg-dark border-secondary text-white"
-                id="predictionSearchInput"
-                placeholder="Search contestants, matches, teams…"
-                value="${escapeHtml(filterState.search ?? '')}"
-                aria-label="Search predictions"
-              >
-            </div>
-          </div>
-          <div class="col-12 col-md-6 col-lg-2">
-            <label class="form-label" for="predictionSortField">Sort By</label>
-            <select class="form-select bg-dark border-secondary text-white" id="predictionSortField" aria-label="Sort predictions">
-              <option value="${PREDICTION_SORT_FIELD.SUBMITTED_AT}">Submission Time</option>
-              <option value="${PREDICTION_SORT_FIELD.MATCH_DATE}">Match Date</option>
-              <option value="${PREDICTION_SORT_FIELD.CONTESTANT}">Contestant</option>
-              <option value="${PREDICTION_SORT_FIELD.UPDATED_AT}">Last Updated</option>
-              <option value="${PREDICTION_SORT_FIELD.STATUS}">Status</option>
-            </select>
-          </div>
+  const fieldsHtml = [
+    renderFilterField({
+      label: 'Tournament',
+      id: 'predictionTournamentSelector',
+      width: 'wide',
+      html: renderTournamentSelector(tournaments, selectedTournamentId),
+    }),
+    renderFilterField({
+      label: 'View By',
+      id: 'predictionViewMode',
+      html: `
+        <select class="form-select" id="predictionViewMode" aria-label="View mode">
+          <option value="${PREDICTION_VIEW_MODE.LIST}"${viewMode === PREDICTION_VIEW_MODE.LIST ? ' selected' : ''}>All Predictions</option>
+          <option value="${PREDICTION_VIEW_MODE.MATCH}"${viewMode === PREDICTION_VIEW_MODE.MATCH ? ' selected' : ''}>Match-wise</option>
+          <option value="${PREDICTION_VIEW_MODE.CONTESTANT}"${viewMode === PREDICTION_VIEW_MODE.CONTESTANT ? ' selected' : ''}>Contestant-wise</option>
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Match',
+      id: 'predictionMatchFilter',
+      html: `
+        <select class="form-select" id="predictionMatchFilter" aria-label="Filter by match"${viewMode !== PREDICTION_VIEW_MODE.MATCH ? ' disabled' : ''}>
+          <option value="">All Matches</option>
+          ${matchOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Contestant',
+      id: 'predictionContestantFilter',
+      html: `
+        <select class="form-select" id="predictionContestantFilter" aria-label="Filter by contestant"${viewMode !== PREDICTION_VIEW_MODE.CONTESTANT ? ' disabled' : ''}>
+          <option value="">Select contestant</option>
+          ${contestantOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Stage',
+      id: 'predictionStageFilter',
+      html: `
+        <select class="form-select" id="predictionStageFilter" aria-label="Filter by stage">
+          <option value="">All Stages</option>
+          ${stageOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Status',
+      id: 'predictionStatusFilter',
+      html: `
+        <select class="form-select" id="predictionStatusFilter" aria-label="Filter by status">
+          <option value="">All Status</option>
+          ${statusOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Search',
+      id: 'predictionSearchInput',
+      width: 'search',
+      html: `
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+          <input
+            type="search"
+            class="form-control"
+            id="predictionSearchInput"
+            placeholder="Search contestants, matches, teams…"
+            value="${escapeHtml(filterState.search ?? '')}"
+            aria-label="Search predictions"
+          >
         </div>
-      </div>
-    </div>
-  `;
+      `,
+    }),
+    renderFilterField({
+      label: 'Sort By',
+      id: 'predictionSortField',
+      html: `
+        <select class="form-select" id="predictionSortField" aria-label="Sort predictions">
+          <option value="${PREDICTION_SORT_FIELD.SUBMITTED_AT}">Submission Time</option>
+          <option value="${PREDICTION_SORT_FIELD.MATCH_DATE}">Match Date</option>
+          <option value="${PREDICTION_SORT_FIELD.CONTESTANT}">Contestant</option>
+          <option value="${PREDICTION_SORT_FIELD.UPDATED_AT}">Last Updated</option>
+          <option value="${PREDICTION_SORT_FIELD.STATUS}">Status</option>
+        </select>
+      `,
+    }),
+  ].join('');
+
+  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-match-filters' });
 }
 
 /**
@@ -206,7 +233,7 @@ export function renderPredictionTable(predictions, options = {}) {
         <td>${rowNumber}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
-            ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 32 })}
+            ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
             <div class="min-w-0">
               <div class="fw-semibold text-truncate">${escapeHtml(contestantName)}</div>
               <div class="small text-muted text-truncate">${escapeHtml(String(contestant.email ?? ''))}</div>
@@ -253,7 +280,7 @@ export function renderPredictionTable(predictions, options = {}) {
 
   return `
     <div class="d-none d-lg-block table-responsive">
-      <table class="table table-hover align-middle mb-0 ptw-table" aria-label="Predictions">
+      <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact ptw-prediction-table" aria-label="Predictions">
         <thead>
           <tr>
             <th scope="col">#</th>
@@ -277,7 +304,7 @@ export function renderPredictionTable(predictions, options = {}) {
       ${renderPredictionCardList(predictions, showResults)}
     </div>
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 p-3 border-top border-secondary">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 px-3 py-2 border-top border-secondary">
       <p class="small text-muted mb-0">
         ${startRecord} to ${endRecord} of ${totalRecords} predictions
         <span class="d-none d-md-inline"> · Page ${currentPage} of ${totalPages}</span>
@@ -321,12 +348,17 @@ export function renderPredictionListPage(options) {
     predictions = [],
     tableOptions = {},
     filterOptions = {},
-    overviewHtml = '',
   } = options;
 
   const statsHtml = statistics
     ? renderPredictionStatisticsCards(statistics, loadedAt)
     : '';
+
+  const mergedFilterOptions = {
+    ...filterOptions,
+    tournaments,
+    selectedTournamentId,
+  };
 
   return `
     <div class="${ADMIN_PAGE_SHELL_CLASSES}">
@@ -334,33 +366,28 @@ export function renderPredictionListPage(options) {
         title: 'Predictions Management',
         subtitle: 'View, search, and analyze contestant predictions',
         actionsHtml: `
-          <button type="button" class="btn btn-outline-secondary" id="refreshPredictionsBtn">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshPredictionsBtn">
             <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Refresh
           </button>
         `,
       })}
 
-      <div class="row mb-3">
-        <div class="col-12 col-md-6 col-lg-4">
-          <label class="form-label" for="predictionTournamentSelector">Tournament</label>
-          ${renderTournamentSelector(tournaments, selectedTournamentId)}
-        </div>
-      </div>
-
       ${selectedTournamentId ? `
-        <div class="mb-4" id="predictionStatsContainer">${statsHtml}</div>
-        ${renderPredictionFilters(filterOptions)}
+        <div class="mb-3" id="predictionStatsContainer">${statsHtml}</div>
+        ${renderPredictionFilters(mergedFilterOptions)}
         <div class="card ptw-card">
           <div class="card-body p-0" id="predictionTableContainer">
             ${renderPredictionTable(predictions, tableOptions)}
           </div>
         </div>
-        ${overviewHtml ? `<div class="mt-4" id="predictionOverviewContainer">${overviewHtml}</div>` : ''}
-      ` : renderEmptyState({
+      ` : `
+        ${renderPredictionFilters(mergedFilterOptions)}
+        ${renderEmptyState({
         title: 'No Tournament Selected',
         message: PREDICTION_MANAGEMENT_MESSAGES.NO_TOURNAMENT,
         icon: 'bi-trophy',
       })}
+      `}
     </div>
   `;
 }

@@ -1,1 +1,6 @@
-export { renderStatisticCard, renderStatisticCardGrid } from '../../components/statistic-card.component.js';
+export {
+  renderStatisticCard,
+  renderStatisticCardGrid,
+  renderStatTile,
+  renderStatTileGrid,
+} from '../../components/statistic-card.component.js';

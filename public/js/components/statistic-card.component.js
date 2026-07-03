@@ -10,6 +10,7 @@
  * @property {string} [icon]
  * @property {string} [trend]
  * @property {'up'|'down'|'neutral'} [trendDirection]
+ * @property {'compact'|'default'} [density]
  */
 
 /**
@@ -24,24 +25,29 @@ export function renderStatisticCard(options) {
     icon = 'bi-bar-chart',
     trend = '',
     trendDirection = 'neutral',
+    density = 'compact',
   } = options;
 
   const trendClass = trend
     ? `ptw-stat-card__trend--${trendDirection}`
     : '';
 
+  const showIcon = density !== 'compact' || !trend;
+
   return `
     <div class="card ptw-card ptw-stat-card">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
-          <div>
+          <div class="min-w-0">
             <p class="ptw-stat-card__label mb-1">${label}</p>
             <p class="ptw-stat-card__value mb-0">${value}</p>
             ${trend ? `<p class="ptw-stat-card__trend ${trendClass} mb-0">${trend}</p>` : ''}
           </div>
-          <div class="ptw-stat-card__icon" aria-hidden="true">
-            <i class="bi ${icon}"></i>
-          </div>
+          ${showIcon ? `
+            <div class="ptw-stat-card__icon flex-shrink-0 ms-2" aria-hidden="true">
+              <i class="bi ${icon}"></i>
+            </div>
+          ` : ''}
         </div>
       </div>
     </div>
@@ -49,16 +55,36 @@ export function renderStatisticCard(options) {
 }
 
 /**
- * Renders a row of statistic cards.
+ * Renders a row of statistic cards using the compact stat grid.
  * @param {StatisticCardOptions[]} cards
  * @returns {string}
  */
 export function renderStatisticCardGrid(cards) {
-  const items = cards.map((card) => `
-    <div class="col-6 col-md-3">
-      ${renderStatisticCard(card)}
-    </div>
-  `).join('');
+  const items = cards.map((card) => renderStatisticCard(card)).join('');
+  return `<div class="ptw-stat-grid">${items}</div>`;
+}
 
-  return `<div class="row g-3">${items}</div>`;
+/**
+ * Renders a compact inline stat tile.
+ * @param {{ label: string, value: string|number }} options
+ * @returns {string}
+ */
+export function renderStatTile(options) {
+  const { label, value } = options;
+  return `
+    <div class="ptw-stat-tile">
+      <p class="ptw-stat-tile__label mb-0">${label}</p>
+      <p class="ptw-stat-tile__value mb-0">${value}</p>
+    </div>
+  `;
+}
+
+/**
+ * Renders a grid of compact stat tiles.
+ * @param {Array<{ label: string, value: string|number }>} tiles
+ * @returns {string}
+ */
+export function renderStatTileGrid(tiles) {
+  const items = tiles.map((tile) => renderStatTile(tile)).join('');
+  return `<div class="ptw-stat-grid">${items}</div>`;
 }

@@ -17,6 +17,7 @@ import {
   MATCH_STATUS_LABELS,
 } from '../match.constants.js';
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
+import { renderFilterBar, renderFilterField } from '../../components/filter-bar.component.js';
 
 /**
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
@@ -90,7 +91,7 @@ export function renderMatchListPage(matches, options = {}) {
     })
     : `
       <div class="d-none d-lg-block table-responsive">
-        <table class="table table-hover align-middle mb-0 ptw-table ptw-match-table" aria-label="Matches">
+        <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact ptw-match-table" aria-label="Matches">
           <thead>
             <tr>
               <th scope="col"><input type="checkbox" aria-label="Select all matches" data-ptw-match-select-all></th>
@@ -171,36 +172,41 @@ export function renderMatchFilters(tournaments, options = {}) {
     .map((tournament) => `<option value="${escapeHtml(tournament.id)}">${escapeHtml(tournament.name)}</option>`)
     .join('');
 
-  return `
-    <div class="card ptw-card mb-3 ptw-match-filters">
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label" for="ptw-match-filter-search">Search</label>
-            <input type="search" class="form-control" id="ptw-match-filter-search" placeholder="Search matches…">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ptw-match-filter-tournament">Tournament</label>
-            <select class="form-select" id="ptw-match-filter-tournament">
-              <option value="">All</option>
-              ${tournamentOptions}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ptw-match-filter-status">Status</label>
-            <select class="form-select" id="ptw-match-filter-status">
-              <option value="">All</option>
-              ${statusOptions}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="ptw-match-filter-date">Date</label>
-            <input type="date" class="form-control" id="ptw-match-filter-date">
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  const fieldsHtml = [
+    renderFilterField({
+      label: 'Search',
+      id: 'ptw-match-filter-search',
+      width: 'search',
+      html: '<input type="search" class="form-control" id="ptw-match-filter-search" placeholder="Search matches…">',
+    }),
+    renderFilterField({
+      label: 'Tournament',
+      id: 'ptw-match-filter-tournament',
+      html: `
+        <select class="form-select" id="ptw-match-filter-tournament">
+          <option value="">All</option>
+          ${tournamentOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Status',
+      id: 'ptw-match-filter-status',
+      html: `
+        <select class="form-select" id="ptw-match-filter-status">
+          <option value="">All</option>
+          ${statusOptions}
+        </select>
+      `,
+    }),
+    renderFilterField({
+      label: 'Date',
+      id: 'ptw-match-filter-date',
+      html: '<input type="date" class="form-control" id="ptw-match-filter-date">',
+    }),
+  ].join('');
+
+  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-match-filters' });
 }
 
 /**

@@ -970,3 +970,32 @@ The transition shall be smooth.
 Penalty Winner uses radio buttons.
 
 Penalty checkbox appears immediately after score entry.
+
+---
+
+## Compact UI Density (Implemented)
+
+All admin and contestant page content uses `ptw-density-compact` on page shells for consistent spacing.
+
+### Spacing and typography
+
+| Element | Standard |
+|---------|----------|
+| Card body padding | 0.75rem (`--ptw-density-card-padding`) |
+| Page header title | 1.25rem (`--ptw-font-size-xl`) |
+| Stat card values | 1.125rem (`--ptw-density-stat-value`) |
+| Form labels | 0.75rem (`--ptw-font-size-xs`) |
+| Table text | 0.875rem with compact cell padding |
+
+### Layout utilities
+
+- `.ptw-filter-bar` — single-row flex filter bar (matches, predictions)
+- `.ptw-stat-grid` — responsive stat card grid (2 / 3 / 6 columns)
+- `.ptw-stat-tile` — compact inline metric tile
+- `.ptw-table--compact` — fixed-layout data tables with reduced padding
+
+### Rules
+
+- Do not use Bootstrap `display-*` for metric values
+- Prefer `renderFilterBar()` and `renderStatisticCardGrid()` shared components
+- Sidebar and navigation are excluded from compact overrides

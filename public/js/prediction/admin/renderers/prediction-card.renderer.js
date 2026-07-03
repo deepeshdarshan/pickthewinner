@@ -23,10 +23,10 @@ export function renderPredictionCard(prediction, showResults = false) {
   const score = `${prediction.homeScore} - ${prediction.awayScore}`;
 
   return `
-    <article class="card ptw-card ptw-prediction-card mb-3" data-prediction-id="${escapeHtml(prediction.id)}" tabindex="0" role="button" aria-label="View prediction by ${escapeHtml(contestantName)}">
-      <div class="card-body">
+    <article class="card ptw-card ptw-prediction-card mb-2" data-prediction-id="${escapeHtml(prediction.id)}" tabindex="0" role="button" aria-label="View prediction by ${escapeHtml(contestantName)}">
+      <div class="card-body py-2">
         <div class="d-flex align-items-center gap-2 mb-2">
-          ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 36 })}
+          ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
           <div class="flex-grow-1 min-w-0">
             <h3 class="h6 mb-0 text-truncate">${escapeHtml(contestantName)}</h3>
             <p class="small text-muted mb-0 text-truncate">${escapeHtml(String(contestant.email ?? ''))}</p>

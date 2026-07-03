@@ -21,7 +21,7 @@ export function renderLeaderboardTable(entries) {
 
   return `
     <div class="table-responsive">
-      <table class="table table-dark table-hover ptw-leaderboard-table">
+      <table class="table table-dark table-hover ptw-table ptw-table--compact ptw-leaderboard-table">
         <thead class="sticky-top">
           <tr>
             <th scope="col" style="width: 60px;">Rank</th>
@@ -57,7 +57,7 @@ function renderLeaderboardRow(entry) {
   return `
     <tr class="${rowClass}" data-user-id="${escapeHtml(entry.userId)}">
       <td>
-        <span class="badge ${rankBadgeClass} fs-6">${entry.rank}</span>
+        <span class="badge ${rankBadgeClass}">${entry.rank}</span>
       </td>
       <td>
         ${renderAvatar(entry.photoURL, entry.displayName)}
@@ -69,7 +69,7 @@ function renderLeaderboardRow(entry) {
         </div>
       </td>
       <td class="text-center">
-        <span class="badge bg-primary fs-6">${entry.totalPoints}</span>
+        <span class="badge bg-primary">${entry.totalPoints}</span>
       </td>
       <td class="text-center d-none d-lg-table-cell">
         <span class="text-success">${entry.correctWinnerCount}</span>

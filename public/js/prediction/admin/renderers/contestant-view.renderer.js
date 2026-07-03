@@ -6,6 +6,7 @@
 import { escapeHtml } from '../../../utils/html.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { renderPredictionTable } from './list.renderer.js';
+import { renderStatTileGrid } from '../../../components/statistic-card.component.js';
 
 /**
  * @param {Record<string, unknown>} contestant
@@ -17,32 +18,20 @@ export function renderContestantHeader(contestant, stats) {
 
   return `
     <div class="card ptw-card mb-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-3 mb-3">
-          ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 56 })}
-          <div>
-            <h2 class="h4 mb-1">${escapeHtml(name)}</h2>
-            <p class="text-muted mb-0">${escapeHtml(String(contestant.email ?? ''))}</p>
+      <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 40 })}
+          <div class="min-w-0">
+            <h2 class="h6 mb-0">${escapeHtml(name)}</h2>
+            <p class="small text-muted mb-0 text-truncate">${escapeHtml(String(contestant.email ?? ''))}</p>
           </div>
         </div>
-        <div class="row g-3">
-          <div class="col-6 col-md-3">
-            <p class="small text-muted mb-1">Predictions Submitted</p>
-            <p class="h5 mb-0">${escapeHtml(String(stats.predictionsSubmitted))}</p>
-          </div>
-          <div class="col-6 col-md-3">
-            <p class="small text-muted mb-1">Pending</p>
-            <p class="h5 mb-0">${escapeHtml(String(stats.predictionsPending))}</p>
-          </div>
-          <div class="col-6 col-md-3">
-            <p class="small text-muted mb-1">Current Points</p>
-            <p class="h5 mb-0">${escapeHtml(String(stats.currentPoints))}</p>
-          </div>
-          <div class="col-6 col-md-3">
-            <p class="small text-muted mb-1">Accuracy</p>
-            <p class="h5 mb-0">${escapeHtml(String(stats.accuracyPercent))}%</p>
-          </div>
-        </div>
+        ${renderStatTileGrid([
+    { label: 'Submitted', value: stats.predictionsSubmitted },
+    { label: 'Pending', value: stats.predictionsPending },
+    { label: 'Points', value: stats.currentPoints },
+    { label: 'Accuracy', value: `${stats.accuracyPercent}%` },
+  ])}
       </div>
     </div>
   `;
@@ -60,8 +49,8 @@ export function renderContestantWiseView(contestant, predictions, tableOptions, 
     <section aria-label="Contestant predictions">
       ${renderContestantHeader(contestant, stats)}
       <div class="card ptw-card">
-        <div class="card-header">
-          <h3 class="h5 mb-0">Prediction History</h3>
+        <div class="card-header py-2">
+          <h3 class="h6 mb-0">Prediction History</h3>
         </div>
         <div class="card-body p-0">
           ${renderPredictionTable(predictions, tableOptions)}

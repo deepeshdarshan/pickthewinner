@@ -111,4 +111,13 @@
   --ptw-z-modal: 1050;
   --ptw-z-toast: 1060;
   --ptw-z-loading: 1070;
+
+  /* Compact density (applied via .ptw-density-compact) */
+  --ptw-density-card-padding: 0.75rem;
+  --ptw-density-section-gap: 1rem;
+  --ptw-density-stat-value: 1.125rem;
+  --ptw-density-stat-label: 0.75rem;
+  --ptw-density-table-cell-y: 0.5rem;
+  --ptw-density-table-cell-x: 0.75rem;
+  --ptw-density-filter-gap: 0.5rem;
 }

@@ -2016,3 +2016,246 @@
   box-shadow: var(--ptw-shadow-sm);
 }
 
+/* --------------------------------------------------------------------------
+   Compact density — applied globally via .ptw-density-compact on page shells
+   -------------------------------------------------------------------------- */
+
+.ptw-density-compact .ptw-card .card-body {
+  padding: var(--ptw-density-card-padding);
+}
+
+.ptw-density-compact .ptw-card .card-header {
+  padding: var(--ptw-space-2) var(--ptw-density-card-padding);
+}
+
+.ptw-density-compact .ptw-page-header {
+  margin-bottom: var(--ptw-density-section-gap);
+}
+
+.ptw-density-compact .ptw-page-header__title {
+  font-size: var(--ptw-font-size-xl);
+  margin-bottom: var(--ptw-space-1);
+}
+
+.ptw-density-compact .ptw-page-header__subtitle {
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-density-compact .form-label {
+  font-size: var(--ptw-font-size-xs);
+  margin-bottom: var(--ptw-space-1);
+}
+
+.ptw-density-compact .form-control,
+.ptw-density-compact .form-select {
+  font-size: var(--ptw-font-size-sm);
+  padding: 0.35rem 0.65rem;
+}
+
+.ptw-density-compact .input-group-text {
+  font-size: var(--ptw-font-size-sm);
+  padding: 0.35rem 0.65rem;
+}
+
+.ptw-density-compact .ptw-stat-card__label {
+  font-size: var(--ptw-density-stat-label);
+  margin-bottom: 0.125rem;
+}
+
+.ptw-density-compact .ptw-stat-card__value {
+  font-size: var(--ptw-density-stat-value);
+}
+
+.ptw-density-compact .ptw-stat-card__icon {
+  font-size: var(--ptw-font-size-lg);
+}
+
+.ptw-density-compact .ptw-stat-card__trend {
+  font-size: var(--ptw-font-size-xs);
+  margin-top: 0.125rem;
+}
+
+.ptw-density-compact .ptw-table thead th,
+.ptw-density-compact .ptw-table tbody td {
+  font-size: var(--ptw-font-size-sm);
+  padding: var(--ptw-density-table-cell-y) var(--ptw-density-table-cell-x);
+}
+
+.ptw-density-compact .ptw-table--compact {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ptw-density-compact .badge {
+  font-size: 0.625rem;
+  padding: 0.15rem 0.35rem;
+  line-height: 1.2;
+}
+
+.ptw-density-compact .btn:not(.btn-lg):not(.ptw-match-fab) {
+  font-size: var(--ptw-font-size-sm);
+  padding: 0.35rem 0.65rem;
+}
+
+.ptw-density-compact .btn-sm {
+  font-size: var(--ptw-font-size-xs);
+  padding: 0.25rem 0.5rem;
+}
+
+.ptw-density-compact .mb-3 {
+  margin-bottom: var(--ptw-space-3) !important;
+}
+
+.ptw-density-compact .mb-4 {
+  margin-bottom: var(--ptw-density-section-gap) !important;
+}
+
+.ptw-density-compact .row.g-3 {
+  --bs-gutter-y: var(--ptw-space-2);
+  --bs-gutter-x: var(--ptw-space-2);
+}
+
+/* Stat grid — 6 stats in one row on xl */
+.ptw-stat-grid {
+  display: grid;
+  gap: var(--ptw-space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .ptw-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .ptw-stat-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.ptw-stat-grid > * {
+  min-width: 0;
+}
+
+/* Filter bar — single-row flex layout */
+.ptw-filter-bar {
+  position: sticky;
+  top: var(--ptw-space-3);
+  z-index: 5;
+}
+
+.ptw-filter-bar__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ptw-density-filter-gap);
+  align-items: flex-end;
+}
+
+.ptw-filter-bar__field {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  max-width: 14rem;
+}
+
+.ptw-filter-bar__field--wide {
+  flex: 2 1 16rem;
+  max-width: 20rem;
+}
+
+.ptw-filter-bar__field--search {
+  flex: 2 1 18rem;
+  max-width: 24rem;
+}
+
+@media (min-width: 1200px) {
+  .ptw-filter-bar__field {
+    max-width: 12rem;
+  }
+
+  .ptw-filter-bar__field--search {
+    max-width: 18rem;
+  }
+}
+
+/* Compact stat tiles (inline metrics) */
+.ptw-stat-tile {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-radius: var(--ptw-radius-md);
+  padding: var(--ptw-space-2) var(--ptw-space-3);
+}
+
+.ptw-stat-tile__label {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  margin-bottom: 0.125rem;
+}
+
+.ptw-stat-tile__value {
+  font-family: var(--ptw-font-heading);
+  font-size: var(--ptw-font-size-lg);
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-text-primary);
+  margin-bottom: 0;
+}
+
+/* Prediction table column widths */
+.ptw-prediction-table th:nth-child(1),
+.ptw-prediction-table td:nth-child(1) {
+  width: 2.5rem;
+}
+
+.ptw-prediction-table th:nth-child(2),
+.ptw-prediction-table td:nth-child(2) {
+  min-width: 10rem;
+  width: 18%;
+}
+
+.ptw-prediction-table th:nth-child(3),
+.ptw-prediction-table td:nth-child(3) {
+  min-width: 8rem;
+  width: 12%;
+}
+
+.ptw-prediction-table th:nth-child(4),
+.ptw-prediction-table td:nth-child(4) {
+  min-width: 12rem;
+  width: 20%;
+}
+
+.ptw-prediction-table th:nth-child(5),
+.ptw-prediction-table td:nth-child(5) {
+  min-width: 5rem;
+  width: 8%;
+}
+
+.ptw-prediction-table th:nth-child(6),
+.ptw-prediction-table td:nth-child(6) {
+  min-width: 4rem;
+  width: 7%;
+}
+
+.ptw-prediction-table th:nth-child(7),
+.ptw-prediction-table td:nth-child(7) {
+  min-width: 5rem;
+  width: 8%;
+}
+
+.ptw-prediction-table th:nth-child(8),
+.ptw-prediction-table td:nth-child(8) {
+  min-width: 6rem;
+  width: 9%;
+}
+
+.ptw-prediction-table th:nth-child(9),
+.ptw-prediction-table td:nth-child(9) {
+  min-width: 6rem;
+  width: 9%;
+}
+
+.ptw-prediction-table th:nth-child(10),
+.ptw-prediction-table td:nth-child(10) {
+  min-width: 5rem;
+  width: 7%;
+}
+

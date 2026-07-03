@@ -80,36 +80,10 @@ export function renderPredictionStatisticsCards(stats, lastUpdated = new Date())
 /**
  * @param {import('../PredictionStatisticsService.js').TournamentStatistics} stats
  * @returns {string}
+ * @deprecated Use top statistics cards only; overview section removed for compact layout.
  */
-export function renderTournamentOverviewStats(stats) {
-  return `
-    <div class="row g-3 mt-1">
-      <div class="col-md-4">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <h3 class="h6 text-muted">Prediction Completion</h3>
-            <p class="display-6 mb-0">${escapeHtml(String(stats.completionPercent))}%</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <h3 class="h6 text-muted">Avg. Predictions / Match</h3>
-            <p class="display-6 mb-0">${escapeHtml(String(stats.averagePredictionsPerMatch))}</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <h3 class="h6 text-muted">Published Matches</h3>
-            <p class="display-6 mb-0">${escapeHtml(String(stats.publishedMatches))}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+export function renderTournamentOverviewStats(_stats) {
+  return '';
 }
 
 /**

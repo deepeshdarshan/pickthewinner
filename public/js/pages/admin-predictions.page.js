@@ -30,8 +30,8 @@ import {
   renderPredictionDetailBody,
   DETAIL_MODAL_ID,
 } from '../prediction/admin/renderers/detail.renderer.js';
-import { renderTournamentOverviewStats } from '../prediction/admin/renderers/statistics-cards.renderer.js';
 import { Logger } from '../utils/logger.util.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.component.js';
 
 /** @typedef {import('../prediction/admin/PredictionManagementService.js').TournamentPredictionData} TournamentPredictionData */
 
@@ -137,7 +137,6 @@ async function initAdminPredictionsPage(outlet) {
           stages,
           filterState,
         },
-        overviewHtml: renderTournamentOverviewStats(tournamentData.statistics),
       });
 
       const tableContainer = outlet.querySelector('#predictionTableContainer');
@@ -451,11 +450,16 @@ function bindPredictionRowHandlers(outlet, handlers) {
  * @returns {void}
  */
 function updateViewModeVisibility(outlet, viewMode) {
-  const matchGroup = outlet.querySelector('#predictionMatchFilterGroup');
-  const contestantGroup = outlet.querySelector('#predictionContestantFilterGroup');
+  const matchFilter = outlet.querySelector('#predictionMatchFilter');
+  const contestantFilter = outlet.querySelector('#predictionContestantFilter');
 
-  matchGroup?.classList.toggle('d-none', viewMode !== PREDICTION_VIEW_MODE.MATCH);
-  contestantGroup?.classList.toggle('d-none', viewMode !== PREDICTION_VIEW_MODE.CONTESTANT);
+  if (matchFilter) {
+    matchFilter.disabled = viewMode !== PREDICTION_VIEW_MODE.MATCH;
+  }
+
+  if (contestantFilter) {
+    contestantFilter.disabled = viewMode !== PREDICTION_VIEW_MODE.CONTESTANT;
+  }
 }
 
 /**
@@ -484,7 +488,7 @@ function getErrorMessage(error) {
  */
 function renderErrorState(message) {
   return `
-    <div class="container-fluid py-4">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       <div class="alert alert-danger" role="alert">
         <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>
         ${message}

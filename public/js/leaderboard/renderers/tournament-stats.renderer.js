@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderStatTileGrid } from '../../components/statistic-card.component.js';
 
 /**
  * Renders tournament statistics card.
@@ -13,68 +14,25 @@ import { escapeHtml } from '../../utils/html.util.js';
 export function renderTournamentStats(stats) {
   return `
     <div class="card ptw-card">
-      <div class="card-header">
-        <h5 class="mb-0">
+      <div class="card-header py-2">
+        <h5 class="h6 mb-0">
           <i class="bi bi-trophy me-2"></i>
           Tournament Statistics
         </h5>
       </div>
-      <div class="card-body">
-        <h6 class="text-primary mb-3">${escapeHtml(stats.tournamentName)}</h6>
-        
-        <div class="row g-3">
-          <div class="col-6 col-md-3">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Contestants</div>
-              <div class="fs-4 fw-bold text-primary">${stats.totalContestants}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-3">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Total Matches</div>
-              <div class="fs-4 fw-bold">${stats.totalMatches}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-3">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Completed</div>
-              <div class="fs-4 fw-bold text-success">${stats.completedMatches}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-3">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Remaining</div>
-              <div class="fs-4 fw-bold text-warning">${stats.remainingMatches}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Total Predictions</div>
-              <div class="fs-4 fw-semibold">${stats.totalPredictions}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Completion Rate</div>
-              <div class="fs-4 fw-semibold">${stats.predictionCompletionPercentage}%</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Average Accuracy</div>
-              <div class="fs-4 fw-semibold">${stats.averageAccuracy}%</div>
-            </div>
-          </div>
-        </div>
-
+      <div class="card-body py-2">
+        <h6 class="text-primary small mb-2">${escapeHtml(stats.tournamentName)}</h6>
+        ${renderStatTileGrid([
+    { label: 'Contestants', value: stats.totalContestants },
+    { label: 'Total Matches', value: stats.totalMatches },
+    { label: 'Completed', value: stats.completedMatches },
+    { label: 'Remaining', value: stats.remainingMatches },
+    { label: 'Total Predictions', value: stats.totalPredictions },
+    { label: 'Completion Rate', value: `${stats.predictionCompletionPercentage}%` },
+    { label: 'Average Accuracy', value: `${stats.averageAccuracy}%` },
+  ])}
         ${stats.lastUpdated ? `
-          <div class="mt-3 text-center">
+          <div class="mt-2 text-center">
             <small class="ptw-text-muted">
               <i class="bi bi-clock me-1"></i>
               Last updated: ${formatLastUpdated(stats.lastUpdated)}
@@ -104,4 +62,3 @@ function formatLastUpdated(isoString) {
     return 'Unknown';
   }
 }
-

@@ -98,7 +98,7 @@ export function renderUserTable(users, options = {}) {
 
   return `
     <div class="table-responsive">
-      <table class="table table-dark table-hover align-middle mb-0" style="font-size: 0.875rem;">
+      <table class="table table-dark table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Users">
         <thead>
           <tr style="background-color: #1F2A44;">
             <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">User</th>

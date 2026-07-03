@@ -56,7 +56,7 @@ export function renderTournamentListPage(tournaments) {
     })
     : `
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 ptw-table" aria-label="Tournaments">
+        <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Tournaments">
           <thead>
             <tr>
               <th scope="col">Name</th>

@@ -27,9 +27,9 @@ async function initAdminDashboard(outlet) {
 
   const summaryHtml = data.activeTournament
     ? `
-      <div class="card ptw-card mb-4">
-        <div class="card-body">
-          <h3 class="h5">Active Tournament</h3>
+      <div class="card ptw-card mb-3">
+        <div class="card-body py-2">
+          <h3 class="h6 mb-1">Active Tournament</h3>
           <p class="mb-1 fw-semibold">${escapeHtml(data.activeTournament.name)}</p>
           <p class="ptw-text-muted mb-3">${escapeHtml(data.activeTournament.season)} · ${escapeHtml(data.activeTournament.statusLabel)}</p>
           <a class="btn btn-outline-light btn-sm" href="${escapeHtml(data.tournamentsPath)}" data-route>Manage Tournaments</a>
@@ -51,8 +51,8 @@ async function initAdminDashboard(outlet) {
   })}
       <div class="card ptw-card">
         <div class="card-body">
-          <div class="ptw-dashboard-welcome mb-4">
-            <h2 class="h4 mb-1">${escapeHtml(data.welcomeTitle)}</h2>
+          <div class="ptw-dashboard-welcome mb-3">
+            <h2 class="h5 mb-1">${escapeHtml(data.welcomeTitle)}</h2>
             <p class="ptw-text-muted mb-0">${escapeHtml(data.welcomeMessage)}</p>
           </div>
           ${summaryHtml}

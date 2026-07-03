@@ -244,6 +244,10 @@ h6 {
   padding-bottom: var(--ptw-space-6);
 }
 
+.ptw-density-compact.ptw-admin-page {
+  padding-bottom: var(--ptw-space-4);
+}
+
 .ptw-admin-layout {
   display: grid;
   grid-template-columns: 1fr;

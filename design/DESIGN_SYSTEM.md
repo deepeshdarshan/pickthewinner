@@ -314,6 +314,22 @@ Cards should support
 - Value
 - Optional trend
 
+### Compact Density
+
+All page content uses `.ptw-density-compact` via admin and contestant page shells.
+
+| Element | Token / Class |
+|---------|----------------|
+| Card body padding | `--ptw-density-card-padding` (0.75rem) |
+| Page title | `--ptw-font-size-xl` |
+| Stat value | `--ptw-density-stat-value` (1.125rem) |
+| Table cells | `.ptw-table--compact` |
+| Filter rows | `.ptw-filter-bar` |
+| Stat rows (6-up desktop) | `.ptw-stat-grid` |
+| Inline metrics | `.ptw-stat-tile` |
+
+Use `renderFilterBar()` and `renderStatisticCardGrid()` from shared components. Avoid Bootstrap `display-*` classes for metrics.
+
 ---
 
 # Icons

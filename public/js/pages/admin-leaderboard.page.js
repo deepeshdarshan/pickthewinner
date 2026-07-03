@@ -3,7 +3,8 @@
  * @module pages/admin-leaderboard.page
  */
 
-import { renderAdminPageHeader } from '../components/page-header.component.js';
+import { renderPageHeader } from '../components/page-header.component.js';
+import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
 import { renderLeaderboardTable } from '../leaderboard/renderers/leaderboard-table.renderer.js';
@@ -75,8 +76,8 @@ async function initAdminLeaderboardPage(outlet) {
  */
 function renderAdminLeaderboardView(tournaments) {
   return `
-    <div class="container-fluid py-4">
-      ${renderAdminPageHeader({
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
+      ${renderPageHeader({
         title: 'Leaderboard Management',
         subtitle: 'View and manage tournament leaderboards',
       })}
@@ -326,7 +327,7 @@ function updateLeaderboardContent(outlet, entries) {
  */
 function renderLoadingState() {
   return `
-    <div class="container-fluid py-4">
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       <div class="card ptw-card">
         <div class="card-body">
           <div class="text-center py-5">
@@ -346,8 +347,8 @@ function renderLoadingState() {
  */
 function renderNoTournamentState() {
   return `
-    <div class="container-fluid py-4">
-      ${renderAdminPageHeader({
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
+      ${renderPageHeader({
         title: 'Leaderboard Management',
         subtitle: 'View and manage tournament leaderboards',
       })}
@@ -370,8 +371,8 @@ function renderNoTournamentState() {
  */
 function renderErrorState() {
   return `
-    <div class="container-fluid py-4">
-      ${renderAdminPageHeader({
+    <div class="${ADMIN_PAGE_SHELL_CLASSES}">
+      ${renderPageHeader({
         title: 'Leaderboard Management',
         subtitle: 'View and manage tournament leaderboards',
       })}

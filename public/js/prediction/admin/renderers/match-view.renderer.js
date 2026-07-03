@@ -9,6 +9,7 @@ import { renderTeamsMatchupHtml } from '../../../master-data/teams/team-flag.uti
 import { renderMatchStatusBadge } from '../../../match/renderers/status-badge.renderer.js';
 import { renderPredictionTable } from './list.renderer.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
+import { renderStatTileGrid } from '../../../components/statistic-card.component.js';
 
 /**
  * @param {Record<string, unknown>} match
@@ -20,22 +21,22 @@ export function renderMatchHeader(match) {
 
   return `
     <div class="card ptw-card mb-3">
-      <div class="card-body">
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      <div class="card-body py-2">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
           <div>
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
               ${stage ? `<span class="badge bg-primary">${escapeHtml(stage)}</span>` : ''}
               ${renderMatchStatusBadge(match.status)}
             </div>
-            <h2 class="h4 mb-2">${renderTeamsMatchupHtml(match.homeTeam, match.awayTeam)}</h2>
-            <p class="text-muted mb-1">
+            <h2 class="h5 mb-1">${renderTeamsMatchupHtml(match.homeTeam, match.awayTeam)}</h2>
+            <p class="small text-muted mb-0">
               <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>
               ${escapeHtml(formatDateTime(match.kickoffUtc) || '—')}
+              ${venue ? `<span class="ms-2"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>${escapeHtml(venue)}</span>` : ''}
             </p>
-            ${venue ? `<p class="text-muted mb-0"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>${escapeHtml(venue)}</p>` : ''}
           </div>
           <div class="text-lg-end">
-            <p class="small text-muted mb-1">Match #${escapeHtml(String(match.matchNumber ?? '—'))}</p>
+            <p class="small text-muted mb-0">Match #${escapeHtml(String(match.matchNumber ?? '—'))}</p>
           </div>
         </div>
       </div>
@@ -49,42 +50,25 @@ export function renderMatchHeader(match) {
  * @returns {string}
  */
 export function renderMatchStatisticsPanel(match, stats) {
+  void match;
   return `
-    <div class="row g-3 mb-3">
-      <div class="col-md-3">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <p class="small text-muted mb-1">Total Predictions</p>
-            <p class="h4 mb-0">${escapeHtml(String(stats.totalPredictions))}</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <p class="small text-muted mb-1">Completion</p>
-            <p class="h4 mb-0">${escapeHtml(String(stats.completionPercent))}%</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <p class="small text-muted mb-1">Most Predicted Winner</p>
-            <p class="h6 mb-0">${escapeHtml(stats.mostPredictedTeam ?? '—')}</p>
-            ${stats.mostPredictedTeam ? `<p class="small text-muted mb-0">${escapeHtml(String(stats.mostPredictedTeamPercent))}%</p>` : ''}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <p class="small text-muted mb-1">Most Predicted Score</p>
-            <p class="h6 mb-0">${escapeHtml(stats.mostPredictedScore ?? '—')}</p>
-            ${stats.mostPredictedScore ? `<p class="small text-muted mb-0">${escapeHtml(String(stats.mostPredictedScorePercent))}%</p>` : ''}
-          </div>
-        </div>
-      </div>
+    <div class="mb-3">
+      ${renderStatTileGrid([
+    { label: 'Total Predictions', value: stats.totalPredictions },
+    { label: 'Completion', value: `${stats.completionPercent}%` },
+    {
+      label: 'Most Predicted Winner',
+      value: stats.mostPredictedTeam
+        ? `${stats.mostPredictedTeam} (${stats.mostPredictedTeamPercent}%)`
+        : '—',
+    },
+    {
+      label: 'Most Predicted Score',
+      value: stats.mostPredictedScore
+        ? `${stats.mostPredictedScore} (${stats.mostPredictedScorePercent}%)`
+        : '—',
+    },
+  ])}
     </div>
   `;
 }
@@ -102,8 +86,8 @@ export function renderMatchWiseView(match, predictions, tableOptions = {}, stats
       ${renderMatchHeader(match)}
       ${stats ? renderMatchStatisticsPanel(match, stats) : ''}
       <div class="card ptw-card">
-        <div class="card-header">
-          <h3 class="h5 mb-0">Contestant Predictions</h3>
+        <div class="card-header py-2">
+          <h3 class="h6 mb-0">Contestant Predictions</h3>
         </div>
         <div class="card-body p-0">
           ${renderPredictionTable(predictions, tableOptions)}
@@ -124,13 +108,13 @@ export function renderMatchWiseCompactList(predictions) {
     const name = String(contestant.displayName ?? contestant.fullName ?? 'Unknown');
 
     return `
-      <div class="border-bottom border-secondary py-3">
-        <div class="d-flex align-items-center gap-2 mb-2">
+      <div class="border-bottom border-secondary py-2">
+        <div class="d-flex align-items-center gap-2 mb-1">
           ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
-          <strong>${escapeHtml(name)}</strong>
+          <strong class="small">${escapeHtml(name)}</strong>
         </div>
-        <p class="mb-1"><span class="text-muted">Prediction:</span> ${escapeHtml(`${prediction.homeScore} - ${prediction.awayScore}`)}</p>
-        ${prediction.predictedWinnerName ? `<p class="mb-1"><span class="text-muted">Winner:</span> ${escapeHtml(prediction.predictedWinnerName)}</p>` : ''}
+        <p class="mb-0 small"><span class="text-muted">Prediction:</span> ${escapeHtml(`${prediction.homeScore} - ${prediction.awayScore}`)}</p>
+        ${prediction.predictedWinnerName ? `<p class="mb-0 small"><span class="text-muted">Winner:</span> ${escapeHtml(prediction.predictedWinnerName)}</p>` : ''}
         <p class="small text-muted mb-0">Submitted ${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</p>
       </div>
     `;
