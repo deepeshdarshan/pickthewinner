@@ -681,3 +681,13 @@ export async function hasCurrentUserProfile() {
   const profile = await loadCurrentUser();
   return Boolean(profile);
 }
+
+/**
+ * Checks if a user profile is locked.
+ * @param {UserProfile|null|undefined} profile
+ * @returns {boolean}
+ */
+export function isUserLocked(profile) {
+  return profile?.status === USER_STATUS.LOCKED;
+}
+

@@ -218,10 +218,22 @@ export const ROUTES = Object.freeze([
     roles: [USER_ROLES.CONTESTANT],
   },
   {
-    path: AUTH_ROUTES.COMPLETE_PROFILE,
+    path: '/complete-profile',
     name: 'complete-profile',
     title: 'Complete Profile',
     pageModule: '../users/complete-profile.page.js',
+    showInNavbar: false,
+    showInMobileNav: false,
+    requiresAuth: true,
+    requiresProfile: false,
+    guestOnly: false,
+    requiredRole: null,
+  },
+  {
+    path: '/account-locked',
+    name: 'account-locked',
+    title: 'Account Locked',
+    pageModule: '../pages/account-locked.page.js',
     showInNavbar: false,
     showInMobileNav: false,
     requiresAuth: true,
@@ -313,7 +325,20 @@ export const ROUTES = Object.freeze([
     path: '/admin/users',
     name: 'admin-users',
     title: 'Users',
-    pageModule: '../pages/admin-section.page.js',
+    pageModule: '../users/user-management.page.js',
+    showInNavbar: false,
+    showInMobileNav: false,
+    requiresAuth: true,
+    requiresProfile: false,
+    guestOnly: false,
+    requiredRole: USER_ROLES.ADMIN,
+    roles: [USER_ROLES.ADMIN],
+  },
+  {
+    path: '/admin/users/:uid',
+    name: 'admin-user-profile',
+    title: 'User Profile',
+    pageModule: '../users/user-profile-admin.page.js',
     showInNavbar: false,
     showInMobileNav: false,
     requiresAuth: true,
@@ -418,12 +443,36 @@ export function normalizeRouteMetadata(route) {
 
 /**
  * Finds a route definition by pathname.
+ * Supports dynamic route parameters like /admin/users/:uid
  * @param {string} pathname
  * @returns {RouteDefinition|undefined}
  */
 export function findRouteByPath(pathname) {
   const normalized = normalizePath(pathname);
-  const route = ROUTES.find((item) => item.path === normalized);
+
+  // First try exact match
+  let route = ROUTES.find((item) => item.path === normalized);
+
+  // If no exact match, try dynamic route matching
+  if (!route) {
+    route = ROUTES.find((item) => {
+      if (!item.path.includes(':')) {
+        return false;
+      }
+
+      const routeParts = item.path.split('/');
+      const pathParts = normalized.split('/');
+
+      if (routeParts.length !== pathParts.length) {
+        return false;
+      }
+
+      return routeParts.every((part, index) => {
+        return part.startsWith(':') || part === pathParts[index];
+      });
+    });
+  }
+
   return route ? normalizeRouteMetadata(route) : undefined;
 }
 

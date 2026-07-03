@@ -5,7 +5,7 @@
 
 import { isAuthenticated, isAdminAuthUser, getCurrentUser } from '../auth/auth.service.js';
 import { USER_ROUTES } from './user.constants.js';
-import { ensureAdminProfile, getCachedProfile, loadCurrentUser } from './user.service.js';
+import { ensureAdminProfile, getCachedProfile, loadCurrentUser, isUserLocked } from './user.service.js';
 import { UserDomain } from '../domain/user.domain.js';
 import { Logger } from '../utils/logger.util.js';
 
@@ -62,6 +62,12 @@ export async function canActivateUserRoute(route) {
       Logger.error('[UserGuard] Failed to load profile:', error);
       return { allowed: false, redirectTo: USER_ROUTES.COMPLETE_PROFILE, replace: true };
     }
+  }
+
+  // Check if user account is locked
+  if (isUserLocked(profile)) {
+    Logger.warn('[UserGuard] Locked user attempted access:', profile?.uid);
+    return { allowed: false, redirectTo: '/account-locked', replace: true };
   }
 
   if (UserDomain.isAdmin(profile)) {

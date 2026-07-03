@@ -19,6 +19,7 @@ export const USER_STATUS = Object.freeze({
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
   SUSPENDED: 'SUSPENDED',
+  LOCKED: 'LOCKED',
 });
 
 /** @enum {string} */
@@ -80,6 +81,15 @@ export const USER_MESSAGES = Object.freeze({
   PERMISSION_DENIED: 'You do not have permission to perform this action.',
   NETWORK_ERROR: 'Network error. Please try again.',
   GENERIC_ERROR: 'Something went wrong. Please try again.',
+  ACCOUNT_LOCKED: 'Your account has been locked by an administrator. Please contact the administrator for assistance.',
+  USER_LOCKED_SUCCESS: 'User account has been locked successfully.',
+  USER_UNLOCKED_SUCCESS: 'User account has been unlocked successfully.',
+  USER_LOCK_FAILED: 'Unable to lock user account. Please try again.',
+  USER_UNLOCK_FAILED: 'Unable to unlock user account. Please try again.',
+  CANNOT_LOCK_SELF: 'You cannot lock your own account.',
+  CANNOT_LOCK_ADMIN: 'You cannot lock another administrator account.',
+  LOADING_USERS: 'Loading users…',
+  USERS_LOAD_FAILED: 'Unable to load users. Please try again.',
 });
 
 /**

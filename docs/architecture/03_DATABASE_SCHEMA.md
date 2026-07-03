@@ -11,6 +11,57 @@
 
 Authoritative Firestore schema specification for PickTheWinner. This document covers implemented collections and fields relevant to current development.
 
+## Users Collection
+
+**Collection:** `users`
+
+### User Document Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `uid` | String | Yes | Firebase Authentication UID (document ID) |
+| `name` | String | Yes | User's display name |
+| `email` | String | Yes | User's email address |
+| `phone` | String | No | Phone number (required for contestants) |
+| `photoURL` | String | No | Profile photo URL |
+| `role` | String | Yes | User role: `ADMIN` or `CONTESTANT` |
+| `provider` | String | Yes | Auth provider: `GOOGLE` or `EMAIL_PASSWORD` |
+| `status` | String | Yes | Account status: `ACTIVE`, `LOCKED`, `INACTIVE`, `SUSPENDED` |
+| `district` | String | No | District (required for contestants) |
+| `pradeshikaSabha` | String | No | Pradeshika Sabha (required for contestants) |
+| `timezone` | String | Yes | Fixed to `Asia/Kolkata` (IST) |
+| `notificationPreferences` | Object | Yes | Email and browser notification settings |
+| `statistics` | Object | Yes | User statistics (tournaments played, predictions, points, etc.) |
+| `createdAt` | Timestamp | Yes | Account creation timestamp |
+| `updatedAt` | Timestamp | Yes | Last update timestamp |
+| `lastLogin` | Timestamp | No | Last login timestamp |
+| `lockedBy` | String | No | UID of admin who locked the account |
+| `lockedAt` | Timestamp | No | When the account was locked |
+| `lockReason` | String | No | Reason for locking the account (max 500 chars) |
+
+### User Status
+
+- **ACTIVE**: User can access the application
+- **LOCKED**: User cannot sign in; locked by an administrator
+- **INACTIVE**: Soft-deleted user
+- **SUSPENDED**: Temporarily suspended (future use)
+
+### Lock Workflow
+
+When an administrator locks a user:
+1. `status` is set to `LOCKED`
+2. `lockedBy` is set to the admin's UID
+3. `lockedAt` is set to the current server timestamp
+4. `lockReason` is optionally set (max 500 characters)
+
+When unlocked:
+1. `status` is restored to `ACTIVE`
+2. `lockedBy`, `lockedAt`, and `lockReason` are cleared (set to `null`)
+
+Locked users are blocked by:
+- Client-side route guard (`user.guard.js`) — redirects to `/account-locked`
+- Firestore Security Rules — denies prediction creation/updates
+
 ## Tournaments Collection
 
 **Collection:** `tournaments`

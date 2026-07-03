@@ -20,11 +20,27 @@ service cloud.firestore {
         && data.status in ['published', 'live', 'completed'];
     }
 
+    // Users collection
+    // - Users can read their own profile
+    // - Admins can read all profiles
+    // - Users can create their own profile on first sign-in
+    // - Users can update their own profile (excluding protected fields)
+    // - Admins can update user status, lock/unlock accounts
+    // - Only admins can delete users
     match /users/{userId} {
       allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && !isProtectedFieldUpdate())
+        || isAdmin()
+      );
       allow delete: if isAdmin();
+
+      // Helper: Check if update attempts to modify protected fields (contestants only)
+      function isProtectedFieldUpdate() {
+        let protectedFields = ['uid', 'role', 'status', 'provider', 'statistics', 'createdAt', 'lockedBy', 'lockedAt', 'lockReason'];
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields);
+      }
     }
 
     match /tournaments/{tournamentId} {
@@ -59,9 +75,11 @@ service cloud.firestore {
         || resource.data.userId == request.auth.uid
       );
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && userDoc().data.status == 'ACTIVE';
       allow update: if isSignedIn()
-        && resource.data.userId == request.auth.uid;
+        && resource.data.userId == request.auth.uid
+        && userDoc().data.status == 'ACTIVE';
       allow delete: if isAdmin();
     }
 
