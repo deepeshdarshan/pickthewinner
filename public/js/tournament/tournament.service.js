@@ -570,6 +570,7 @@ export async function publishTournament(id, uid) {
 
   emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_PUBLISHED, tournament);
 
+  // Ensure this tournament is the sole active one (no-op when already active).
   tournament = await setActiveTournament(id, uid);
 
   return tournament;
@@ -903,10 +904,20 @@ export async function setActiveTournament(id, uid) {
     throw new Error(TOURNAMENT_MESSAGES.NOT_FOUND);
   }
 
-  const validation = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_ACTIVE, existing);
-
-  if (!validation.valid) {
+  if (TournamentDomain.isTournamentArchived(existing)) {
+    const validation = {
+      valid: false,
+      errors: { lifecycle: TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID },
+    };
     throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
+  }
+
+  if (!existing.active) {
+    const validation = validateLifecycleAction(LIFECYCLE_ACTIONS.SET_ACTIVE, existing);
+
+    if (!validation.valid) {
+      throw Object.assign(new Error(getTournamentValidationMessage(validation)), { validation });
+    }
   }
 
   return runSerializedFirestoreWrite(async () => {
