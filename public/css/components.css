@@ -1199,6 +1199,20 @@
   color: var(--ptw-color-text-muted);
 }
 
+/* Leaderboard statistics tile */
+.ptw-stats-tile {
+  background-color: var(--ptw-color-bg-tertiary);
+  border-radius: var(--ptw-radius-md);
+  padding: var(--ptw-space-3);
+  text-align: center;
+}
+
+.ptw-stats-tile__label {
+  color: var(--ptw-color-text-secondary);
+  font-size: var(--ptw-font-size-sm);
+  margin-bottom: var(--ptw-space-1);
+}
+
 /* Card Container */
 .ptw-card__header {
   background-color: var(--ptw-color-bg-tertiary);

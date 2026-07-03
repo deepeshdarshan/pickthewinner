@@ -24,50 +24,50 @@ export function renderTournamentStats(stats) {
         
         <div class="row g-3">
           <div class="col-6 col-md-3">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Contestants</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Contestants</div>
               <div class="fs-4 fw-bold text-primary">${stats.totalContestants}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-3">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Total Matches</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Total Matches</div>
               <div class="fs-4 fw-bold">${stats.totalMatches}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-3">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Completed</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Completed</div>
               <div class="fs-4 fw-bold text-success">${stats.completedMatches}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-3">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Remaining</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Remaining</div>
               <div class="fs-4 fw-bold text-warning">${stats.remainingMatches}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Total Predictions</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Total Predictions</div>
               <div class="fs-4 fw-semibold">${stats.totalPredictions}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Completion Rate</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Completion Rate</div>
               <div class="fs-4 fw-semibold">${stats.predictionCompletionPercentage}%</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Average Accuracy</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Average Accuracy</div>
               <div class="fs-4 fw-semibold">${stats.averageAccuracy}%</div>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function renderTournamentStats(stats) {
 
         ${stats.lastUpdated ? `
           <div class="mt-3 text-center">
-            <small class="text-muted">
+            <small class="ptw-text-muted">
               <i class="bi bi-clock me-1"></i>
               Last updated: ${formatLastUpdated(stats.lastUpdated)}
             </small>

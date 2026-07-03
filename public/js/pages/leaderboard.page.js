@@ -16,6 +16,8 @@ import { leaderboardService } from '../leaderboard/leaderboard.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { getActiveTournament } from '../tournament/tournament.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
+import { AuthorizationService } from '../authorization/authorization.service.js';
+import { Roles } from '../authorization/permission.constants.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
 import { LEADERBOARD_MESSAGES } from '../leaderboard/leaderboard.constants.js';
 import { Logger } from '../utils/logger.util.js';
@@ -81,7 +83,9 @@ async function initLeaderboardPage(outlet) {
     );
 
     let contestantStats = null;
-    if (currentUserId) {
+    await AuthorizationService.resolve();
+    const isAdmin = AuthorizationService.hasRole(Roles.ADMIN);
+    if (currentUserId && !isAdmin) {
       contestantStats = await leaderboardService.getContestantStatistics(
         tournament.id,
         currentUserId,

@@ -29,63 +29,63 @@ export function renderContestantStats(stats) {
       <div class="card-body">
         <div class="row g-3">
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Current Rank</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Current Rank</div>
               <div class="fs-3 fw-bold text-warning">#${stats.currentRank || 'N/A'}</div>
               ${stats.previousRank ? `
                 <div class="mt-2">
                   <span class="${movementClass} fw-bold">${movementIcon}</span>
-                  <small class="text-muted ms-1">from #${stats.previousRank}</small>
+                  <small class="ptw-text-muted ms-1">from #${stats.previousRank}</small>
                 </div>
               ` : ''}
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Total Points</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Total Points</div>
               <div class="fs-3 fw-bold text-primary">${stats.totalPoints}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Accuracy</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Accuracy</div>
               <div class="fs-3 fw-bold">${stats.accuracy}%</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Correct Winners</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Correct Winners</div>
               <div class="fs-4 fw-semibold text-success">${stats.correctWinnerCount}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Exact Scores</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Exact Scores</div>
               <div class="fs-4 fw-semibold text-info">${stats.exactScoreCount}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Bonus Points</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Bonus Points</div>
               <div class="fs-4 fw-semibold">${stats.bonusPoints}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Predictions Made</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Predictions Made</div>
               <div class="fs-4 fw-semibold">${stats.predictionsSubmitted}</div>
             </div>
           </div>
 
           <div class="col-6 col-md-4">
-            <div class="text-center p-3 bg-dark rounded">
-              <div class="text-muted small mb-1">Remaining</div>
+            <div class="ptw-stats-tile">
+              <div class="ptw-stats-tile__label">Remaining</div>
               <div class="fs-4 fw-semibold">${stats.predictionsRemaining}</div>
             </div>
           </div>
