@@ -4,7 +4,10 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
+import {
+  renderTeamInlineHtml,
+  renderTeamFlagTooltipHtml,
+} from '../../../master-data/teams/team-flag.util.js';
 import { PENALTY_WINNER, PredictionDomain } from '../../../domain/prediction.domain.js';
 
 /**
@@ -28,7 +31,19 @@ export function resolveContestantDisplayName(contestant) {
  * @param {import('../../../domain/prediction-management.domain.js').EnrichedPrediction} prediction
  * @returns {string}
  */
-export function renderPredictedScoreHtml(match, prediction) {
+export function renderPredictedScoreHtml(match, prediction, options = {}) {
+  const { compact = false } = options;
+
+  if (compact) {
+    return `
+      <span class="d-inline-flex align-items-center gap-1 ptw-prediction-table__score">
+        ${renderTeamFlagTooltipHtml(match.homeTeam, { fallback: 'TBD' })}
+        <span class="fw-semibold">${escapeHtml(String(prediction.homeScore))} - ${escapeHtml(String(prediction.awayScore))}</span>
+        ${renderTeamFlagTooltipHtml(match.awayTeam, { fallback: 'TBD' })}
+      </span>
+    `;
+  }
+
   return `
     <div class="d-flex flex-wrap align-items-center gap-1">
       ${renderTeamInlineHtml(match.homeTeam, { fallback: 'TBD' })}
@@ -43,15 +58,22 @@ export function renderPredictedScoreHtml(match, prediction) {
  * @param {import('../../../domain/prediction-management.domain.js').EnrichedPrediction} prediction
  * @returns {string}
  */
-export function renderPredictedWinnerHtml(match, prediction) {
+export function renderPredictedWinnerHtml(match, prediction, options = {}) {
+  const { compact = false } = options;
   const side = PredictionDomain.resolvePredictedWinnerSide(prediction);
 
   if (side === PENALTY_WINNER.HOME) {
-    return renderTeamInlineHtml(match.homeTeam, { fallback: prediction.predictedWinnerName ?? 'TBD' });
+    const fallback = prediction.predictedWinnerName ?? 'TBD';
+    return compact
+      ? renderTeamFlagTooltipHtml(match.homeTeam, { fallback })
+      : renderTeamInlineHtml(match.homeTeam, { fallback });
   }
 
   if (side === PENALTY_WINNER.AWAY) {
-    return renderTeamInlineHtml(match.awayTeam, { fallback: prediction.predictedWinnerName ?? 'TBD' });
+    const fallback = prediction.predictedWinnerName ?? 'TBD';
+    return compact
+      ? renderTeamFlagTooltipHtml(match.awayTeam, { fallback })
+      : renderTeamInlineHtml(match.awayTeam, { fallback });
   }
 
   return '—';
@@ -62,9 +84,21 @@ export function renderPredictedWinnerHtml(match, prediction) {
  * @param {Record<string, unknown>} result
  * @returns {string}
  */
-export function renderActualScoreHtml(match, result) {
+export function renderActualScoreHtml(match, result, options = {}) {
   if (!result?.published) {
     return '—';
+  }
+
+  const { compact = false } = options;
+
+  if (compact) {
+    return `
+      <span class="d-inline-flex align-items-center gap-1 ptw-prediction-table__score">
+        ${renderTeamFlagTooltipHtml(match.homeTeam, { fallback: 'TBD' })}
+        <span class="fw-semibold">${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</span>
+        ${renderTeamFlagTooltipHtml(match.awayTeam, { fallback: 'TBD' })}
+      </span>
+    `;
   }
 
   return `
@@ -81,19 +115,24 @@ export function renderActualScoreHtml(match, result) {
  * @param {Record<string, unknown>} result
  * @returns {string}
  */
-export function renderActualWinnerHtml(match, result) {
+export function renderActualWinnerHtml(match, result, options = {}) {
   if (!result?.published) {
     return '—';
   }
 
+  const { compact = false } = options;
   const side = PredictionDomain.resolveResultWinnerSide(result, match);
 
   if (side === PENALTY_WINNER.HOME) {
-    return renderTeamInlineHtml(match.homeTeam, { fallback: 'TBD' });
+    return compact
+      ? renderTeamFlagTooltipHtml(match.homeTeam, { fallback: 'TBD' })
+      : renderTeamInlineHtml(match.homeTeam, { fallback: 'TBD' });
   }
 
   if (side === PENALTY_WINNER.AWAY) {
-    return renderTeamInlineHtml(match.awayTeam, { fallback: 'TBD' });
+    return compact
+      ? renderTeamFlagTooltipHtml(match.awayTeam, { fallback: 'TBD' })
+      : renderTeamInlineHtml(match.awayTeam, { fallback: 'TBD' });
   }
 
   return 'Draw';

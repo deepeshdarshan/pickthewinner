@@ -225,7 +225,7 @@ export function renderPredictionTable(predictions, options = {}) {
 
     return `
       <tr class="ptw-prediction-row" data-prediction-id="${escapeHtml(prediction.id)}" tabindex="0" role="button" aria-label="View prediction by ${escapeHtml(contestantName)}">
-        <td>${rowNumber}</td>
+        <td class="ptw-prediction-table__index">${rowNumber}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
             ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
@@ -233,18 +233,18 @@ export function renderPredictionTable(predictions, options = {}) {
           </div>
         </td>
         <td class="d-none d-xl-table-cell">${escapeHtml(String(prediction.tournament?.name ?? ''))}</td>
-        <td>${renderPredictedScoreHtml(match, prediction)}</td>
-        <td class="d-none d-md-table-cell">${renderPredictedWinnerHtml(match, prediction)}</td>
-        <td>${renderActualScoreHtml(match, result)}</td>
-        <td class="d-none d-lg-table-cell">${renderActualWinnerHtml(match, result)}</td>
+        <td>${renderPredictedScoreHtml(match, prediction, { compact: true })}</td>
+        <td class="d-none d-md-table-cell">${renderPredictedWinnerHtml(match, prediction, { compact: true })}</td>
+        <td>${renderActualScoreHtml(match, result, { compact: true })}</td>
+        <td class="d-none d-lg-table-cell">${renderActualWinnerHtml(match, result, { compact: true })}</td>
         <td class="fw-semibold">${renderPointsHtml(prediction, result)}</td>
       </tr>
     `;
   }).join('');
 
   const resultHeaders = `
-    <th scope="col">Actual Score</th>
-    <th scope="col" class="d-none d-lg-table-cell">Actual Winner</th>
+    <th scope="col">${renderPredictionTableHeader('Actual', 'Score')}</th>
+    <th scope="col" class="d-none d-lg-table-cell">${renderPredictionTableHeader('Actual', 'Winner')}</th>
     <th scope="col">Points</th>
   `;
 
@@ -260,11 +260,11 @@ export function renderPredictionTable(predictions, options = {}) {
       <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact ptw-prediction-table" aria-label="Predictions">
         <thead>
           <tr>
-            <th scope="col">#</th>
+            <th scope="col" class="ptw-prediction-table__index">#</th>
             <th scope="col">Contestant</th>
             <th scope="col" class="d-none d-xl-table-cell">Tournament</th>
-            <th scope="col">Predicted Score</th>
-            <th scope="col" class="d-none d-md-table-cell">Predicted Winner</th>
+            <th scope="col">${renderPredictionTableHeader('Predicted', 'Score')}</th>
+            <th scope="col" class="d-none d-md-table-cell">${renderPredictionTableHeader('Predicted', 'Winner')}</th>
             ${resultHeaders}
           </tr>
         </thead>
@@ -381,6 +381,19 @@ function partitionTournaments(tournaments) {
   }
 
   return { active, archived };
+}
+
+/**
+ * @param {Record<string, unknown>} match
+ * @returns {string}
+ */
+/**
+ * @param {string} line1
+ * @param {string} line2
+ * @returns {string}
+ */
+function renderPredictionTableHeader(line1, line2) {
+  return `<span class="ptw-prediction-table__th-label">${escapeHtml(line1)}<br>${escapeHtml(line2)}</span>`;
 }
 
 /**

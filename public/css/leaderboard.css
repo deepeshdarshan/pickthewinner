@@ -3,8 +3,72 @@
  */
 
 /* Leaderboard Table */
+.ptw-leaderboard-table-wrap {
+  overflow-x: auto;
+}
+
+@media (min-width: 992px) {
+  .ptw-leaderboard-table-wrap {
+    overflow-x: visible;
+  }
+}
+
 .ptw-leaderboard-table {
   margin-bottom: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ptw-leaderboard-table thead th {
+  white-space: normal;
+  line-height: 1.2;
+  vertical-align: bottom;
+  font-size: var(--ptw-font-size-xs);
+  padding: 0.4rem 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.ptw-leaderboard-table tbody td {
+  padding: 0.45rem 0.35rem;
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-leaderboard-table__th-label {
+  display: inline-block;
+}
+
+.ptw-leaderboard-table__rank {
+  width: 3.25rem;
+}
+
+.ptw-leaderboard-table__contestant {
+  width: auto;
+  min-width: 0;
+}
+
+.ptw-leaderboard-table__points {
+  width: 4.5rem;
+}
+
+.ptw-leaderboard-table__stat {
+  width: 4.75rem;
+}
+
+.ptw-leaderboard-table__movement {
+  width: 3.5rem;
+}
+
+.ptw-leaderboard-table__avatar {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+}
+
+.ptw-leaderboard-table__movement-icon {
+  display: inline-block;
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  white-space: nowrap;
 }
 
 .ptw-leaderboard-table thead {
@@ -22,25 +86,11 @@
   background-color: var(--ptw-bg-tertiary, #1F2A44);
 }
 
-.ptw-leaderboard-table tbody tr.table-primary {
-  background-color: rgba(21, 101, 255, 0.15);
-  border-left: 3px solid var(--ptw-primary, #1565FF);
-}
-
-.ptw-leaderboard-table tbody tr.table-primary:hover {
-  background-color: rgba(21, 101, 255, 0.25);
-}
-
 /* Leaderboard Cards */
 .ptw-leaderboard-cards {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.ptw-leaderboard-cards .card.border-primary {
-  border-width: 2px;
-  box-shadow: 0 0 15px rgba(21, 101, 255, 0.3);
 }
 
 /* Responsive utilities */
@@ -59,16 +109,19 @@
 .badge.bg-warning.text-dark {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
   box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+  color: #1a1a1a !important;
 }
 
 .badge.bg-secondary {
   background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%) !important;
   box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4);
+  color: #1a1a1a !important;
 }
 
 .badge.bg-info.text-dark {
   background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%) !important;
   box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
+  color: #1a1a1a !important;
 }
 
 /* Animation for rank movement */

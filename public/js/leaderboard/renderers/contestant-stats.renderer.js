@@ -3,7 +3,7 @@
  * @module leaderboard/renderers/contestant-stats.renderer
  */
 
-import { escapeHtml } from '../../utils/html.util.js';
+import { renderStatTileGrid } from '../../components/statistic-card.component.js';
 import {
   RANK_MOVEMENT_ICONS,
   RANK_MOVEMENT_COLORS,
@@ -17,81 +17,34 @@ import {
 export function renderContestantStats(stats) {
   const movementIcon = RANK_MOVEMENT_ICONS[stats.movement] || '';
   const movementClass = RANK_MOVEMENT_COLORS[stats.movement] || 'text-muted';
+  const rankDetail = stats.previousRank
+    ? `<span class="${movementClass} fw-bold">${movementIcon}</span> from #${stats.previousRank}`
+    : '';
 
   return `
     <div class="card ptw-card">
-      <div class="card-header">
-        <h5 class="mb-0">
+      <div class="card-header py-2">
+        <h5 class="h6 mb-0">
           <i class="bi bi-person-badge me-2"></i>
           My Statistics
         </h5>
       </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Current Rank</div>
-              <div class="fs-3 fw-bold text-warning">#${stats.currentRank || 'N/A'}</div>
-              ${stats.previousRank ? `
-                <div class="mt-2">
-                  <span class="${movementClass} fw-bold">${movementIcon}</span>
-                  <small class="ptw-text-muted ms-1">from #${stats.previousRank}</small>
-                </div>
-              ` : ''}
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Total Points</div>
-              <div class="fs-3 fw-bold text-primary">${stats.totalPoints}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Accuracy</div>
-              <div class="fs-3 fw-bold">${stats.accuracy}%</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Correct Winners</div>
-              <div class="fs-4 fw-semibold text-success">${stats.correctWinnerCount}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Exact Scores</div>
-              <div class="fs-4 fw-semibold text-info">${stats.exactScoreCount}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Bonus Points</div>
-              <div class="fs-4 fw-semibold">${stats.bonusPoints}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Predictions Made</div>
-              <div class="fs-4 fw-semibold">${stats.predictionsSubmitted}</div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4">
-            <div class="ptw-stats-tile">
-              <div class="ptw-stats-tile__label">Remaining</div>
-              <div class="fs-4 fw-semibold">${stats.predictionsRemaining}</div>
-            </div>
-          </div>
-        </div>
+      <div class="card-body py-2">
+        ${renderStatTileGrid([
+    {
+      label: 'Current Rank',
+      value: `#${stats.currentRank || 'N/A'}`,
+      detail: rankDetail,
+    },
+    { label: 'Total Points', value: stats.totalPoints },
+    { label: 'Accuracy', value: `${stats.accuracy}%` },
+    { label: 'Correct Winners', value: stats.correctWinnerCount },
+    { label: 'Exact Scores', value: stats.exactScoreCount },
+    { label: 'Bonus Points', value: stats.bonusPoints },
+    { label: 'Predictions Made', value: stats.predictionsSubmitted },
+    { label: 'Remaining', value: stats.predictionsRemaining },
+  ])}
       </div>
     </div>
   `;
 }
-

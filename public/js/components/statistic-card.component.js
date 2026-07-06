@@ -66,22 +66,23 @@ export function renderStatisticCardGrid(cards) {
 
 /**
  * Renders a compact inline stat tile.
- * @param {{ label: string, value: string|number }} options
+ * @param {{ label: string, value: string|number, detail?: string }} options
  * @returns {string}
  */
 export function renderStatTile(options) {
-  const { label, value } = options;
+  const { label, value, detail = '' } = options;
   return `
     <div class="ptw-stat-tile">
       <p class="ptw-stat-tile__label mb-0">${label}</p>
       <p class="ptw-stat-tile__value mb-0">${value}</p>
+      ${detail ? `<p class="ptw-stat-tile__detail mb-0">${detail}</p>` : ''}
     </div>
   `;
 }
 
 /**
  * Renders a grid of compact stat tiles.
- * @param {Array<{ label: string, value: string|number }>} tiles
+ * @param {Array<{ label: string, value: string|number, detail?: string }>} tiles
  * @returns {string}
  */
 export function renderStatTileGrid(tiles) {

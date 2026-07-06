@@ -43,7 +43,7 @@ export function renderPredictionDetailBody(prediction) {
         <div class="d-flex align-items-center gap-3 mb-3">
           ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 48 })}
           <div>
-            <p class="fw-semibold mb-0">${escapeHtml(contestantName)}</p>
+            <p class="mb-0">${escapeHtml(contestantName)}</p>
           </div>
         </div>
       </div>
@@ -51,11 +51,11 @@ export function renderPredictionDetailBody(prediction) {
       <div class="col-md-6">
         <h3 class="h6 text-muted text-uppercase">Match Information</h3>
         <dl class="row mb-0 small">
-          <dt class="col-5">Tournament</dt>
+          <dt class="col-5 fw-normal">Tournament</dt>
           <dd class="col-7">${escapeHtml(String(tournament.name ?? ''))}</dd>
-          <dt class="col-5">Match #</dt>
+          <dt class="col-5 fw-normal">Match #</dt>
           <dd class="col-7">${escapeHtml(String(match.matchNumber ?? '—'))}</dd>
-          <dt class="col-5">Kickoff</dt>
+          <dt class="col-5 fw-normal">Kickoff</dt>
           <dd class="col-7">${escapeHtml(formatDateTime(match.kickoffUtc) || '—')}</dd>
         </dl>
       </div>
@@ -66,14 +66,14 @@ export function renderPredictionDetailBody(prediction) {
         <h3 class="h6 text-muted text-uppercase">Prediction</h3>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
           ${renderTeamInlineHtml(match.homeTeam, { fallback: 'TBD' })}
-          <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong>
+          ${escapeHtml(String(prediction.homeScore ?? ''))}
         </p>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
           ${renderTeamInlineHtml(match.awayTeam, { fallback: 'TBD' })}
-          <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong>
+          ${escapeHtml(String(prediction.awayScore ?? ''))}
         </p>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
-          <strong>Predicted Winner:</strong> ${renderPredictedWinnerHtml(match, prediction)}
+          Predicted Winner: ${renderPredictedWinnerHtml(match, prediction)}
         </p>
         <p class="mb-0">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
       </div>
@@ -81,11 +81,11 @@ export function renderPredictionDetailBody(prediction) {
       ${hasResult ? `
         <div class="col-md-6">
           <h3 class="h6 text-muted text-uppercase">Result</h3>
-          <p class="mb-1"><strong>Actual Score:</strong> ${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</p>
-          <p class="mb-1"><strong>Winner:</strong> ${escapeHtml(winnerName ?? 'Draw')}</p>
-          <p class="mb-1"><strong>Winner Prediction:</strong> ${renderResultBadge(prediction.winnerPredictionCorrect)}</p>
-          <p class="mb-1"><strong>Exact Score:</strong> ${renderResultBadge(prediction.exactScoreCorrect)}</p>
-          <p class="mb-2"><strong>Points Awarded:</strong> ${escapeHtml(String(prediction.calculatedPoints ?? 0))}</p>
+          <p class="mb-1">Actual Score: ${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</p>
+          <p class="mb-1">Winner: ${escapeHtml(winnerName ?? 'Draw')}</p>
+          <p class="mb-1">Winner Prediction: ${renderResultBadge(prediction.winnerPredictionCorrect)}</p>
+          <p class="mb-1">Exact Score: ${renderResultBadge(prediction.exactScoreCorrect)}</p>
+          <p class="mb-2">Points Awarded: ${escapeHtml(String(prediction.calculatedPoints ?? 0))}</p>
           ${breakdown.length ? `
             <ul class="list-unstyled small mb-0">
               ${breakdown.map((item) => `

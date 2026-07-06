@@ -20,19 +20,18 @@ export function renderLeaderboardTable(entries) {
   }
 
   return `
-    <div class="table-responsive">
+    <div class="ptw-leaderboard-table-wrap">
       <table class="table table-dark table-hover ptw-table ptw-table--compact ptw-leaderboard-table">
         <thead class="sticky-top">
           <tr>
-            <th scope="col" style="width: 60px;">Rank</th>
-            <th scope="col" style="width: 60px;"></th>
-            <th scope="col">Contestant</th>
-            <th scope="col" class="text-center">Points</th>
-            <th scope="col" class="text-center d-none d-lg-table-cell">Winners</th>
-            <th scope="col" class="text-center d-none d-lg-table-cell">Exact</th>
-            <th scope="col" class="text-center d-none d-xl-table-cell">Accuracy</th>
-            <th scope="col" class="text-center d-none d-xl-table-cell">Predicted</th>
-            <th scope="col" class="text-center" style="width: 80px;">Movement</th>
+            <th scope="col" class="ptw-leaderboard-table__rank">${renderLeaderboardTableHeader('Rank')}</th>
+            <th scope="col" class="ptw-leaderboard-table__contestant">${renderLeaderboardTableHeader('Contestant')}</th>
+            <th scope="col" class="text-center ptw-leaderboard-table__points">${renderLeaderboardTableHeader('Points')}</th>
+            <th scope="col" class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Winners')}</th>
+            <th scope="col" class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Exact')}</th>
+            <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Accuracy')}</th>
+            <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Predicted', 'Matches')}</th>
+            <th scope="col" class="text-center ptw-leaderboard-table__movement">${renderLeaderboardTableHeader('Move')}</th>
           </tr>
         </thead>
         <tbody>
@@ -52,39 +51,37 @@ function renderLeaderboardRow(entry) {
   const rankBadgeClass = getRankBadgeClass(entry.rank);
   const movementIcon = RANK_MOVEMENT_ICONS[entry.movement] || '';
   const movementClass = RANK_MOVEMENT_COLORS[entry.movement] || 'text-muted';
-  const rowClass = entry.isCurrentUser ? 'table-primary' : '';
-
   return `
-    <tr class="${rowClass}" data-user-id="${escapeHtml(entry.userId)}">
-      <td>
+    <tr data-user-id="${escapeHtml(entry.userId)}">
+      <td class="ptw-leaderboard-table__rank">
         <span class="badge ${rankBadgeClass}">${entry.rank}</span>
       </td>
-      <td>
-        ${renderAvatar(entry.photoURL, entry.displayName)}
-      </td>
-      <td>
-        <div class="d-flex flex-column">
-          <span class="fw-semibold">${escapeHtml(entry.displayName)}</span>
-          ${entry.country ? `<small class="text-muted">${escapeHtml(entry.country)}</small>` : ''}
+      <td class="ptw-leaderboard-table__contestant">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          ${renderAvatar(entry.photoURL, entry.displayName)}
+          <div class="min-w-0">
+            <span class="fw-semibold text-truncate d-block">${escapeHtml(entry.displayName)}</span>
+            ${entry.country ? `<small class="text-muted text-truncate d-block">${escapeHtml(entry.country)}</small>` : ''}
+          </div>
         </div>
       </td>
-      <td class="text-center">
+      <td class="text-center ptw-leaderboard-table__points">
         <span class="badge bg-primary">${entry.totalPoints}</span>
       </td>
-      <td class="text-center d-none d-lg-table-cell">
+      <td class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">
         <span class="text-success">${entry.correctWinnerCount}</span>
       </td>
-      <td class="text-center d-none d-lg-table-cell">
+      <td class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">
         <span class="text-info">${entry.exactScoreCount}</span>
       </td>
-      <td class="text-center d-none d-xl-table-cell">
+      <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
         ${entry.accuracy}%
       </td>
-      <td class="text-center d-none d-xl-table-cell">
-        ${entry.matchesPredicted} / ${entry.matchesPredicted + entry.matchesRemaining}
+      <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
+        ${entry.matchesPredicted}/${entry.matchesPredicted + entry.matchesRemaining}
       </td>
-      <td class="text-center">
-        <span class="${movementClass} fw-bold">${movementIcon}</span>
+      <td class="text-center ptw-leaderboard-table__movement">
+        <span class="${movementClass} ptw-leaderboard-table__movement-icon">${movementIcon}</span>
       </td>
     </tr>
   `;
@@ -114,20 +111,29 @@ function renderAvatar(photoURL, displayName) {
       <img 
         src="${escapeHtml(photoURL)}" 
         alt="${escapeHtml(displayName)}" 
-        class="rounded-circle"
-        style="width: 32px; height: 32px; object-fit: cover;"
+        class="rounded-circle flex-shrink-0 ptw-leaderboard-table__avatar"
       />
     `;
   }
 
   const initial = displayName.charAt(0).toUpperCase();
   return `
-    <div 
-      class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-      style="width: 32px; height: 32px;"
-    >
+    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center flex-shrink-0 ptw-leaderboard-table__avatar">
       <span class="text-white fw-bold">${escapeHtml(initial)}</span>
     </div>
   `;
+}
+
+/**
+ * @param {string} line1
+ * @param {string} [line2]
+ * @returns {string}
+ */
+function renderLeaderboardTableHeader(line1, line2 = '') {
+  if (!line2) {
+    return escapeHtml(line1);
+  }
+
+  return `<span class="ptw-leaderboard-table__th-label">${escapeHtml(line1)}<br>${escapeHtml(line2)}</span>`;
 }
 

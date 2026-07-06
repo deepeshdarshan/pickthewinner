@@ -177,14 +177,6 @@ function renderAuthenticatedNavbar(options) {
   const mobileActions = authenticated
     ? `
       <div class="d-flex align-items-center gap-2 d-lg-none">
-        <button
-          type="button"
-          class="btn btn-link ptw-navbar__icon-btn"
-          aria-label="Notifications"
-          disabled
-        >
-          <i class="bi bi-bell" aria-hidden="true"></i>
-        </button>
         <a
           class="ptw-navbar__avatar-link"
           href="/profile"
@@ -200,26 +192,6 @@ function renderAuthenticatedNavbar(options) {
   const desktopActions = authenticated
     ? `
       <div class="ptw-navbar__actions d-none d-lg-flex align-items-center gap-2 ms-lg-3">
-        <button
-          type="button"
-          class="btn btn-link ptw-navbar__icon-btn"
-          aria-label="Notifications"
-          title="Notifications (coming soon)"
-          disabled
-        >
-          <i class="bi bi-bell" aria-hidden="true"></i>
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-link ptw-navbar__icon-btn"
-          aria-label="Toggle theme"
-          title="Theme toggle (coming soon)"
-          disabled
-        >
-          <i class="bi bi-moon-stars" aria-hidden="true"></i>
-        </button>
-
         <div class="dropdown">
           <button
             class="btn btn-link ptw-navbar__profile-btn dropdown-toggle"

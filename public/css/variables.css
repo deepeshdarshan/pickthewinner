@@ -33,6 +33,22 @@
   --ptw-color-validation-border: color-mix(in srgb, var(--ptw-color-danger-text) 55%, var(--ptw-color-border));
   --ptw-color-info: #1565ff;
 
+  /* Badge tints (readable on dark backgrounds) */
+  --ptw-badge-primary-bg: color-mix(in srgb, var(--ptw-color-primary-blue) 22%, transparent);
+  --ptw-badge-primary-text: #93c5fd;
+  --ptw-badge-success-bg: color-mix(in srgb, var(--ptw-color-success) 22%, transparent);
+  --ptw-badge-success-text: #6ee7a0;
+  --ptw-badge-warning-bg: color-mix(in srgb, var(--ptw-color-warning) 22%, transparent);
+  --ptw-badge-warning-text: #fde68a;
+  --ptw-badge-danger-bg: color-mix(in srgb, var(--ptw-color-danger) 22%, transparent);
+  --ptw-badge-danger-text: var(--ptw-color-danger-text);
+  --ptw-badge-info-bg: color-mix(in srgb, var(--ptw-color-info) 22%, transparent);
+  --ptw-badge-info-text: #93c5fd;
+  --ptw-badge-neutral-bg: color-mix(in srgb, #64748b 30%, transparent);
+  --ptw-badge-neutral-text: #e2e8f0;
+  --ptw-badge-archived-bg: color-mix(in srgb, #8b5cf6 20%, transparent);
+  --ptw-badge-archived-text: #c4b5fd;
+
   /* Bootstrap overrides */
   --bs-body-bg: var(--ptw-color-bg-primary);
   --bs-body-color: var(--ptw-color-text-primary);

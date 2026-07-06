@@ -35,10 +35,8 @@ function renderLeaderboardCard(entry) {
   const rankBadgeClass = getRankBadgeClass(entry.rank);
   const movementIcon = RANK_MOVEMENT_ICONS[entry.movement] || '';
   const movementClass = RANK_MOVEMENT_COLORS[entry.movement] || 'text-muted';
-  const cardClass = entry.isCurrentUser ? 'border-primary' : '';
-
   return `
-    <div class="card ptw-card mb-3 ${cardClass}" data-user-id="${escapeHtml(entry.userId)}">
+    <div class="card ptw-card mb-3" data-user-id="${escapeHtml(entry.userId)}">
       <div class="card-body">
         <div class="d-flex align-items-center mb-3">
           <span class="badge ${rankBadgeClass} fs-5 me-3">${entry.rank}</span>

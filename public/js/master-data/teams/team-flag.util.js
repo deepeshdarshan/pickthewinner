@@ -120,6 +120,52 @@ export function renderTeamStackHtml(team, options = {}) {
 }
 
 /**
+ * @param {{ name?: string, country?: string, flagUrl?: string, flag?: string }|null|undefined} team
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+export function getTeamTooltipText(team, fallback = 'TBD') {
+  const name = team?.name?.trim() || fallback;
+  const parts = [name];
+
+  const country = team?.country?.trim();
+  if (country && country !== name) {
+    parts.push(country);
+    return parts.join(' · ');
+  }
+
+  const flagLabel = getFlagDisplayLabel(getTeamFlagUrl(team));
+  if (flagLabel && flagLabel !== name && flagLabel !== 'Custom flag URL') {
+    parts.push(flagLabel);
+  }
+
+  return parts.join(' · ');
+}
+
+/**
+ * @param {{ name?: string, country?: string, flagUrl?: string, flag?: string }|null|undefined} team
+ * @param {{ fallback?: string, className?: string, marginClass?: string }} [options]
+ * @returns {string}
+ */
+export function renderTeamFlagTooltipHtml(team, options = {}) {
+  const {
+    fallback = 'TBD',
+    className = 'ptw-team-flag ptw-team-flag--sm',
+    marginClass = 'me-0',
+  } = options;
+
+  const tooltip = getTeamTooltipText(team, fallback);
+  const flagHtml = renderTeamFlagHtml(getTeamFlagUrl(team), { className, marginClass });
+
+  return `
+    <span class="ptw-team-flag-tooltip d-inline-flex" title="${escapeHtml(tooltip)}">
+      <span aria-hidden="true">${flagHtml}</span>
+      <span class="visually-hidden">${escapeHtml(tooltip)}</span>
+    </span>
+  `.trim();
+}
+
+/**
  * @param {{ name?: string, flagUrl?: string, flag?: string }|null|undefined} team
  * @param {{ fallback?: string, marginClass?: string, className?: string, strong?: boolean }} [options]
  * @returns {string}

@@ -1138,28 +1138,79 @@
 }
 
 .ptw-badge--success {
-  background-color: color-mix(in srgb, var(--ptw-color-success) 20%, transparent);
-  color: var(--ptw-color-success);
+  background-color: var(--ptw-badge-success-bg);
+  color: var(--ptw-badge-success-text);
 }
 
 .ptw-badge--warning {
-  background-color: color-mix(in srgb, var(--ptw-color-warning) 20%, transparent);
-  color: var(--ptw-color-warning);
+  background-color: var(--ptw-badge-warning-bg);
+  color: var(--ptw-badge-warning-text);
 }
 
 .ptw-badge--danger {
-  background-color: color-mix(in srgb, var(--ptw-color-danger) 20%, transparent);
-  color: var(--ptw-color-danger);
+  background-color: var(--ptw-badge-danger-bg);
+  color: var(--ptw-badge-danger-text);
 }
 
 .ptw-badge--info {
-  background-color: color-mix(in srgb, var(--ptw-color-info) 20%, transparent);
-  color: var(--ptw-color-info);
+  background-color: var(--ptw-badge-info-bg);
+  color: var(--ptw-badge-info-text);
 }
 
 .ptw-badge--muted {
-  background-color: var(--ptw-color-bg-tertiary);
-  color: var(--ptw-color-text-muted);
+  background-color: var(--ptw-badge-neutral-bg);
+  color: var(--ptw-badge-neutral-text);
+}
+
+/* Bootstrap badge overrides — tinted labels readable on dark UI */
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background-color: var(--ptw-badge-primary-bg) !important;
+  color: var(--ptw-badge-primary-text) !important;
+}
+
+.badge.bg-success,
+.badge.text-bg-success {
+  background-color: var(--ptw-badge-success-bg) !important;
+  color: var(--ptw-badge-success-text) !important;
+}
+
+.badge.bg-warning,
+.badge.text-bg-warning,
+.badge.bg-warning.text-dark {
+  background-color: var(--ptw-badge-warning-bg) !important;
+  color: var(--ptw-badge-warning-text) !important;
+}
+
+.badge.bg-danger,
+.badge.text-bg-danger {
+  background-color: var(--ptw-badge-danger-bg) !important;
+  color: var(--ptw-badge-danger-text) !important;
+}
+
+.badge.bg-info,
+.badge.text-bg-info,
+.badge.bg-info.text-dark {
+  background-color: var(--ptw-badge-info-bg) !important;
+  color: var(--ptw-badge-info-text) !important;
+}
+
+.badge.bg-secondary,
+.badge.text-bg-secondary {
+  background-color: var(--ptw-badge-neutral-bg) !important;
+  color: var(--ptw-badge-neutral-text) !important;
+}
+
+.badge.bg-dark,
+.badge.text-bg-dark {
+  background-color: var(--ptw-badge-archived-bg) !important;
+  color: var(--ptw-badge-archived-text) !important;
+}
+
+.badge.text-bg-outline-light {
+  background-color: transparent !important;
+  color: var(--ptw-color-text-secondary) !important;
+  border-color: var(--ptw-color-border) !important;
 }
 
 /* Statistic Card */
@@ -2199,58 +2250,91 @@
   margin-bottom: 0;
 }
 
+.ptw-stat-tile__detail {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  margin-top: 0.125rem;
+}
+
 /* Prediction table column widths */
-.ptw-prediction-table th:nth-child(1),
-.ptw-prediction-table td:nth-child(1) {
-  width: 2.5rem;
+.ptw-prediction-table {
+  table-layout: fixed;
+}
+
+.ptw-prediction-table thead th {
+  white-space: normal;
+  vertical-align: bottom;
+  line-height: 1.2;
+}
+
+.ptw-prediction-table__th-label {
+  display: inline-block;
+  text-align: center;
+}
+
+.ptw-prediction-table th.ptw-prediction-table__index,
+.ptw-prediction-table td.ptw-prediction-table__index {
+  width: 1%;
+  max-width: 2.25rem;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ptw-prediction-table__score {
+  white-space: nowrap;
+}
+
+.ptw-team-flag-tooltip {
+  cursor: help;
 }
 
 .ptw-prediction-table th:nth-child(2),
 .ptw-prediction-table td:nth-child(2) {
   min-width: 9rem;
-  width: 14%;
+  width: 18%;
 }
 
 .ptw-prediction-table th:nth-child(3),
 .ptw-prediction-table td:nth-child(3) {
   min-width: 7rem;
-  width: 10%;
+  width: 12%;
 }
 
 .ptw-prediction-table th:nth-child(4),
 .ptw-prediction-table td:nth-child(4) {
-  min-width: 10rem;
-  width: 16%;
+  min-width: 5.5rem;
+  width: 10%;
+  text-align: center;
 }
 
 .ptw-prediction-table th:nth-child(5),
 .ptw-prediction-table td:nth-child(5) {
-  min-width: 6rem;
-  width: 11%;
+  min-width: 2.5rem;
+  width: 6%;
+  text-align: center;
 }
 
 .ptw-prediction-table th:nth-child(6),
 .ptw-prediction-table td:nth-child(6) {
-  min-width: 5rem;
-  width: 8%;
+  min-width: 5.5rem;
+  width: 10%;
+  text-align: center;
 }
 
 .ptw-prediction-table th:nth-child(7),
 .ptw-prediction-table td:nth-child(7) {
-  min-width: 10rem;
-  width: 16%;
+  min-width: 2.5rem;
+  width: 6%;
+  text-align: center;
 }
 
 .ptw-prediction-table th:nth-child(8),
 .ptw-prediction-table td:nth-child(8) {
-  min-width: 6rem;
-  width: 11%;
-}
-
-.ptw-prediction-table th:nth-child(9),
-.ptw-prediction-table td:nth-child(9) {
-  min-width: 4rem;
+  min-width: 3rem;
   width: 6%;
+  text-align: center;
 }
 
 /* Admin list tabs (tournaments / matches) */
@@ -2369,6 +2453,46 @@
 
 .ptw-tournament-performance__item + .ptw-tournament-performance__item {
   border-top: 1px solid var(--ptw-color-border);
+}
+
+.ptw-prediction-history__sidebar {
+  font-size: var(--ptw-font-size-xs);
+}
+
+.ptw-prediction-history__sidebar .card-header,
+.ptw-prediction-history__sidebar .h6,
+.ptw-prediction-history__sidebar h2 {
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-prediction-history__sidebar .card-body,
+.ptw-prediction-history__sidebar .list-unstyled,
+.ptw-prediction-history__sidebar p,
+.ptw-prediction-history__sidebar small,
+.ptw-prediction-history__sidebar .btn,
+.ptw-prediction-history__sidebar .badge,
+.ptw-prediction-history__sidebar .fw-semibold {
+  font-size: inherit;
+}
+
+.ptw-prediction-history__sidebar .ptw-table thead th,
+.ptw-prediction-history__sidebar .ptw-table tbody td,
+.ptw-prediction-history__sidebar .ptw-table tbody th {
+  font-size: var(--ptw-font-size-xs);
+}
+
+.ptw-prediction-history__sidebar .ptw-accuracy-donut {
+  width: 116px;
+  height: 116px;
+}
+
+.ptw-prediction-history__sidebar .ptw-accuracy-donut__inner {
+  width: 72px;
+  height: 72px;
+}
+
+.ptw-prediction-history__sidebar .ptw-accuracy-donut__inner .fw-bold {
+  font-size: var(--ptw-font-size-sm);
 }
 
 .ptw-lifecycle-timeline__step {
