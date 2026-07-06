@@ -5,6 +5,7 @@
 
 import { FIRESTORE_COLLECTIONS } from '../config/application.constants.js';
 import { MATCH_STATUS } from '../domain/match.domain.js';
+import { getMatchStageLabel } from '../master-data/match-stages/match-stage.labels.js';
 
 export { MATCH_STATUS };
 
@@ -19,17 +20,6 @@ export const MATCH_ROUTES = Object.freeze({
   ARCHIVED_LIST: '/admin/matches',
   CONTESTANT_LIST: '/matches',
 });
-
-/** @type {Readonly<Array<{ value: string, label: string }>>} */
-export const MATCH_ROUNDS = Object.freeze([
-  { value: 'group_stage', label: 'Group Stage' },
-  { value: 'round_of_32', label: 'Round of 32' },
-  { value: 'round_of_16', label: 'Round of 16' },
-  { value: 'quarter_final', label: 'Quarter Final' },
-  { value: 'semi_final', label: 'Semi Final' },
-  { value: 'third_place', label: 'Third Place' },
-  { value: 'final', label: 'Final' },
-]);
 
 /** @enum {string} */
 export const MATCH_LIFECYCLE_ACTIONS = Object.freeze({
@@ -114,13 +104,5 @@ export function createDefaultMatchFields() {
  * @returns {string}
  */
 export function getRoundLabel(value) {
-  const round = MATCH_ROUNDS.find((item) => item.value === value);
-
-  if (round?.label) {
-    return round.label;
-  }
-
-  return String(value)
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  return getMatchStageLabel(value);
 }

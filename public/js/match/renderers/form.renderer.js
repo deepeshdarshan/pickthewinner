@@ -7,7 +7,9 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
-import { MATCH_ROUNDS, MATCH_ROUTES } from '../match.constants.js';
+import { MATCH_ROUTES } from '../match.constants.js';
+import { getMatchStageLabel } from '../../master-data/match-stages/match-stage.labels.js';
+import { MATCH_STAGE_ROUTES } from '../../master-data/match-stages/match-stage.constants.js';
 import { SCORING_POINTS_MAX, SCORING_POINTS_MIN } from '../../tournament/tournament.constants.js';
 
 /**
@@ -24,6 +26,15 @@ function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
   }).join('');
 
   return `${placeholderOption}${items}`;
+}
+
+/**
+ * @param {Team} team
+ * @returns {string}
+ */
+function formatTeamOptionLabel(team) {
+  const country = team.country?.trim();
+  return country ? `${team.name} (${country})` : team.name;
 }
 
 /**
@@ -69,12 +80,9 @@ export function renderMatchFormPage(options) {
   }));
   const teamOptions = teams.map((team) => ({
     value: team.id,
-    label: `${team.name} (${team.country})`,
+    label: formatTeamOptionLabel(team),
   }));
-  const roundOptions = (stages ?? MATCH_ROUNDS).map((round) => ({
-    value: round.value,
-    label: round.label,
-  }));
+  const roundOptions = buildRoundOptions(stages ?? [], data);
   const customScoringConfig = /** @type {{ useCustomPoints?: boolean, correctMatchScorePoints?: number, correctPenaltyWinnerPoints?: number }|null} */ (
     data.customScoringConfig ?? null
   );
@@ -132,16 +140,18 @@ export function renderMatchFormPage(options) {
     optionsHtml: renderSelectOptionsHtml('Select team 2…', teamOptions, data.awayTeamId ?? ''),
     errorId: 'ptw-match-awayTeamId-error',
   })}
-            ${renderIconSelectField({
-    id: 'ptw-match-round',
-    name: 'round',
-    label: 'Match Stage',
-    icon: 'bi-diagram-3',
-    required: true,
-    disabled: readOnly,
-    optionsHtml: renderSelectOptionsHtml('Select match stage…', roundOptions, data.round ?? ''),
-    errorId: 'ptw-match-round-error',
-  })}
+            ${roundOptions.length > 0 || readOnly
+    ? renderIconSelectField({
+      id: 'ptw-match-round',
+      name: 'round',
+      label: 'Match Stage',
+      icon: 'bi-diagram-3',
+      required: true,
+      disabled: readOnly,
+      optionsHtml: renderSelectOptionsHtml('Select match stage…', roundOptions, data.round ?? ''),
+      errorId: 'ptw-match-round-error',
+    })
+    : renderMatchStageEmptyNotice()}
             ${renderIconInputField({
     id: 'ptw-match-kickoffDate',
     name: 'kickoffDate',
@@ -186,6 +196,43 @@ export function renderMatchFormPage(options) {
   return `
     <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${content}
+    </div>
+  `;
+}
+
+/**
+ * @param {Array<{ value: string, label: string }>} stages
+ * @param {Partial<EnrichedMatch>} data
+ * @returns {Array<{ value: string, label: string }>}
+ */
+function buildRoundOptions(stages, data) {
+  const options = stages.map((stage) => ({
+    value: stage.value,
+    label: stage.label,
+  }));
+
+  if (data.round && !options.some((option) => option.value === data.round)) {
+    options.push({
+      value: data.round,
+      label: data.stage || getMatchStageLabel(data.round),
+    });
+  }
+
+  return options;
+}
+
+/**
+ * @returns {string}
+ */
+function renderMatchStageEmptyNotice() {
+  return `
+    <div class="ptw-match-form__field ptw-match-form__field--full">
+      <div class="alert alert-warning mb-0" role="status">
+        <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>
+        No match stages are configured yet.
+        <a href="${MATCH_STAGE_ROUTES.ADMIN_LIST}" data-route class="alert-link">Add match stages</a>
+        before creating a match.
+      </div>
     </div>
   `;
 }

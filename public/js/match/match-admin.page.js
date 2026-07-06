@@ -219,7 +219,7 @@ async function renderCreateView(outlet) {
     const [tournaments, teams, stages] = await Promise.all([
       listActiveTournaments(),
       listTeams({ activeOnly: true }),
-      listMatchStages({ activeOnly: true }),
+      listMatchStages({ activeOnly: true, includeDefaults: false, forceRefresh: true }),
     ]);
 
     outlet.innerHTML = renderMatchFormPage({
@@ -261,7 +261,7 @@ async function renderEditView(outlet, matchId) {
       isArchived ? listTournamentsForAdmin({ includeArchived: true }) : listActiveTournaments(),
       listTeams({ activeOnly: !isArchived }),
       isArchived ? Promise.resolve(null) : TournamentConfigurationService.load(match.tournamentId),
-      listMatchStages({ activeOnly: true }),
+      listMatchStages({ activeOnly: true, includeDefaults: false, forceRefresh: true }),
     ]);
 
     outlet.innerHTML = renderMatchDetailPage(match, {

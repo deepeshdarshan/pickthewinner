@@ -23,6 +23,7 @@ import {
   createDefaultMatchStageFields,
   buildFallbackMatchStages,
 } from './match-stage.constants.js';
+import { setMatchStageLabels, clearMatchStageLabels } from './match-stage.labels.js';
 import {
   validateCreatePayload,
   validateUpdatePayload,
@@ -81,7 +82,10 @@ function normalizeDocument(id, data) {
  */
 export function clearMatchStageCache() {
   listCache = null;
+  clearMatchStageLabels();
 }
+
+export { getMatchStageLabel } from './match-stage.labels.js';
 
 /**
  * @param {unknown} error
@@ -146,11 +150,13 @@ export async function listMatchStages(options = {}) {
 
   if (snapshot.empty) {
     listCache = [];
+    clearMatchStageLabels();
     return includeDefaults ? filterActiveStages(buildFallbackMatchStages(), activeOnly) : [];
   }
 
   const stages = snapshot.docs.map((item) => normalizeDocument(item.id, item.data()));
   listCache = stages;
+  setMatchStageLabels(stages);
 
   return filterActiveStages(stages, activeOnly);
 }

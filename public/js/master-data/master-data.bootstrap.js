@@ -5,7 +5,7 @@
 
 import { AUTH_EVENTS, onAuthEvent } from '../auth/authentication.events.js';
 import { clearTeamCache } from './teams/team.service.js';
-import { clearMatchStageCache } from './match-stages/match-stage.service.js';
+import { clearMatchStageCache, listMatchStages } from './match-stages/match-stage.service.js';
 
 /** @type {(() => void)|null} */
 let unsubscribeLogout = null;
@@ -14,6 +14,8 @@ let unsubscribeLogout = null;
  * @returns {Promise<void>}
  */
 export async function initMasterDataModule() {
+  void listMatchStages({ includeDefaults: false }).catch(() => {});
+
   unsubscribeLogout = onAuthEvent(AUTH_EVENTS.LOGOUT, () => {
     clearTeamCache();
     clearMatchStageCache();
