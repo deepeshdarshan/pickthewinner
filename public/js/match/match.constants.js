@@ -60,8 +60,13 @@ export const MATCH_VALIDATION_MESSAGES = Object.freeze({
   TOURNAMENT_REQUIRED: 'Select a tournament.',
   HOME_TEAM_REQUIRED: 'Select team 1.',
   AWAY_TEAM_REQUIRED: 'Select team 2.',
+  ROUND_REQUIRED: 'Select match stage.',
   TEAMS_MUST_DIFFER: 'Team 1 and team 2 must be different.',
   KICKOFF_REQUIRED: 'Match date and kickoff time are required.',
+  CUSTOM_POINTS_MATCH_SCORE_REQUIRED: 'Points for correct match score are required when custom points are enabled.',
+  CUSTOM_POINTS_MATCH_SCORE_INVALID: 'Custom match score points must be a whole number between 0 and 100.',
+  CUSTOM_POINTS_PENALTY_REQUIRED: 'Points for correct penalty winner are required when custom points are enabled.',
+  CUSTOM_POINTS_PENALTY_INVALID: 'Custom penalty winner points must be a whole number between 0 and 100.',
   DUPLICATE_MATCH: 'A match with these teams on this date already exists.',
   CANNOT_EDIT: 'This match cannot be edited in its current state.',
   LIFECYCLE_INVALID: 'This action is not allowed for the current match state.',
@@ -100,6 +105,7 @@ export function createDefaultMatchFields() {
     visible: false,
     scoringStatus: null,
     result: null,
+    customScoringConfig: null,
   };
 }
 
@@ -109,5 +115,12 @@ export function createDefaultMatchFields() {
  */
 export function getRoundLabel(value) {
   const round = MATCH_ROUNDS.find((item) => item.value === value);
-  return round?.label ?? value;
+
+  if (round?.label) {
+    return round.label;
+  }
+
+  return String(value)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }

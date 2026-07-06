@@ -29,6 +29,7 @@ export const FIRESTORE_COLLECTIONS = Object.freeze({
   MATCHES: 'matches',
   PREDICTIONS: 'predictions',
   SETTINGS: 'settings',
+  MATCH_STAGES: 'match_stages',
   LEADERBOARD_CACHE: 'leaderboard_cache',
   AUDIT_LOGS: 'audit_logs',
 });

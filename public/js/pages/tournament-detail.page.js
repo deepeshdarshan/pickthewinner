@@ -17,6 +17,7 @@ import { listMatchesForContestant } from '../match/match.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
+import { getRoundLabel } from '../match/match.constants.js';
 
 /** @type {ReadonlyArray<string>} */
 const ROUND_ORDER = Object.freeze([
@@ -110,7 +111,7 @@ async function initTournamentDetailPage(outlet, tournamentId) {
  */
 function renderTournamentDetailPage(tournament, matches, predictionsMap) {
   const grouped = matches.reduce((acc, match) => {
-    const round = match.round || 'Other';
+    const round = match.round ? getRoundLabel(match.round) : 'Other';
     if (!acc[round]) {
       acc[round] = [];
     }

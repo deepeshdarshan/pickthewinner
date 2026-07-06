@@ -31,7 +31,6 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
       { path: '/admin/tournaments', label: 'Tournaments' },
     ],
   },
-  { type: 'item', path: '/admin/teams', label: 'Teams', icon: 'bi-people' },
   {
     type: 'group',
     label: 'Match Management',
@@ -39,6 +38,15 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     children: [
       { path: '/admin/matches', label: 'Matches' },
       { path: '/admin/predictions', label: 'Predictions' },
+    ],
+  },
+  {
+    type: 'group',
+    label: 'Master Data',
+    icon: 'bi-database',
+    children: [
+      { path: '/admin/teams', label: 'Teams' },
+      { path: '/admin/match-stages', label: 'Match Stages' },
     ],
   },
   { type: 'item', path: '/leaderboard', label: 'Leaderboard', icon: 'bi-bar-chart' },

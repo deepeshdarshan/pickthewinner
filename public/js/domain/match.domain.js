@@ -3,6 +3,9 @@
  * @module domain/match.domain
  */
 
+const CUSTOM_SCORING_POINTS_MIN = 0;
+const CUSTOM_SCORING_POINTS_MAX = 100;
+
 /** @enum {string} */
 export const MATCH_STATUS = Object.freeze({
   DRAFT: 'draft',
@@ -56,6 +59,46 @@ const CONTESTANT_VISIBLE_STATUSES = new Set([
 ]);
 
 export const MatchDomain = {
+  /**
+   * @param {unknown} value
+   * @returns {boolean}
+   */
+  isValidCustomScoringPoints(value) {
+    const numeric = typeof value === 'number' ? value : Number(value);
+    return Number.isInteger(numeric)
+      && numeric >= CUSTOM_SCORING_POINTS_MIN
+      && numeric <= CUSTOM_SCORING_POINTS_MAX;
+  },
+
+  /**
+   * @param {unknown} value
+   * @returns {{ useCustomPoints: boolean, correctMatchScorePoints: number|null, correctPenaltyWinnerPoints: number|null }}
+   */
+  normalizeCustomScoringConfig(value) {
+    if (!value || typeof value !== 'object') {
+      return {
+        useCustomPoints: false,
+        correctMatchScorePoints: null,
+        correctPenaltyWinnerPoints: null,
+      };
+    }
+
+    const config = /** @type {Record<string, unknown>} */ (value);
+    const useCustomPoints = Boolean(config.useCustomPoints);
+    const matchScorePoints = this.isValidCustomScoringPoints(config.correctMatchScorePoints)
+      ? Number(config.correctMatchScorePoints)
+      : null;
+    const penaltyWinnerPoints = this.isValidCustomScoringPoints(config.correctPenaltyWinnerPoints)
+      ? Number(config.correctPenaltyWinnerPoints)
+      : null;
+
+    return {
+      useCustomPoints,
+      correctMatchScorePoints: matchScorePoints,
+      correctPenaltyWinnerPoints: penaltyWinnerPoints,
+    };
+  },
+
   /**
    * Normalizes legacy stored statuses for backward compatibility.
    * @param {string} status

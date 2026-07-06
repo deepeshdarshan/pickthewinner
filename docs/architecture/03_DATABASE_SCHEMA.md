@@ -166,8 +166,23 @@ The `scoringConfiguration` object may be extended with additional integer fields
 | `visible` | Boolean | Contestant visibility flag |
 | `result` | Object | Official result subdocument |
 | `scoringStatus` | String | Scoring completion state |
+| `customScoringConfig` | Object \| null | Optional match-level scoring override |
 
 Tournament configuration is never duplicated on match documents. Runtime reads use `TournamentConfigurationService`.
+
+### `customScoringConfig` subdocument
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `useCustomPoints` | Boolean | Enables match-level point override when `true` |
+| `correctMatchScorePoints` | Integer | Points for exact match score (0-100) |
+| `correctPenaltyWinnerPoints` | Integer | Points for correct penalty winner (0-100) |
+
+Behavior:
+
+- When `customScoringConfig` is `null` or `useCustomPoints` is `false`, scoring uses tournament-level configuration.
+- When `useCustomPoints` is `true`, scoring engine uses match-level values and ignores tournament-level point fields for that match.
+- Existing matches without this field remain valid and continue using tournament defaults.
 
 ### `result` subdocument
 
@@ -221,3 +236,26 @@ Defined in `firestore.indexes.json`. Contestants may read only documents where `
 **Collection:** `audit_logs`
 
 Append-only administrative audit trail for result publication, scoring, and manual prediction window changes.
+
+## Match Stages Collection
+
+**Collection:** `match_stages`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | String | Display label used in admin and contestant UI (e.g. `Quarter Final`) |
+| `value` | String | Stable stage key used in match documents (e.g. `quarter_final`) |
+| `sortOrder` | Integer | Sort order for dropdown display |
+| `active` | Boolean | Whether stage is selectable in match forms |
+| `createdBy` | String | Admin UID who created the stage |
+| `updatedBy` | String | Admin UID who last updated the stage |
+| `createdAt` | Timestamp | Creation time |
+| `updatedAt` | Timestamp | Last update time |
+
+Runtime behavior:
+
+- Match creation forms load active stages from `match_stages` sorted by `sortOrder`.
+- If `match_stages` is empty, the application falls back to built-in default stages.
+- Existing matches remain compatible because match documents still store the stage key under `round`.
+
+---

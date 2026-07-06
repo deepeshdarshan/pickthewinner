@@ -57,8 +57,11 @@ export function renderMatchDetailPage(match, options) {
         <h2 class="h5 mb-0">Match Status</h2>
         ${renderMatchStatusBadge(match.status)}
       </div>
-      <div class="card-body d-flex flex-wrap gap-2">
+      <div class="card-body">
+        <p class="mb-3">Scoring Source: ${renderScoringSourceLabel(match)}</p>
+        <div class="d-flex flex-wrap gap-2">
         ${actionButtons}
+        </div>
       </div>
     </div>
       ${!forceReadOnly && (MatchDomain.canEnterResult(match.status) || match.status === MATCH_STATUS.RESULT_PUBLISHED)
@@ -172,6 +175,18 @@ function renderOverrideIndicator(match) {
       </div>
     </div>
   `;
+}
+
+/**
+ * @param {EnrichedMatch} match
+ * @returns {string}
+ */
+function renderScoringSourceLabel(match) {
+  if (!match.customScoringConfig?.useCustomPoints) {
+    return '<span class="badge bg-secondary-subtle text-secondary-emphasis border">Tournament Default</span>';
+  }
+
+  return '<span class="badge bg-primary-subtle text-primary-emphasis border">Custom Points Override</span>';
 }
 
 /**

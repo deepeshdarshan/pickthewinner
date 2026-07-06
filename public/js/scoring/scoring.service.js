@@ -4,11 +4,9 @@
  */
 
 import {
-  collection,
   doc,
   setDoc,
   serverTimestamp,
-  updateDoc,
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { FIRESTORE_COLLECTIONS } from '../config/application.constants.js';
@@ -44,10 +42,23 @@ export const ScoringEngine = {
 
     await TournamentConfigurationService.load(match.tournamentId);
 
+    const hasCustomPoints = Boolean(
+      match.customScoringConfig?.useCustomPoints
+      && Number.isInteger(Number(match.customScoringConfig?.correctMatchScorePoints))
+      && Number.isInteger(Number(match.customScoringConfig?.correctPenaltyWinnerPoints)),
+    );
+    const matchScorePoints = Number(match.customScoringConfig?.correctMatchScorePoints);
+    const penaltyWinnerPoints = Number(match.customScoringConfig?.correctPenaltyWinnerPoints);
+
     const scoringConfig = {
-      correctMatchScorePoints: TournamentConfigurationService.getCorrectMatchScorePoints(),
-      correctPenaltyWinnerPoints: TournamentConfigurationService.getCorrectPenaltyWinnerPoints(),
+      correctMatchScorePoints: hasCustomPoints
+        ? matchScorePoints
+        : TournamentConfigurationService.getCorrectMatchScorePoints(),
+      correctPenaltyWinnerPoints: hasCustomPoints
+        ? penaltyWinnerPoints
+        : TournamentConfigurationService.getCorrectPenaltyWinnerPoints(),
     };
+    const scoringConfigSource = hasCustomPoints ? 'match' : 'tournament';
 
     const predictions = await listPredictionsByMatch(matchId);
     const leaderboard = new Map();
@@ -66,6 +77,7 @@ export const ScoringEngine = {
       await updatePrediction(prediction.id, {
         calculatedPoints: evaluation.totalPoints,
         scoringBreakdown: evaluation.breakdown,
+        scoringConfigSource,
         scored: true,
         scoredAt: serverTimestamp(),
       });
@@ -87,7 +99,12 @@ export const ScoringEngine = {
       action: 'scoring_completed',
       entityType: 'match',
       entityId: matchId,
-      details: { predictionsScored: predictions.length },
+      details: {
+        predictionsScored: predictions.length,
+        scoringConfigSource,
+        correctMatchScorePoints: scoringConfig.correctMatchScorePoints,
+        correctPenaltyWinnerPoints: scoringConfig.correctPenaltyWinnerPoints,
+      },
     });
 
     emitScoringEvent(SCORING_EVENTS.SCORING_COMPLETED, { matchId, tournamentId: match.tournamentId });

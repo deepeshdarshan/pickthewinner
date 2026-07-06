@@ -9,6 +9,7 @@ import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { Permissions } from '../authorization/permission.constants.js';
 import { listTeams } from '../master-data/teams/team.service.js';
+import { listMatchStages } from '../master-data/match-stages/match-stage.service.js';
 import { listTournamentsForAdmin } from '../tournament/tournament.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { TOURNAMENT_STATUS } from '../domain/tournament.domain.js';
@@ -215,14 +216,16 @@ async function renderCreateView(outlet) {
   showLoadingOverlay(MATCH_MESSAGES.LOADING);
 
   try {
-    const [tournaments, teams] = await Promise.all([
+    const [tournaments, teams, stages] = await Promise.all([
       listActiveTournaments(),
       listTeams({ activeOnly: true }),
+      listMatchStages({ activeOnly: true }),
     ]);
 
     outlet.innerHTML = renderMatchFormPage({
       tournaments,
       teams,
+      stages: stages.map((stage) => ({ value: stage.value, label: stage.label })),
       isCreate: true,
     });
 
@@ -254,10 +257,11 @@ async function renderEditView(outlet, matchId) {
 
     const isArchived = match.status === MATCH_STATUS.ARCHIVED;
 
-    const [tournaments, teams, config] = await Promise.all([
+    const [tournaments, teams, config, stages] = await Promise.all([
       isArchived ? listTournamentsForAdmin({ includeArchived: true }) : listActiveTournaments(),
       listTeams({ activeOnly: !isArchived }),
       isArchived ? Promise.resolve(null) : TournamentConfigurationService.load(match.tournamentId),
+      listMatchStages({ activeOnly: true }),
     ]);
 
     outlet.innerHTML = renderMatchDetailPage(match, {
@@ -265,6 +269,7 @@ async function renderEditView(outlet, matchId) {
       teams: isArchived
         ? [match.homeTeam, match.awayTeam].filter(Boolean)
         : teams,
+      stages: stages.map((stage) => ({ value: stage.value, label: stage.label })),
       inheritedConfig: config,
       readOnly: isArchived,
     });
@@ -309,6 +314,7 @@ function bindMatchForm(outlet, match, tournaments, teams) {
   }
 
   bindTeamValidation(form);
+  bindCustomScoringConfig(form);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -349,6 +355,51 @@ function bindMatchForm(outlet, match, tournaments, teams) {
   void teams;
 
   bindTournamentPreview(outlet, tournaments);
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @returns {void}
+ */
+function bindCustomScoringConfig(form) {
+  const toggle = form.querySelector('[data-ptw-custom-points-toggle]');
+  const fieldsContainer = form.querySelector('[data-ptw-custom-points-fields]');
+  const helper = form.querySelector('[data-ptw-custom-points-helper]');
+  const matchScoreField = form.elements.namedItem('correctMatchScorePoints');
+  const penaltyField = form.elements.namedItem('correctPenaltyWinnerPoints');
+
+  if (!(toggle instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const syncCustomPointsState = () => {
+    const enabled = toggle.checked;
+
+    if (fieldsContainer instanceof HTMLElement) {
+      fieldsContainer.hidden = !enabled;
+    }
+
+    if (matchScoreField instanceof HTMLInputElement) {
+      matchScoreField.disabled = !enabled;
+      matchScoreField.required = enabled;
+    }
+
+    if (penaltyField instanceof HTMLInputElement) {
+      penaltyField.disabled = !enabled;
+      penaltyField.required = enabled;
+    }
+
+    if (helper instanceof HTMLElement) {
+      if (enabled) {
+        helper.textContent = 'Custom points are enabled for this match and will override tournament defaults during scoring.';
+      } else {
+        helper.textContent = "This match will use the tournament's default scoring configuration.";
+      }
+    }
+  };
+
+  toggle.addEventListener('change', syncCustomPointsState);
+  syncCustomPointsState();
 }
 
 /**

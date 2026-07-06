@@ -104,6 +104,7 @@ export function renderMatchListTabContent(matches, options = {}) {
               <th scope="col">Tournament</th>
               <th scope="col">Kickoff</th>
               <th scope="col">Status</th>
+              <th scope="col">Points</th>
               <th scope="col" class="text-end">Actions</th>
             </tr>
           </thead>
@@ -346,6 +347,7 @@ function renderMatchRow(match, options = {}) {
       <td>${escapeHtml(match.tournamentName ?? '')}</td>
       <td>${escapeHtml(formatKickoff(match))}</td>
       <td>${renderMatchStatusBadge(match.status)}</td>
+      <td>${renderPointsConfigurationBadge(match)}</td>
       <td class="text-end">
         <div class="d-flex justify-content-end ptw-match-table__actions">
           <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
@@ -386,6 +388,7 @@ function renderMatchCard(match, options = {}) {
           <div>${escapeHtml(match.tournamentName ?? '')}</div>
           <div>${escapeHtml(formatKickoff(match))}</div>
         </div>
+        <div class="small mb-2">Points: ${renderPointsConfigurationBadge(match)}</div>
         ${kickoffIso ? renderCountdown({ targetDate: kickoffIso, label: 'Kickoff in', id: `ptw-countdown-${match.id}` }) : ''}
         <div class="mt-2 small">Prediction: ${escapeHtml(match.predictionStatus ?? '—')}</div>
         <div class="d-flex gap-2 mt-3 flex-wrap">
@@ -438,6 +441,20 @@ function formatKickoff(match) {
 function toIso(value) {
   const date = toDate(value);
   return date ? date.toISOString() : '';
+}
+
+/**
+ * @param {EnrichedMatch} match
+ * @returns {string}
+ */
+function renderPointsConfigurationBadge(match) {
+  const hasCustomPoints = Boolean(match.customScoringConfig?.useCustomPoints);
+
+  if (!hasCustomPoints) {
+    return '<span class="badge bg-secondary-subtle text-secondary-emphasis border">Tournament Default</span>';
+  }
+
+  return '<span class="badge bg-primary-subtle text-primary-emphasis border">Custom Points</span>';
 }
 
 /**

@@ -79,4 +79,29 @@ describe('ScoringDomain', () => {
     assert.equal(evaluation.totalPoints, 10);
     assert.equal(evaluation.breakdown.length, 1);
   });
+
+  it('uses provided point configuration values for scoring', () => {
+    const evaluation = ScoringDomain.evaluatePrediction(
+      {
+        homeScore: 1,
+        awayScore: 1,
+        predictedWinner: PENALTY_WINNER.AWAY,
+      },
+      {
+        homeScore: 1,
+        awayScore: 1,
+        winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        winningTeamId: 'away-team',
+        homeTeamId: 'home-team',
+        awayTeamId: 'away-team',
+      },
+      { correctMatchScorePoints: 25, correctPenaltyWinnerPoints: 12 },
+    );
+
+    assert.equal(evaluation.totalPoints, 37);
+    assert.deepEqual(
+      evaluation.breakdown.map((item) => item.points),
+      [25, 12],
+    );
+  });
 });

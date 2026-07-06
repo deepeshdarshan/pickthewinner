@@ -23,6 +23,8 @@ export function renderPredictionComparison(data) {
     prediction?.scoringBreakdown ?? []
   );
   const totalPoints = Number(prediction?.calculatedPoints ?? 0);
+  const customScoringConfig = match.customScoringConfig;
+  const hasCustomPoints = Boolean(customScoringConfig?.useCustomPoints);
 
   if (!prediction) {
     return `
@@ -51,6 +53,17 @@ export function renderPredictionComparison(data) {
           </div>
         </div>
         <hr>
+        <h3 class="h6">Scoring Configuration</h3>
+        <p class="mb-2">
+          Source: ${hasCustomPoints ? '<span class="badge bg-primary-subtle text-primary-emphasis border">Match Custom Points</span>' : '<span class="badge bg-secondary-subtle text-secondary-emphasis border">Tournament Default</span>'}
+        </p>
+        ${hasCustomPoints ? `
+          <p class="mb-0 small ptw-text-muted">
+            Match Score Points: ${escapeHtml(String(customScoringConfig?.correctMatchScorePoints ?? '—'))} ·
+            Penalty Winner Points: ${escapeHtml(String(customScoringConfig?.correctPenaltyWinnerPoints ?? '—'))}
+          </p>
+          <hr>
+        ` : '<hr>'}
         <h3 class="h6">Points Awarded</h3>
         <ul class="list-unstyled mb-2">
           ${breakdown.map((item) => `

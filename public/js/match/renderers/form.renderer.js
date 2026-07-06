@@ -7,7 +7,8 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
-import { MATCH_ROUTES } from '../match.constants.js';
+import { MATCH_ROUNDS, MATCH_ROUTES } from '../match.constants.js';
+import { SCORING_POINTS_MAX, SCORING_POINTS_MIN } from '../../tournament/tournament.constants.js';
 
 /**
  * @param {string} placeholder
@@ -36,6 +37,7 @@ function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
  *   match?: Partial<EnrichedMatch>|null,
  *   tournaments: Tournament[],
  *   teams: Team[],
+ *   stages?: Array<{ value: string, label: string }>,
  *   inheritedConfig?: Record<string, unknown>|null,
  *   isCreate?: boolean,
  *   readOnly?: boolean,
@@ -48,6 +50,7 @@ export function renderMatchFormPage(options) {
     match = null,
     tournaments,
     teams,
+    stages,
     inheritedConfig = null,
     isCreate = false,
     readOnly = false,
@@ -68,6 +71,13 @@ export function renderMatchFormPage(options) {
     value: team.id,
     label: `${team.name} (${team.country})`,
   }));
+  const roundOptions = (stages ?? MATCH_ROUNDS).map((round) => ({
+    value: round.value,
+    label: round.label,
+  }));
+  const customScoringConfig = /** @type {{ useCustomPoints?: boolean, correctMatchScorePoints?: number, correctPenaltyWinnerPoints?: number }|null} */ (
+    data.customScoringConfig ?? null
+  );
 
   const content = `
       ${renderPageHeader({
@@ -122,6 +132,16 @@ export function renderMatchFormPage(options) {
     optionsHtml: renderSelectOptionsHtml('Select team 2…', teamOptions, data.awayTeamId ?? ''),
     errorId: 'ptw-match-awayTeamId-error',
   })}
+            ${renderIconSelectField({
+    id: 'ptw-match-round',
+    name: 'round',
+    label: 'Match Stage',
+    icon: 'bi-diagram-3',
+    required: true,
+    disabled: readOnly,
+    optionsHtml: renderSelectOptionsHtml('Select match stage…', roundOptions, data.round ?? ''),
+    errorId: 'ptw-match-round-error',
+  })}
             ${renderIconInputField({
     id: 'ptw-match-kickoffDate',
     name: 'kickoffDate',
@@ -146,6 +166,11 @@ export function renderMatchFormPage(options) {
           </div>
         </div>
         ${renderInheritedConfigPanel(inheritedConfig)}
+        ${renderMatchScoringConfigPanel({
+    customScoringConfig,
+    inheritedConfig,
+    readOnly,
+  })}
         ${readOnly ? '' : `
           <div class="ptw-match-form__actions">
             <button type="submit" class="btn btn-ptw-primary btn-lg w-100">${isCreate ? 'Create Match' : 'Save Changes'}</button>
@@ -211,12 +236,104 @@ export function readMatchForm(form) {
     kickoffUtc = new Date(`${date}T${time}:00+05:30`);
   }
 
+  const roundField = form.elements.namedItem('round');
+  const selectedRoundLabel = roundField instanceof HTMLSelectElement
+    ? (roundField.selectedOptions[0]?.textContent?.trim() ?? '')
+    : '';
+
+  const useCustomPoints = form.elements.namedItem('useCustomPoints')?.checked ?? false;
+  const correctMatchScorePointsRaw = form.elements.namedItem('correctMatchScorePoints')?.value ?? '';
+  const correctPenaltyWinnerPointsRaw = form.elements.namedItem('correctPenaltyWinnerPoints')?.value ?? '';
+
   return {
     tournamentId: form.elements.namedItem('tournamentId')?.value ?? '',
+    round: form.elements.namedItem('round')?.value ?? '',
+    stage: selectedRoundLabel,
     homeTeamId: form.elements.namedItem('homeTeamId')?.value ?? '',
     awayTeamId: form.elements.namedItem('awayTeamId')?.value ?? '',
     kickoffUtc,
+    customScoringConfig: useCustomPoints
+      ? {
+        useCustomPoints: true,
+        correctMatchScorePoints: correctMatchScorePointsRaw === '' ? '' : Number(correctMatchScorePointsRaw),
+        correctPenaltyWinnerPoints: correctPenaltyWinnerPointsRaw === '' ? '' : Number(correctPenaltyWinnerPointsRaw),
+      }
+      : null,
   };
+}
+
+/**
+ * @param {{
+ *   customScoringConfig: { useCustomPoints?: boolean, correctMatchScorePoints?: number, correctPenaltyWinnerPoints?: number }|null,
+ *   inheritedConfig: Record<string, unknown>|null,
+ *   readOnly: boolean,
+ * }} options
+ * @returns {string}
+ */
+function renderMatchScoringConfigPanel(options) {
+  const { customScoringConfig, inheritedConfig, readOnly } = options;
+  const useCustomPoints = Boolean(customScoringConfig?.useCustomPoints);
+  const inheritedScoring = /** @type {Record<string, unknown>} */ (inheritedConfig?.scoringConfiguration ?? {});
+  const matchScoreValue = customScoringConfig?.correctMatchScorePoints;
+  const penaltyValue = customScoringConfig?.correctPenaltyWinnerPoints;
+
+  return `
+    <div class="card ptw-card mb-3" id="ptw-match-custom-scoring">
+      <div class="card-header"><h2 class="h5 mb-0">Match Scoring Configuration</h2></div>
+      <div class="card-body">
+        <div class="form-check form-switch ptw-match-custom-points-switch mb-3">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="ptw-match-useCustomPoints"
+            name="useCustomPoints"
+            data-ptw-custom-points-toggle
+            ${useCustomPoints ? 'checked' : ''}
+            ${readOnly ? 'disabled' : ''}
+          >
+          <label class="form-check-label" for="ptw-match-useCustomPoints">Use Custom Points for this Match</label>
+        </div>
+
+        <div class="small ptw-text-muted mb-3" data-ptw-custom-points-helper>
+          ${useCustomPoints
+    ? 'Custom points are enabled for this match and will override tournament defaults during scoring.'
+    : `This match will use the tournament's default scoring configuration (${escapeHtml(String(inheritedScoring.correctMatchScorePoints ?? '—'))} match score points, ${escapeHtml(String(inheritedScoring.correctPenaltyWinnerPoints ?? '—'))} penalty winner points).`}
+        </div>
+
+        <div data-ptw-custom-points-fields ${useCustomPoints ? '' : 'hidden'}>
+          ${renderIconInputField({
+    id: 'ptw-match-correctMatchScorePoints',
+    name: 'correctMatchScorePoints',
+    label: 'Points for Correct Match Score (Normal Time + Extra Time)',
+    icon: 'bi-bullseye',
+    type: 'number',
+    min: SCORING_POINTS_MIN,
+    max: SCORING_POINTS_MAX,
+    step: 1,
+    value: typeof matchScoreValue === 'number' ? String(matchScoreValue) : '',
+    required: useCustomPoints,
+    disabled: readOnly || !useCustomPoints,
+    errorId: 'ptw-match-correctMatchScorePoints-error',
+  })}
+          ${renderIconInputField({
+    id: 'ptw-match-correctPenaltyWinnerPoints',
+    name: 'correctPenaltyWinnerPoints',
+    label: 'Points for Correct Penalty Shootout Winner',
+    icon: 'bi-shield-check',
+    type: 'number',
+    min: SCORING_POINTS_MIN,
+    max: SCORING_POINTS_MAX,
+    step: 1,
+    value: typeof penaltyValue === 'number' ? String(penaltyValue) : '',
+    required: useCustomPoints,
+    disabled: readOnly || !useCustomPoints,
+    errorId: 'ptw-match-correctPenaltyWinnerPoints-error',
+  })}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 /**

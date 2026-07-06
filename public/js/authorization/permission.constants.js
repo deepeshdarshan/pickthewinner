@@ -27,6 +27,7 @@ export const Permissions = Object.freeze({
   PUBLISH_RESULTS: 'PUBLISH_RESULTS',
   CONFIGURE_SETTINGS: 'CONFIGURE_SETTINGS',
   MANAGE_TEAMS: 'MANAGE_TEAMS',
+  MANAGE_MATCH_STAGES: 'MANAGE_MATCH_STAGES',
 });
 
 /** @enum {string} */

@@ -14,6 +14,7 @@ import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
 import { MatchDomain } from '../domain/match.domain.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
+import { getRoundLabel } from './match.constants.js';
 
 /**
  * @typedef {Object} MatchCardOptions
@@ -46,14 +47,18 @@ export function renderMatchCard(options) {
 
   const predictionStatus = getPredictionStatus(match, prediction);
   const statusBadge = renderPredictionStatusBadge(predictionStatus);
+  const customPointsBadge = renderCustomPointsBadge(match);
   const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
+
+  const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
 
   return `
     <div class="card ptw-card ptw-match-card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-          ${match.round ? `<span class="badge bg-secondary me-2">${escapeHtml(match.round)}</span>` : ''}
+          ${stageLabel ? `<span class="badge bg-secondary me-2">${escapeHtml(stageLabel)}</span>` : ''}
           ${statusBadge}
+          ${customPointsBadge}
         </div>
         ${showCountdown ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Time remaining' }) : ''}
       </div>
@@ -343,6 +348,7 @@ function renderActionButtons(match, prediction, predictionStatus) {
 export function renderCompactMatchCard(match, prediction = null) {
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
   const predictionStatus = getPredictionStatus(match, prediction);
+  const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
 
   return `
     <div class="card ptw-card mb-2">
@@ -350,8 +356,9 @@ export function renderCompactMatchCard(match, prediction = null) {
         <div class="d-flex justify-content-between align-items-center">
           <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-2">
-              ${match.round ? `<span class="badge bg-secondary">${escapeHtml(match.round)}</span>` : ''}
+              ${stageLabel ? `<span class="badge bg-secondary">${escapeHtml(stageLabel)}</span>` : ''}
               ${renderPredictionStatusBadge(predictionStatus)}
+              ${renderCustomPointsBadge(match)}
             </div>
             <div class="mt-1">
               ${renderTeamsMatchupHtml(match.homeTeam, match.awayTeam, { homeFallback: 'TBD', awayFallback: 'TBD', strong: true })}
@@ -369,3 +376,14 @@ export function renderCompactMatchCard(match, prediction = null) {
   `;
 }
 
+/**
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {string}
+ */
+function renderCustomPointsBadge(match) {
+  if (!match.customScoringConfig?.useCustomPoints) {
+    return '';
+  }
+
+  return '<span class="badge bg-warning text-dark ms-2"><i class="bi bi-stars me-1" aria-hidden="true"></i>Bonus Points</span>';
+}

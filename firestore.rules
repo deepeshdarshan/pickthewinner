@@ -20,6 +20,11 @@ service cloud.firestore {
         && data.status in ['published', 'live', 'completed'];
     }
 
+    function isContestantVisibleMatch(data) {
+      return data.visible == true
+        && data.status in ['published', 'prediction_open', 'prediction_locked', 'live', 'completed', 'result_published'];
+    }
+
     // Users collection
     // - Users can read their own profile
     // - Admins can read all profiles
@@ -53,9 +58,9 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    function isContestantVisibleMatch(data) {
-      return data.visible == true
-        && data.status in ['published', 'prediction_open', 'prediction_locked', 'live', 'completed', 'result_published'];
+    match /match_stages/{stageId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /matches/{matchId} {

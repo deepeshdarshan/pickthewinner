@@ -35,6 +35,7 @@ import { Logger } from '../utils/logger.util.js';
  * @property {string} tournamentId
  * @property {number} matchNumber
  * @property {string} [round]
+ * @property {string} [stage]
  * @property {string} homeTeamId
  * @property {string} awayTeamId
  * @property {import('firebase/firestore').Timestamp|Date|null} kickoffUtc
@@ -42,6 +43,7 @@ import { Logger } from '../utils/logger.util.js';
  * @property {boolean} visible
  * @property {Record<string, unknown>|null} result
  * @property {string|null} scoringStatus
+ * @property {CustomScoringConfig|null} customScoringConfig
  * @property {PredictionOverride|null} predictionOverride
  * @property {string} createdBy
  * @property {string} updatedBy
@@ -56,6 +58,13 @@ import { Logger } from '../utils/logger.util.js';
  * @property {import('firebase/firestore').Timestamp|Date} timestamp
  * @property {string} performedBy
  * @property {string} [reason]
+ */
+
+/**
+ * @typedef {Object} CustomScoringConfig
+ * @property {boolean} useCustomPoints
+ * @property {number} correctMatchScorePoints
+ * @property {number} correctPenaltyWinnerPoints
  */
 
 /**
@@ -134,6 +143,7 @@ export function normalizeMatchDocument(id, data) {
     tournamentId: String(data.tournamentId ?? ''),
     matchNumber: Number(data.matchNumber ?? 0),
     round: String(data.round ?? ''),
+    stage: String(data.stage ?? ''),
     homeTeamId: String(data.homeTeamId ?? ''),
     awayTeamId: String(data.awayTeamId ?? ''),
     kickoffUtc: data.kickoffUtc ?? null,
@@ -141,6 +151,7 @@ export function normalizeMatchDocument(id, data) {
     visible: Boolean(data.visible),
     result: /** @type {Record<string, unknown>|null} */ (data.result ?? null),
     scoringStatus: data.scoringStatus ? String(data.scoringStatus) : null,
+    customScoringConfig: normalizeCustomScoringConfig(data),
     predictionOverride: normalizePredictionOverride(data.predictionOverride),
     createdBy: String(data.createdBy ?? ''),
     updatedBy: String(data.updatedBy ?? ''),
@@ -174,13 +185,59 @@ function normalizePredictionOverride(value) {
 }
 
 /**
+ * @param {Record<string, unknown>} data
+ * @returns {CustomScoringConfig|null}
+ */
+function normalizeCustomScoringConfig(data) {
+  const directConfig = data.customScoringConfig;
+  const legacyUseCustomPoints = Boolean(data.useCustomPoints);
+  const legacyCustomPoints = data.customPoints;
+
+  /** @type {Record<string, unknown>|null} */
+  let source = null;
+
+  if (directConfig && typeof directConfig === 'object') {
+    source = /** @type {Record<string, unknown>} */ (directConfig);
+  } else if (legacyUseCustomPoints || (legacyCustomPoints && typeof legacyCustomPoints === 'object')) {
+    source = {
+      useCustomPoints: legacyUseCustomPoints,
+      ...(legacyCustomPoints && typeof legacyCustomPoints === 'object' ? /** @type {Record<string, unknown>} */ (legacyCustomPoints) : {}),
+    };
+  }
+
+  if (!source) {
+    return null;
+  }
+
+  const normalized = MatchDomain.normalizeCustomScoringConfig(source);
+
+  if (!normalized.useCustomPoints) {
+    return null;
+  }
+
+  if (normalized.correctMatchScorePoints === null || normalized.correctPenaltyWinnerPoints === null) {
+    return null;
+  }
+
+  return {
+    useCustomPoints: true,
+    correctMatchScorePoints: normalized.correctMatchScorePoints,
+    correctPenaltyWinnerPoints: normalized.correctPenaltyWinnerPoints,
+  };
+}
+
+/**
  * @param {Record<string, unknown>} payload
  * @returns {Record<string, unknown>}
  */
 function buildFirestorePayload(payload) {
+  const customScoringConfig = normalizeCustomScoringConfig(payload);
+
   return {
     tournamentId: String(payload.tournamentId ?? ''),
     matchNumber: Number(payload.matchNumber ?? 0),
+    round: String(payload.round ?? ''),
+    stage: String(payload.stage ?? ''),
     homeTeamId: String(payload.homeTeamId ?? ''),
     awayTeamId: String(payload.awayTeamId ?? ''),
     kickoffUtc: toFirestoreTimestamp(payload.kickoffUtc),
@@ -188,6 +245,7 @@ function buildFirestorePayload(payload) {
     visible: Boolean(payload.visible),
     result: payload.result ?? null,
     scoringStatus: payload.scoringStatus ?? null,
+    customScoringConfig,
   };
 }
 

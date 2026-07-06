@@ -9,6 +9,7 @@ import {
   MATCH_VALIDATION_MESSAGES,
   MATCH_MESSAGES,
 } from './match.constants.js';
+import { SCORING_POINTS_MAX, SCORING_POINTS_MIN } from '../tournament/tournament.constants.js';
 
 /**
  * @typedef {Object} MatchValidationResult
@@ -45,6 +46,10 @@ export function validateCreatePayload(payload) {
     errors.awayTeamId = MATCH_VALIDATION_MESSAGES.AWAY_TEAM_REQUIRED;
   }
 
+  if (!payload.round) {
+    errors.round = MATCH_VALIDATION_MESSAGES.ROUND_REQUIRED;
+  }
+
   if (payload.homeTeamId && payload.awayTeamId && payload.homeTeamId === payload.awayTeamId) {
     errors.homeTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
     errors.awayTeamId = MATCH_VALIDATION_MESSAGES.TEAMS_MUST_DIFFER;
@@ -53,6 +58,8 @@ export function validateCreatePayload(payload) {
   if (!payload.kickoffUtc) {
     errors.kickoffUtc = MATCH_VALIDATION_MESSAGES.KICKOFF_REQUIRED;
   }
+
+  Object.assign(errors, validateCustomScoringConfig(payload).errors);
 
   return { valid: Object.keys(errors).length === 0, errors };
 }
@@ -68,6 +75,49 @@ export function validateUpdatePayload(payload, current = {}) {
   }
 
   return validateCreatePayload(payload);
+}
+
+/**
+ * @param {Record<string, unknown>} payload
+ * @returns {MatchValidationResult}
+ */
+export function validateCustomScoringConfig(payload) {
+  const errors = {};
+  const config = payload.customScoringConfig;
+
+  if (!config || typeof config !== 'object') {
+    return { valid: true, errors };
+  }
+
+  const scoring = /** @type {Record<string, unknown>} */ (config);
+  const useCustomPoints = Boolean(scoring.useCustomPoints);
+
+  if (!useCustomPoints) {
+    return { valid: true, errors };
+  }
+
+  if (scoring.correctMatchScorePoints === '' || scoring.correctMatchScorePoints === null || scoring.correctMatchScorePoints === undefined) {
+    errors.correctMatchScorePoints = MATCH_VALIDATION_MESSAGES.CUSTOM_POINTS_MATCH_SCORE_REQUIRED;
+  } else if (!isValidPoints(scoring.correctMatchScorePoints)) {
+    errors.correctMatchScorePoints = MATCH_VALIDATION_MESSAGES.CUSTOM_POINTS_MATCH_SCORE_INVALID;
+  }
+
+  if (scoring.correctPenaltyWinnerPoints === '' || scoring.correctPenaltyWinnerPoints === null || scoring.correctPenaltyWinnerPoints === undefined) {
+    errors.correctPenaltyWinnerPoints = MATCH_VALIDATION_MESSAGES.CUSTOM_POINTS_PENALTY_REQUIRED;
+  } else if (!isValidPoints(scoring.correctPenaltyWinnerPoints)) {
+    errors.correctPenaltyWinnerPoints = MATCH_VALIDATION_MESSAGES.CUSTOM_POINTS_PENALTY_INVALID;
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+/**
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isValidPoints(value) {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isInteger(numeric) && numeric >= SCORING_POINTS_MIN && numeric <= SCORING_POINTS_MAX;
 }
 
 /**
