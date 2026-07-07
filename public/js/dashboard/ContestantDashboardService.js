@@ -11,7 +11,7 @@ import { getActiveTournament, listTournamentsForContestant } from '../tournament
 import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { listMatchesForContestant } from '../match/match.service.js';
-import { filterUpcomingMatches } from '../match/match-list.util.js';
+import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
@@ -67,6 +67,9 @@ import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
  * @property {import('../match/match.service.js').EnrichedMatch|null} featuredMatch
  * @property {{ targetDate: string, label: string }|null} featuredMatchCountdown
  * @property {Record<string, unknown>|null} featuredMatchPrediction
+ * @property {import('../match/match.service.js').EnrichedMatch|null} featuredLiveMatch
+ * @property {Record<string, unknown>|null} featuredLiveMatchPrediction
+ * @property {import('../match/match.service.js').EnrichedMatch[]} liveMatches
  * @property {import('../match/match.service.js').EnrichedMatch[]} upcomingMatches
  * @property {Record<string, Record<string, unknown>|null>} upcomingPredictions
  * @property {{ total: number, submitted: number, pending: number }} predictionStats
@@ -133,14 +136,36 @@ export const ContestantDashboardService = {
       })
       .slice(0, 5);
 
+    const liveMatches = filterLiveMatches(allMatches, now)
+      .sort((a, b) => {
+        const aKickoff = toDate(a.kickoffUtc)?.getTime() ?? 0;
+        const bKickoff = toDate(b.kickoffUtc)?.getTime() ?? 0;
+        return bKickoff - aKickoff;
+      })
+      .slice(0, 3);
+
     const featuredMatch = upcomingMatches[0] ?? null;
+    const featuredLiveMatch = liveMatches[0] ?? null;
     const upcomingPredictions = {};
     let featuredMatchPrediction = null;
+    let featuredLiveMatchPrediction = null;
 
     if (user) {
-      await Promise.all(upcomingMatches.map(async (match) => {
-        const prediction = await getPredictionForUser(match.id, user.uid);
-        upcomingPredictions[match.id] = prediction;
+      const predictionMatchIds = new Set([
+        ...upcomingMatches.map((match) => match.id),
+        ...liveMatches.map((match) => match.id),
+      ]);
+
+      await Promise.all([...predictionMatchIds].map(async (matchId) => {
+        const prediction = await getPredictionForUser(matchId, user.uid);
+        if (upcomingMatches.some((match) => match.id === matchId)) {
+          upcomingPredictions[matchId] = prediction;
+        }
+        if (liveMatches.some((match) => match.id === matchId)) {
+          if (featuredLiveMatch?.id === matchId) {
+            featuredLiveMatchPrediction = prediction;
+          }
+        }
       }));
 
       if (featuredMatch) {
@@ -210,6 +235,9 @@ export const ContestantDashboardService = {
       featuredMatch,
       featuredMatchCountdown,
       featuredMatchPrediction,
+      featuredLiveMatch,
+      featuredLiveMatchPrediction,
+      liveMatches,
       upcomingMatches,
       upcomingPredictions,
       predictionStats,

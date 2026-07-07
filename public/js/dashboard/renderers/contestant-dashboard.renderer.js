@@ -7,7 +7,7 @@ import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-
 import { renderContestantPageHeader } from '../../components/page-header.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderSkeletonCardGrid } from '../../components/skeleton.component.js';
-import { renderFeaturedMatchSection } from './featured-match.renderer.js';
+import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
 import { renderTournamentGridSection } from './tournament-grid.renderer.js';
 import { renderQuickStatsSection } from './quick-stats.renderer.js';
 import { renderRecentActivitySection } from './recent-activity.renderer.js';
@@ -45,12 +45,20 @@ export function renderContestantDashboard(data) {
 
       ${renderTournamentGridSection(data)}
 
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-xl-8">
-          ${renderFeaturedMatchSection(data)}
-        </div>
-        <div class="col-12 col-xl-4">
-          ${renderQuickStatsSection(data)}
+      <div class="ptw-dashboard-matches mb-4">
+        ${data.featuredLiveMatch ? `
+          <div class="mb-3">
+            ${renderLiveMatchSection(data)}
+          </div>
+        ` : ''}
+
+        <div class="row g-3">
+          <div class="col-12 ${data.featuredLiveMatch ? 'col-xl-6' : 'col-xl-8'}">
+            ${renderFeaturedMatchSection(data)}
+          </div>
+          <div class="col-12 ${data.featuredLiveMatch ? 'col-xl-6' : 'col-xl-4'}">
+            ${renderQuickStatsSection(data)}
+          </div>
         </div>
       </div>
 

@@ -3,7 +3,15 @@
  * @module match/match-list.util
  */
 
+import { MATCH_STATUS } from '../domain/match.domain.js';
 import { MATCH_LIST_PAGE_SIZE } from './renderers/list.renderer.js';
+
+/** @type {ReadonlySet<string>} */
+const TERMINAL_MATCH_STATUSES = new Set([
+  MATCH_STATUS.COMPLETED,
+  MATCH_STATUS.RESULT_PUBLISHED,
+  MATCH_STATUS.ARCHIVED,
+]);
 
 /**
  * @typedef {import('./match.service.js').EnrichedMatch} EnrichedMatch
@@ -40,6 +48,31 @@ export function filterUpcomingMatches(matches, now = new Date()) {
     }
 
     return true;
+  });
+}
+
+/**
+ * Returns matches that are currently in progress.
+ * @param {EnrichedMatch[]} matches
+ * @param {Date} [now]
+ * @returns {EnrichedMatch[]}
+ */
+export function filterLiveMatches(matches, now = new Date()) {
+  return matches.filter((match) => {
+    if (match.result?.published) {
+      return false;
+    }
+
+    if (TERMINAL_MATCH_STATUSES.has(match.status)) {
+      return false;
+    }
+
+    if (match.status === MATCH_STATUS.LIVE) {
+      return true;
+    }
+
+    const kickoff = toKickoffDate(match.kickoffUtc);
+    return kickoff !== null && kickoff <= now;
   });
 }
 
