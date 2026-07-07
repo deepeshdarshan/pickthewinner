@@ -17,18 +17,8 @@ import { listMatchesForContestant } from '../match/match.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
-import { getRoundLabel } from '../match/match.constants.js';
 import { shouldShowOnTournamentDetail } from '../domain/contestant-match-view.domain.js';
-
-/** @type {ReadonlyArray<string>} */
-const ROUND_ORDER = Object.freeze([
-  'Group Stage',
-  'Round of 16',
-  'Quarter Finals',
-  'Semi Finals',
-  'Final',
-  'Other',
-]);
+import { groupMatchesByRoundLabel } from '../match/match-list.util.js';
 
 /**
  * Renders the tournament detail page.
@@ -116,16 +106,7 @@ async function initTournamentDetailPage(outlet, tournamentId) {
  * @returns {string}
  */
 function renderTournamentDetailPage(tournament, matches, predictionsMap) {
-  const grouped = matches.reduce((acc, match) => {
-    const round = match.round ? getRoundLabel(match.round) : 'Other';
-    if (!acc[round]) {
-      acc[round] = [];
-    }
-    acc[round].push(match);
-    return acc;
-  }, {});
-
-  const availableRounds = ROUND_ORDER.filter((round) => grouped[round]);
+  const { grouped, orderedRounds: availableRounds } = groupMatchesByRoundLabel(matches);
   const totalMatches = matches.length;
   const submittedPredictions = matches.filter((match) => predictionsMap.has(match.id)).length;
   const pendingPredictions = Math.max(totalMatches - submittedPredictions, 0);

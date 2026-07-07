@@ -61,7 +61,7 @@ import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
  * @property {boolean} leaderboardVisible
  * @property {string} leaderboardPath
  * @property {string} leaderboardPendingMessage
- * @property {{ name: string, season: string, id: string }|null} activeTournament
+ * @property {ActiveTournamentHeroDto|null} activeTournament
  * @property {import('../tournament/tournament.service.js').Tournament[]} tournaments
  * @property {Array<import('../tournament/tournament.service.js').Tournament & { stats: TournamentCardStats }>} tournamentCards
  * @property {import('../match/match.service.js').EnrichedMatch|null} featuredMatch
@@ -75,6 +75,17 @@ import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
  * @property {{ total: number, submitted: number, pending: number }} predictionStats
  * @property {ContestantQuickStats} quickStats
  * @property {ContestantActivityItem[]} recentActivity
+ */
+
+/**
+ * @typedef {Object} ActiveTournamentHeroDto
+ * @property {string} id
+ * @property {string} name
+ * @property {string} [season]
+ * @property {string} [logo]
+ * @property {string} [banner]
+ * @property {string} status
+ * @property {{ totalMatches: number, predictionsSubmitted: number }} stats
  */
 
 /**
@@ -227,9 +238,7 @@ export const ContestantDashboardService = {
       leaderboardVisible,
       leaderboardPath: '/leaderboard',
       leaderboardPendingMessage: LEADERBOARD_MESSAGES.DASHBOARD_PENDING,
-      activeTournament: activeTournament
-        ? { name: activeTournament.name, season: activeTournament.season, id: activeTournament.id }
-        : null,
+      activeTournament: buildActiveTournamentHeroDto(activeTournament, tournamentCards),
       tournaments: visibleTournaments,
       tournamentCards,
       featuredMatch,
@@ -273,6 +282,46 @@ export const ContestantDashboardService = {
     };
   },
 };
+
+/**
+ * @param {import('../tournament/tournament.service.js').Tournament|null} activeTournament
+ * @param {Array<import('../tournament/tournament.service.js').Tournament & { stats: TournamentCardStats }>} tournamentCards
+ * @returns {ActiveTournamentHeroDto|null}
+ */
+function buildActiveTournamentHeroDto(activeTournament, tournamentCards) {
+  const card = activeTournament
+    ? tournamentCards.find((tournament) => tournament.id === activeTournament.id)
+    : tournamentCards[0];
+
+  if (!card) {
+    if (!activeTournament) {
+      return null;
+    }
+
+    return {
+      id: activeTournament.id,
+      name: activeTournament.name,
+      season: activeTournament.season ?? '',
+      logo: activeTournament.logo ?? '',
+      banner: activeTournament.banner ?? '',
+      status: activeTournament.status ?? 'published',
+      stats: { totalMatches: 0, predictionsSubmitted: 0 },
+    };
+  }
+
+  return {
+    id: card.id,
+    name: card.name,
+    season: card.season ?? '',
+    logo: card.logo ?? '',
+    banner: card.banner ?? '',
+    status: card.status ?? 'published',
+    stats: {
+      totalMatches: card.stats.totalMatches,
+      predictionsSubmitted: card.stats.predictionsSubmitted,
+    },
+  };
+}
 
 /**
  * @param {import('../match/match.service.js').EnrichedMatch} match

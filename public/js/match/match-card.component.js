@@ -51,12 +51,14 @@ export function renderMatchCard(options) {
   const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
 
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
+  const tournamentName = resolveTournamentName(match);
 
   return `
     <div class="card ptw-card ptw-match-card mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-          ${stageLabel ? `<span class="badge bg-secondary me-2">${escapeHtml(stageLabel)}</span>` : ''}
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          ${tournamentName ? `<span class="badge bg-secondary">${escapeHtml(tournamentName)}</span>` : ''}
+          ${stageLabel ? `<span class="badge bg-info">${escapeHtml(stageLabel)}</span>` : ''}
           ${statusBadge}
           ${customPointsBadge}
         </div>
@@ -380,10 +382,25 @@ export function renderCompactMatchCard(match, prediction = null) {
  * @param {import('./match.service.js').EnrichedMatch} match
  * @returns {string}
  */
+function resolveTournamentName(match) {
+  const tournament = /** @type {Record<string, unknown>} */ (match.tournament ?? {});
+
+  return String(
+    match.tournamentName
+    ?? tournament.name
+    ?? tournament.title
+    ?? '',
+  ).trim();
+}
+
+/**
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {string}
+ */
 function renderCustomPointsBadge(match) {
   if (!match.customScoringConfig?.useCustomPoints) {
     return '';
   }
 
-  return '<span class="badge bg-warning text-dark ms-2"><i class="bi bi-stars me-1" aria-hidden="true"></i>Bonus Points</span>';
+  return '<span class="badge bg-warning text-dark"><i class="bi bi-stars me-1" aria-hidden="true"></i>Bonus Points</span>';
 }

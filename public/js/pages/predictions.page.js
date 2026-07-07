@@ -23,10 +23,9 @@ import {
 import { getPredictionForUser, listPredictionsForUser } from '../prediction/prediction.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { Logger } from '../utils/logger.util.js';
-import { getRoundLabel } from '../match/match.constants.js';
-import { filterMyPredictionMatches } from '../domain/contestant-match-view.domain.js';
-import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
 import { MATCH_ROUTES } from '../match/match.constants.js';
+import { filterMyPredictionMatches } from '../domain/contestant-match-view.domain.js';
+import { filterLiveMatches, filterUpcomingMatches, groupMatchesByRoundLabel } from '../match/match-list.util.js';
 
 /** @type {import('../match/match.service.js').EnrichedMatch|null} */
 let currentMatch = null;
@@ -250,19 +249,7 @@ function renderPredictionsPage(matches, predictionsMap) {
   const upcomingCount = filterUpcomingMatches(matches, now).length;
   const liveCount = filterLiveMatches(matches, now).length;
   const lockedCount = Math.max(matches.length - upcomingCount - liveCount, 0);
-
-  // Group matches by round
-  const grouped = matches.reduce((acc, match) => {
-    const round = match.round ? getRoundLabel(match.round) : 'Other';
-    if (!acc[round]) {
-      acc[round] = [];
-    }
-    acc[round].push(match);
-    return acc;
-  }, {});
-
-  const rounds = ['Group Stage', 'Round of 16', 'Quarter Finals', 'Semi Finals', 'Final', 'Other'];
-  const orderedGroups = rounds.filter((round) => grouped[round]);
+  const { grouped, orderedRounds } = groupMatchesByRoundLabel(matches);
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
@@ -300,7 +287,7 @@ function renderPredictionsPage(matches, predictionsMap) {
       </div>
 
       <!-- Matches by Round -->
-      ${orderedGroups.map((round) => `
+      ${orderedRounds.map((round) => `
         <div class="mb-4">
           <h3 class="h5 mb-3">${round}</h3>
           <div class="ptw-match-cards">

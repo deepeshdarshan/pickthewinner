@@ -7,6 +7,7 @@ import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-
 import { renderContestantPageHeader } from '../../components/page-header.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderSkeletonCardGrid } from '../../components/skeleton.component.js';
+import { renderActiveTournamentHero } from './active-tournament.renderer.js';
 import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
 import { renderTournamentGridSection } from './tournament-grid.renderer.js';
 import { renderQuickStatsSection } from './quick-stats.renderer.js';
@@ -22,6 +23,9 @@ export function renderContestantDashboardLoading() {
     title: 'Dashboard',
     subtitle: 'Loading your tournaments and matches…',
   })}
+      <div class="mb-4">
+        <div class="card ptw-card ptw-skeleton-card" style="height: 180px;"></div>
+      </div>
       ${renderSkeletonCardGrid(3)}
     </div>
   `;
@@ -36,6 +40,10 @@ export function renderContestantDashboard(data) {
     return renderEmptyContestantDashboard(data);
   }
 
+  const liveMatchHtml = renderLiveMatchSection(data);
+  const upcomingMatchHtml = renderFeaturedMatchSection(data);
+  const hasLiveMatch = Boolean(data.featuredLiveMatch);
+
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
       ${renderContestantPageHeader({
@@ -43,34 +51,28 @@ export function renderContestantDashboard(data) {
     subtitle: data.welcomeMessage,
   })}
 
+      ${renderActiveTournamentHero(data)}
+
       ${renderTournamentGridSection(data)}
 
       <div class="ptw-dashboard-matches mb-4">
-        ${data.featuredLiveMatch ? `
-          <div class="row g-3 mb-3">
+        <div class="row g-3">
+          ${hasLiveMatch ? `
             <div class="col-12 col-lg-6">
-              ${renderLiveMatchSection(data)}
+              ${liveMatchHtml}
             </div>
             <div class="col-12 col-lg-6">
-              ${renderFeaturedMatchSection(data)}
+              ${upcomingMatchHtml}
             </div>
-          </div>
-          <div class="row g-3">
+          ` : `
             <div class="col-12">
-              ${renderQuickStatsSection(data)}
+              ${upcomingMatchHtml}
             </div>
-          </div>
-        ` : `
-          <div class="row g-3">
-            <div class="col-12 col-xl-8">
-              ${renderFeaturedMatchSection(data)}
-            </div>
-            <div class="col-12 col-xl-4">
-              ${renderQuickStatsSection(data)}
-            </div>
-          </div>
-        `}
+          `}
+        </div>
       </div>
+
+      ${renderQuickStatsSection(data)}
 
       ${renderRecentActivitySection(data)}
     </div>

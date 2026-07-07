@@ -4,6 +4,7 @@
  */
 
 import { MATCH_STATUS } from '../domain/match.domain.js';
+import { getRoundLabel } from './match.constants.js';
 import { MATCH_LIST_PAGE_SIZE } from './renderers/list.renderer.js';
 
 /** @type {ReadonlySet<string>} */
@@ -129,6 +130,43 @@ export function paginateMatches(matches, page, pageSize = MATCH_LIST_PAGE_SIZE) 
     totalPages,
     currentPage,
   };
+}
+
+/**
+ * @param {EnrichedMatch} match
+ * @returns {string}
+ */
+export function resolveMatchRoundLabel(match) {
+  const stageLabel = String(match.stage ?? '').trim();
+  if (stageLabel) {
+    return stageLabel;
+  }
+
+  const roundLabel = match.round ? getRoundLabel(String(match.round)) : '';
+  return roundLabel || 'Other';
+}
+
+/**
+ * @param {EnrichedMatch[]} matches
+ * @returns {{ grouped: Record<string, EnrichedMatch[]>, orderedRounds: string[] }}
+ */
+export function groupMatchesByRoundLabel(matches) {
+  const grouped = matches.reduce((acc, match) => {
+    const round = resolveMatchRoundLabel(match);
+    if (!acc[round]) {
+      acc[round] = [];
+    }
+    acc[round].push(match);
+    return acc;
+  }, /** @type {Record<string, EnrichedMatch[]>} */ ({}));
+
+  const orderedRounds = Object.keys(grouped).sort((left, right) => {
+    const leftKickoff = Math.min(...grouped[left].map((match) => toKickoffTime(match.kickoffUtc)));
+    const rightKickoff = Math.min(...grouped[right].map((match) => toKickoffTime(match.kickoffUtc)));
+    return leftKickoff - rightKickoff;
+  });
+
+  return { grouped, orderedRounds };
 }
 
 /**
