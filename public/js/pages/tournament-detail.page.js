@@ -226,26 +226,6 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
  * @returns {void}
  */
 function attachEventHandlers(outlet) {
-  outlet.querySelectorAll('[data-action="make-prediction"]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const matchId = event.currentTarget.dataset.matchId;
-      if (matchId) {
-        window.history.pushState({}, '', `/predictions?action=create&matchId=${encodeURIComponent(matchId)}`);
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }
-    });
-  });
-
-  outlet.querySelectorAll('[data-action="edit-prediction"]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const matchId = event.currentTarget.dataset.matchId;
-      if (matchId) {
-        window.history.pushState({}, '', `/predictions?action=edit&matchId=${encodeURIComponent(matchId)}`);
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }
-    });
-  });
-
   outlet.querySelectorAll('.ptw-round-filter').forEach((button) => {
     button.addEventListener('click', () => {
       const selectedRound = button.getAttribute('data-round-filter');

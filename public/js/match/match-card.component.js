@@ -323,18 +323,18 @@ function renderActionButtons(match, prediction, predictionStatus) {
   if (prediction && predictionStatus === 'submitted') {
     return `
       <div class="mt-3 pt-3 border-top">
-        <button class="btn btn-primary w-100" data-action="edit-prediction" data-match-id="${escapeHtml(match.id)}">
+        <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-primary w-100" data-route>
           <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
-        </button>
+        </a>
       </div>
     `;
   }
 
   return `
     <div class="mt-3 pt-3 border-top">
-      <button class="btn btn-ptw-primary w-100" data-action="make-prediction" data-match-id="${escapeHtml(match.id)}">
+      <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary w-100" data-route>
         <i class="bi bi-bullseye me-2" aria-hidden="true"></i>Make Prediction
-      </button>
+      </a>
     </div>
   `;
 }

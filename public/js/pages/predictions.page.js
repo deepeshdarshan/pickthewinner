@@ -115,7 +115,6 @@ async function renderPredictionsListView(outlet) {
     );
 
     outlet.innerHTML = renderPredictionsPage(matches, predictionsMap);
-    attachPredictionsPageHandlers(outlet);
     initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[PredictionsPage] Failed to load:', error);
@@ -288,35 +287,6 @@ function renderPredictionsPage(matches, predictionsMap) {
       `).join('')}
     </div>
   `;
-}
-
-/**
- * Attaches event handlers to predictions page.
- * @param {HTMLElement} outlet
- * @returns {void}
- */
-function attachPredictionsPageHandlers(outlet) {
-  // Make prediction buttons
-  outlet.querySelectorAll('[data-action="make-prediction"]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const matchId = event.currentTarget.dataset.matchId;
-      if (matchId) {
-        window.history.pushState({}, '', `/predictions?action=create&matchId=${encodeURIComponent(matchId)}`);
-        void render(outlet);
-      }
-    });
-  });
-
-  // Edit prediction buttons
-  outlet.querySelectorAll('[data-action="edit-prediction"]').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const matchId = event.currentTarget.dataset.matchId;
-      if (matchId) {
-        window.history.pushState({}, '', `/predictions?action=edit&matchId=${encodeURIComponent(matchId)}`);
-        void render(outlet);
-      }
-    });
-  });
 }
 
 /**
