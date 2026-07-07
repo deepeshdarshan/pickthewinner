@@ -18,6 +18,7 @@ import {
   submitPrediction,
   updatePrediction,
   getExistingPrediction,
+  canEditPrediction,
 } from '../prediction/prediction-submission.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
@@ -172,6 +173,14 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     if (!match) {
       showErrorToast('Match not found');
       window.history.back();
+      return;
+    }
+
+    const editCheck = await canEditPrediction(matchId);
+
+    if (!editCheck.canEdit) {
+      outlet.innerHTML = renderPredictionWindowClosedState(editCheck.reason, isEdit);
+      showErrorToast(editCheck.reason || 'Prediction window is closed');
       return;
     }
 
@@ -364,6 +373,28 @@ function renderLoadingState() {
         </div>
         <div class="mt-3 ptw-text-muted">Loading predictions...</div>
       </div>
+    </div>
+  `;
+}
+
+/**
+ * Renders state when the prediction window is no longer open.
+ * @param {string|undefined} reason
+ * @param {boolean} isEdit
+ * @returns {string}
+ */
+function renderPredictionWindowClosedState(reason, isEdit) {
+  return `
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+      <button class="btn btn-outline-light mb-3" onclick="history.back()">
+        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Go Back
+      </button>
+      ${renderEmptyState({
+        title: isEdit ? 'Prediction Locked' : 'Prediction Window Closed',
+        message: reason || 'The prediction window for this match is no longer open.',
+        icon: 'bi-lock',
+        actionHtml: '<a class="btn btn-ptw-primary" href="/predictions" data-route>View All Predictions</a>',
+      })}
     </div>
   `;
 }
