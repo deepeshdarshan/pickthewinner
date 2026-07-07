@@ -8,6 +8,7 @@ import { renderTeamInlineHtml, getTeamFlagUrl, renderTeamFlagHtml } from '../../
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 import { renderMatchStatusBadge } from '../../match/renderers/status-badge.renderer.js';
+import { getRoundLabel } from '../../match/match.constants.js';
 import { MATCH_STATUS } from '../../domain/match.domain.js';
 
 /**
@@ -31,7 +32,7 @@ export function renderLiveMatchSection(data) {
     sectionClass: 'ptw-featured-match ptw-live-match',
     showLiveIndicator: true,
     countdown: null,
-    actionButtons: renderLiveActionButtons(match),
+    actionButtons: '',
   });
 }
 
@@ -102,13 +103,14 @@ function renderMatchSpotlightCard(options) {
   const liveIndicator = showLiveIndicator
     ? '<span class="ptw-live-indicator" aria-hidden="true"><span class="ptw-live-indicator__dot"></span> LIVE</span>'
     : '';
+  const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? '')) || 'Match';
 
   return `
     <section class="card ptw-card ${sectionClass} h-100" aria-labelledby="${headingId}">
       <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex align-items-center flex-wrap gap-2">
           <span class="badge bg-secondary">${escapeHtml(match.tournamentName ?? 'Tournament')}</span>
-          <span class="badge bg-info">${escapeHtml(match.round ?? 'Match')}</span>
+          <span class="badge bg-info">${escapeHtml(stageLabel)}</span>
           ${showLiveIndicator ? renderMatchStatusBadge(MATCH_STATUS.LIVE) : ''}
         </div>
         ${countdown ? renderCountdown({ targetDate: countdown.targetDate, label: countdown.label, id: `ptw-featured-countdown-${match.id}` }) : ''}
@@ -134,9 +136,11 @@ function renderMatchSpotlightCard(options) {
           ${match.venueName ? `<div class="ptw-text-muted mt-1"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>${escapeHtml(match.venueName)}</div>` : ''}
         </div>
         ${prediction ? renderPredictionSummary(prediction, match) : ''}
+        ${actionButtons ? `
         <div class="d-flex flex-wrap gap-2 justify-content-center">
           ${actionButtons}
         </div>
+        ` : ''}
       </div>
     </section>
   `;
@@ -197,19 +201,6 @@ function getPredictionStatus(match, prediction) {
   }
 
   return 'locked';
-}
-
-/**
- * @param {import('../../match/match.service.js').EnrichedMatch} match
- * @param {Record<string, unknown>|null} prediction
- * @returns {string}
- */
-function renderLiveActionButtons(match) {
-  return `
-    <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-outline-primary" data-route>
-      <i class="bi bi-eye me-2" aria-hidden="true"></i>View Match
-    </a>
-  `;
 }
 
 /**
