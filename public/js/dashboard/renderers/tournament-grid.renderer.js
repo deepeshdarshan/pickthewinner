@@ -41,12 +41,9 @@ export function renderTournamentGridSection(data) {
 
   return `
     <section class="mb-4" aria-labelledby="ptw-my-tournaments-heading">
-      <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
-        <div>
-          <h2 class="h5 mb-1" id="ptw-my-tournaments-heading">My Tournaments</h2>
-          <p class="ptw-text-muted mb-0 small">${escapeHtml(String(data.activeTournamentCount))} active tournament${data.activeTournamentCount === 1 ? '' : 's'}</p>
-        </div>
-        <a href="${escapeHtml(data.tournamentsPath)}" class="btn btn-sm btn-outline-light" data-route>View All</a>
+      <div class="mb-3">
+        <h2 class="h5 mb-1" id="ptw-my-tournaments-heading">My Tournaments</h2>
+        <p class="ptw-text-muted mb-0 small">${escapeHtml(String(data.activeTournamentCount))} active tournament${data.activeTournamentCount === 1 ? '' : 's'}</p>
       </div>
       <div class="row g-3 ptw-tournament-grid">${cards}</div>
     </section>

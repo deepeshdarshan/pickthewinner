@@ -52,6 +52,21 @@ export async function getPredictionForUser(matchId, userId) {
 }
 
 /**
+ * @param {string} userId
+ * @returns {Promise<Array<{ id: string } & Record<string, unknown>>>}
+ */
+export async function listPredictionsByUser(userId) {
+  await ensureFirestoreOnline();
+
+  const snapshot = await getDocs(query(
+    collection(db, FIRESTORE_COLLECTIONS.PREDICTIONS),
+    where('userId', '==', userId),
+  ));
+
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+/**
  * @param {string} predictionId
  * @param {Record<string, unknown>} data
  * @returns {Promise<void>}

@@ -47,19 +47,29 @@ export function renderContestantDashboard(data) {
 
       <div class="ptw-dashboard-matches mb-4">
         ${data.featuredLiveMatch ? `
-          <div class="mb-3">
-            ${renderLiveMatchSection(data)}
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-6">
+              ${renderLiveMatchSection(data)}
+            </div>
+            <div class="col-12 col-lg-6">
+              ${renderFeaturedMatchSection(data)}
+            </div>
           </div>
-        ` : ''}
-
-        <div class="row g-3">
-          <div class="col-12 ${data.featuredLiveMatch ? 'col-xl-6' : 'col-xl-8'}">
-            ${renderFeaturedMatchSection(data)}
+          <div class="row g-3">
+            <div class="col-12">
+              ${renderQuickStatsSection(data)}
+            </div>
           </div>
-          <div class="col-12 ${data.featuredLiveMatch ? 'col-xl-6' : 'col-xl-4'}">
-            ${renderQuickStatsSection(data)}
+        ` : `
+          <div class="row g-3">
+            <div class="col-12 col-xl-8">
+              ${renderFeaturedMatchSection(data)}
+            </div>
+            <div class="col-12 col-xl-4">
+              ${renderQuickStatsSection(data)}
+            </div>
           </div>
-        </div>
+        `}
       </div>
 
       ${renderRecentActivitySection(data)}

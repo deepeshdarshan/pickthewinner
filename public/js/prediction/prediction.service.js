@@ -6,6 +6,7 @@
 import {
   getPredictionForUser as getPredictionForUserRepo,
   listPredictionsByMatch,
+  listPredictionsByUser as listPredictionsByUserRepo,
 } from './prediction.repository.js';
 
 /**
@@ -15,6 +16,14 @@ import {
  */
 export async function getPredictionForUser(matchId, userId) {
   return getPredictionForUserRepo(matchId, userId);
+}
+
+/**
+ * @param {string} userId
+ * @returns {Promise<Record<string, unknown>[]>}
+ */
+export async function listPredictionsForUser(userId) {
+  return listPredictionsByUserRepo(userId);
 }
 
 /**

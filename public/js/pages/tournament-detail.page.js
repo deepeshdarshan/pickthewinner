@@ -18,6 +18,7 @@ import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
 import { getRoundLabel } from '../match/match.constants.js';
+import { shouldShowOnTournamentDetail } from '../domain/contestant-match-view.domain.js';
 
 /** @type {ReadonlyArray<string>} */
 const ROUND_ORDER = Object.freeze([
@@ -91,7 +92,12 @@ async function initTournamentDetailPage(outlet, tournamentId) {
       }),
     );
 
-    outlet.innerHTML = renderTournamentDetailPage(tournament, matches, predictionsMap);
+    const visibleMatches = matches.filter((match) => shouldShowOnTournamentDetail(
+      match,
+      predictionsMap.get(match.id) ?? null,
+    ));
+
+    outlet.innerHTML = renderTournamentDetailPage(tournament, visibleMatches, predictionsMap);
     attachEventHandlers(outlet);
     initializeCountdowns(outlet);
   } catch (error) {
@@ -121,7 +127,7 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
 
   const availableRounds = ROUND_ORDER.filter((round) => grouped[round]);
   const totalMatches = matches.length;
-  const submittedPredictions = Array.from(predictionsMap.values()).length;
+  const submittedPredictions = matches.filter((match) => predictionsMap.has(match.id)).length;
   const pendingPredictions = Math.max(totalMatches - submittedPredictions, 0);
   const completedMatches = matches.filter((m) => m.result?.published).length;
   const completionPercentage = totalMatches > 0 ? Math.round((submittedPredictions / totalMatches) * 100) : 0;

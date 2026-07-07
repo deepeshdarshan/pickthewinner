@@ -9,7 +9,7 @@ import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-she
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
-import { listMatchesForContestant } from '../match/match.service.js';
+import { getMatchById, listMatchesForContestant } from '../match/match.service.js';
 import { getTournamentById } from '../tournament/tournament.service.js';
 import { renderMatchCard } from '../match/match-card.component.js';
 import { initializeCountdowns } from '../components/countdown.component.js';
@@ -20,10 +20,13 @@ import {
   getExistingPrediction,
   canEditPrediction,
 } from '../prediction/prediction-submission.service.js';
-import { getPredictionForUser } from '../prediction/prediction.service.js';
+import { getPredictionForUser, listPredictionsForUser } from '../prediction/prediction.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { Logger } from '../utils/logger.util.js';
 import { getRoundLabel } from '../match/match.constants.js';
+import { filterMyPredictionMatches } from '../domain/contestant-match-view.domain.js';
+import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
+import { MATCH_ROUTES } from '../match/match.constants.js';
 
 /** @type {import('../match/match.service.js').EnrichedMatch|null} */
 let currentMatch = null;
@@ -84,37 +87,62 @@ async function renderPredictionsListView(outlet) {
       return;
     }
 
-    const matches = await listMatchesForContestant();
+    const userPredictions = await listPredictionsForUser(user.uid);
 
-    if (matches.length === 0) {
+    if (userPredictions.length === 0) {
       outlet.innerHTML = `
         <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
           ${renderContestantPageHeader({
-            title: 'Predictions',
-            subtitle: 'Submit your match predictions',
+            title: 'My Predictions',
+            subtitle: 'View and manage your active match predictions',
           })}
           ${renderEmptyState({
-            title: 'No Matches Available',
-            message: 'There are no published matches available for predictions at this time.',
-            icon: 'bi-calendar-x',
+            title: 'No Active Predictions',
+            message: 'You have not submitted any predictions yet. Browse upcoming matches to get started.',
+            icon: 'bi-bullseye',
+            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Browse Upcoming Matches</a>`,
           })}
         </div>
       `;
       return;
     }
 
-    // Fetch predictions for all matches
-    const predictionsMap = new Map();
-    await Promise.all(
-      matches.map(async (match) => {
-        const prediction = await getPredictionForUser(match.id, user.uid);
-        if (prediction) {
-          predictionsMap.set(match.id, prediction);
-        }
-      }),
+    const predictionsMap = new Map(
+      userPredictions.map((prediction) => [String(prediction.matchId ?? ''), prediction]),
     );
 
-    outlet.innerHTML = renderPredictionsPage(matches, predictionsMap);
+    const matchIds = [...new Set(
+      userPredictions
+        .map((prediction) => String(prediction.matchId ?? ''))
+        .filter(Boolean),
+    )];
+
+    const loadedMatches = await Promise.all(matchIds.map((matchId) => getMatchById(matchId)));
+    const matches = loadedMatches.filter(Boolean);
+    const activeMatches = filterMyPredictionMatches(
+      /** @type {import('../match/match.service.js').EnrichedMatch[]} */ (matches),
+      predictionsMap,
+    );
+
+    if (activeMatches.length === 0) {
+      outlet.innerHTML = `
+        <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+          ${renderContestantPageHeader({
+            title: 'My Predictions',
+            subtitle: 'View and manage your active match predictions',
+          })}
+          ${renderEmptyState({
+            title: 'No Active Predictions',
+            message: 'You have not submitted any predictions yet, or all your predictions have moved to history.',
+            icon: 'bi-bullseye',
+            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Browse Upcoming Matches</a>`,
+          })}
+        </div>
+      `;
+      return;
+    }
+
+    outlet.innerHTML = renderPredictionsPage(activeMatches, predictionsMap);
     initializeCountdowns(outlet);
   } catch (error) {
     Logger.error('[PredictionsPage] Failed to load:', error);
@@ -218,6 +246,11 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
  * @returns {string}
  */
 function renderPredictionsPage(matches, predictionsMap) {
+  const now = new Date();
+  const upcomingCount = filterUpcomingMatches(matches, now).length;
+  const liveCount = filterLiveMatches(matches, now).length;
+  const lockedCount = Math.max(matches.length - upcomingCount - liveCount, 0);
+
   // Group matches by round
   const grouped = matches.reduce((acc, match) => {
     const round = match.round ? getRoundLabel(match.round) : 'Other';
@@ -231,15 +264,11 @@ function renderPredictionsPage(matches, predictionsMap) {
   const rounds = ['Group Stage', 'Round of 16', 'Quarter Finals', 'Semi Finals', 'Final', 'Other'];
   const orderedGroups = rounds.filter((round) => grouped[round]);
 
-  const totalMatches = matches.length;
-  const submittedPredictions = Array.from(predictionsMap.values()).length;
-  const pendingPredictions = totalMatches - submittedPredictions;
-
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       ${renderContestantPageHeader({
-        title: 'Predictions',
-        subtitle: 'Submit and manage your match predictions',
+        title: 'My Predictions',
+        subtitle: 'View and manage your active match predictions',
       })}
 
       <!-- Stats -->
@@ -247,24 +276,24 @@ function renderPredictionsPage(matches, predictionsMap) {
         <div class="col-12 col-md-4">
           <div class="card ptw-card">
             <div class="card-body text-center">
-              <div class="h2 mb-1 text-primary">${totalMatches}</div>
-              <div class="ptw-text-muted">Total Matches</div>
+              <div class="h2 mb-1 text-primary">${matches.length}</div>
+              <div class="ptw-text-muted">Active Predictions</div>
             </div>
           </div>
         </div>
         <div class="col-12 col-md-4">
           <div class="card ptw-card">
             <div class="card-body text-center">
-              <div class="h2 mb-1 text-success">${submittedPredictions}</div>
-              <div class="ptw-text-muted">Submitted</div>
+              <div class="h2 mb-1 text-success">${upcomingCount}</div>
+              <div class="ptw-text-muted">Upcoming</div>
             </div>
           </div>
         </div>
         <div class="col-12 col-md-4">
           <div class="card ptw-card">
             <div class="card-body text-center">
-              <div class="h2 mb-1 text-warning">${pendingPredictions}</div>
-              <div class="ptw-text-muted">Pending</div>
+              <div class="h2 mb-1 text-warning">${liveCount + lockedCount}</div>
+              <div class="ptw-text-muted">Live / Locked</div>
             </div>
           </div>
         </div>
@@ -278,7 +307,7 @@ function renderPredictionsPage(matches, predictionsMap) {
             ${grouped[round].map((match) => renderMatchCard({
             match,
             showPrediction: true,
-            prediction: predictionsMap.get(match.id) || null,
+            prediction: predictionsMap.get(String(match.id)) || null,
             showResult: match.result?.published || false,
             showPoints: match.result?.published || false,
           })).join('')}

@@ -19,6 +19,7 @@ import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction/history/prediction-history.constants.js';
 import { Logger } from '../utils/logger.util.js';
+import { isResultPublished } from '../domain/contestant-match-view.domain.js';
 
 /**
  * Renders the score page.
@@ -82,9 +83,13 @@ async function initScorePage(outlet) {
       }),
     );
 
-    // Filter completed matches
-    const completedMatches = matches.filter((match) => match.result?.published);
-    const pendingMatches = matches.filter((match) => !match.result?.published);
+    // Filter completed/pending matches to only those the contestant predicted
+    const completedMatches = matches.filter(
+      (match) => isResultPublished(match) && predictionsMap.has(match.id),
+    );
+    const pendingMatches = matches.filter(
+      (match) => !isResultPublished(match) && predictionsMap.has(match.id),
+    );
 
     // Calculate statistics
     const totalPredictions = predictionsMap.size;

@@ -5,6 +5,7 @@
 
 import { PredictionManagementDomain } from '../../domain/prediction-management.domain.js';
 import { PredictionHistoryDomain } from '../../domain/prediction-history.domain.js';
+import { filterHistoryItems } from '../../domain/contestant-match-view.domain.js';
 import { predictionHistoryRepository } from './PredictionHistoryRepository.js';
 import { matchRepository } from '../../match/match.repository.js';
 import { getTournamentById } from '../../tournament/tournament.service.js';
@@ -83,7 +84,7 @@ export class PredictionHistoryService {
     this.clearCaches();
 
     const rawPredictions = await predictionHistoryRepository.listByUser(userId);
-    const enrichedItems = await this.enrichPredictions(rawPredictions);
+    const enrichedItems = filterHistoryItems(await this.enrichPredictions(rawPredictions));
 
     const filtered = PredictionHistoryDomain.filterHistoryItems(enrichedItems, {
       tournamentId: queryParams.tournamentId,
