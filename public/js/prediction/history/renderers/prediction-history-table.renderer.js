@@ -7,7 +7,7 @@ import { escapeHtml } from '../../../utils/html.util.js';
 import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { renderResultBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
-import { PredictionHistoryDomain } from '../../../domain/prediction-history.domain.js';
+import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
@@ -63,12 +63,13 @@ function renderHistoryTableRow(item, index) {
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
   const collapseId = `ph-table-detail-${index}`;
-  const primaryBadge = PredictionHistoryDomain.resolvePrimaryResultBadge(item);
-  const winnerCell = primaryBadge?.label === 'Penalty Winner'
-    ? renderResultBadge(primaryBadge.correct, '')
+  const showPenaltyWinner = Boolean(result.published)
+    && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
+  const winnerCell = showPenaltyWinner
+    ? renderResultBadge(item.winnerPredictionCorrect, '')
     : '<span class="text-muted">—</span>';
-  const exactCell = primaryBadge?.label === 'Exact Score'
-    ? renderResultBadge(primaryBadge.correct, '')
+  const exactCell = result.published
+    ? renderResultBadge(item.exactScoreCorrect, '')
     : '<span class="text-muted">—</span>';
 
   return `

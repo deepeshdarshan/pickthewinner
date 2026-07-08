@@ -46,3 +46,15 @@ export function renderResultBadge(correct, label = '') {
 
   return `<span class="badge bg-danger"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>${escapeHtml(label || 'Incorrect')}</span>`;
 }
+
+/**
+ * @param {Array<{ correct: boolean|null|undefined, label: string }>} badges
+ * @returns {string}
+ */
+export function renderResultBadges(badges) {
+  if (!badges.length) {
+    return '';
+  }
+
+  return badges.map((badge) => renderResultBadge(badge.correct, badge.label)).join('');
+}

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionManagementDomain, resolvePrimaryResultBadge, shouldShowPenaltyWinnerForPublishedResult } from '../public/js/domain/prediction-management.domain.js';
+import { PredictionManagementDomain, resolvePrimaryResultBadge, resolveResultBadges, shouldShowPenaltyWinnerForPublishedResult } from '../public/js/domain/prediction-management.domain.js';
 import {
   PREDICTION_ADMIN_STATUS,
   PREDICTION_SORT_FIELD,
@@ -156,7 +156,56 @@ describe('PredictionManagementDomain', () => {
     assert.equal(archived.length, 1);
   });
 
-  it('resolves primary result badge from published match resolution', () => {
+  it('resolves result badges from published match resolution', () => {
+    const penaltiesPrediction = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: true,
+      match: {
+        result: {
+          published: true,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    };
+
+    assert.deepEqual(resolveResultBadges(penaltiesPrediction), [
+      { correct: true, label: 'Exact Score' },
+      { correct: true, label: 'Penalty Winner' },
+    ]);
+
+    const penaltiesWrongScore = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    };
+
+    assert.deepEqual(resolveResultBadges(penaltiesWrongScore), [
+      { correct: false, label: 'Exact Score' },
+      { correct: true, label: 'Penalty Winner' },
+    ]);
+
+    const scorePrediction = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+        },
+      },
+    };
+
+    assert.deepEqual(resolveResultBadges(scorePrediction), [
+      { correct: false, label: 'Exact Score' },
+    ]);
+  });
+
+  it('resolves primary result badge as first result badge', () => {
     const penaltiesPrediction = {
       winnerPredictionCorrect: true,
       exactScoreCorrect: false,
@@ -169,8 +218,8 @@ describe('PredictionManagementDomain', () => {
     };
 
     assert.deepEqual(resolvePrimaryResultBadge(penaltiesPrediction), {
-      correct: true,
-      label: 'Penalty Winner',
+      correct: false,
+      label: 'Exact Score',
     });
 
     const scorePrediction = {

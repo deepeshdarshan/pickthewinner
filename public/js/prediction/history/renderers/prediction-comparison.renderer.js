@@ -4,7 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { renderResultBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
+import { renderResultBadges } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import {
   renderPredictedScoreHtml,
   renderPredictedWinnerHtml,
@@ -12,7 +12,7 @@ import {
   renderActualWinnerHtml,
   renderPointsHtml,
 } from '../../admin/renderers/prediction-display.renderer.js';
-import { resolveBonusPoints, resolvePrimaryResultBadge } from '../../../domain/prediction-history.domain.js';
+import { resolveBonusPoints, resolveResultBadges } from '../../../domain/prediction-history.domain.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 
 /**
@@ -32,11 +32,11 @@ export function renderComparisonBadges(item) {
   }
 
   const bonusPoints = resolveBonusPoints(item.scoringBreakdown);
-  const primaryBadge = resolvePrimaryResultBadge(item);
+  const resultBadges = resolveResultBadges(item);
 
   return `
     <div class="d-flex flex-wrap gap-2 ptw-prediction-badges">
-      ${primaryBadge ? renderResultBadge(primaryBadge.correct, primaryBadge.label) : ''}
+      ${renderResultBadges(resultBadges)}
       ${bonusPoints > 0 ? `<span class="badge bg-warning text-dark" aria-label="Bonus points awarded"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>Bonus +${bonusPoints}</span>` : ''}
     </div>
   `;

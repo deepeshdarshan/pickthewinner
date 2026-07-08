@@ -276,6 +276,15 @@ export const PredictionManagementDomain = {
   },
 
   /**
+   * Resolves scoring-relevant result badges for prediction result display.
+   * @param {EnrichedPrediction} prediction
+   * @returns {PrimaryResultBadge[]}
+   */
+  resolveResultBadges(prediction) {
+    return resolveResultBadges(prediction);
+  },
+
+  /**
    * Resolves the single scoring-relevant result badge for prediction result display.
    * @param {EnrichedPrediction} prediction
    * @returns {PrimaryResultBadge|null}
@@ -296,26 +305,37 @@ export function shouldShowPenaltyWinnerForPublishedResult(result) {
 
 /**
  * @param {EnrichedPrediction} prediction
- * @returns {PrimaryResultBadge|null}
+ * @returns {PrimaryResultBadge[]}
  */
-export function resolvePrimaryResultBadge(prediction) {
+export function resolveResultBadges(prediction) {
   const result = /** @type {Record<string, unknown>} */ (prediction.match?.result ?? {});
 
   if (!result.published) {
-    return null;
+    return [];
   }
 
-  if (ScoringDomain.isPenaltyWinnerScoringApplicable(result)) {
-    return {
-      correct: prediction.winnerPredictionCorrect ?? null,
-      label: 'Penalty Winner',
-    };
-  }
-
-  return {
+  const badges = [{
     correct: prediction.exactScoreCorrect ?? null,
     label: 'Exact Score',
-  };
+  }];
+
+  if (shouldShowPenaltyWinnerForPublishedResult(result)) {
+    badges.push({
+      correct: prediction.winnerPredictionCorrect ?? null,
+      label: 'Penalty Winner',
+    });
+  }
+
+  return badges;
+}
+
+/**
+ * @param {EnrichedPrediction} prediction
+ * @returns {PrimaryResultBadge|null}
+ */
+export function resolvePrimaryResultBadge(prediction) {
+  const badges = resolveResultBadges(prediction);
+  return badges[0] ?? null;
 }
 
 /**

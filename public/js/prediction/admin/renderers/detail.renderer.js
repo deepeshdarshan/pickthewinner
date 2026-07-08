@@ -9,7 +9,7 @@ import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionDomain } from '../../../domain/prediction.domain.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
-import { renderPredictionStatusBadge, renderResultBadge } from './prediction-status-badge.renderer.js';
+import { renderPredictionStatusBadge, renderResultBadges } from './prediction-status-badge.renderer.js';
 import { renderModal } from '../../../components/modal-wrapper.component.js';
 import {
   resolveContestantDisplayName,
@@ -36,9 +36,9 @@ export function renderPredictionDetailBody(prediction) {
   const winnerName = hasResult
     ? PredictionDomain.resolveResultWinnerName(result, match)
     : null;
-  const primaryBadge = hasResult
-    ? PredictionManagementDomain.resolvePrimaryResultBadge(prediction)
-    : null;
+  const resultBadges = hasResult
+    ? PredictionManagementDomain.resolveResultBadges(prediction)
+    : [];
 
   return `
     <div class="row g-4">
@@ -87,7 +87,7 @@ export function renderPredictionDetailBody(prediction) {
           <h3 class="h6 text-muted text-uppercase">Result</h3>
           <p class="mb-1">Actual Score: ${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</p>
           ${PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result) ? `<p class="mb-1">Penalty Winner: ${escapeHtml(winnerName ?? '—')}</p>` : ''}
-          ${primaryBadge ? `<p class="mb-1">${escapeHtml(primaryBadge.label)}: ${renderResultBadge(primaryBadge.correct)}</p>` : ''}
+          ${resultBadges.length ? `<div class="d-flex flex-wrap gap-2 mb-2">${renderResultBadges(resultBadges)}</div>` : ''}
           <p class="mb-2">Points Awarded: ${escapeHtml(String(prediction.calculatedPoints ?? 0))}</p>
           ${breakdown.length ? `
             <ul class="list-unstyled small mb-0">

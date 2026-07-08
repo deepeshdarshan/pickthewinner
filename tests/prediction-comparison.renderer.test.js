@@ -23,7 +23,25 @@ describe('renderComparisonBadges', () => {
     assert.doesNotMatch(html, />Winner</);
   });
 
-  it('shows only Penalty Winner badge for penalties resolution', () => {
+  it('shows both Exact Score and Penalty Winner badges for penalties resolution', () => {
+    const html = renderComparisonBadges({
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: true,
+      match: {
+        result: {
+          published: true,
+          homeScore: 2,
+          awayScore: 2,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    });
+
+    assert.match(html, /Exact Score/);
+    assert.match(html, /Penalty Winner/);
+  });
+
+  it('shows both badges with mixed correctness for penalties resolution', () => {
     const html = renderComparisonBadges({
       winnerPredictionCorrect: false,
       exactScoreCorrect: true,
@@ -37,8 +55,8 @@ describe('renderComparisonBadges', () => {
       },
     });
 
+    assert.match(html, /Exact Score/);
     assert.match(html, /Penalty Winner/);
-    assert.doesNotMatch(html, /Exact Score/);
   });
 
   it('shows awaiting result when result is unpublished', () => {

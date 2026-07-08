@@ -16,6 +16,7 @@ import { MatchDomain } from '../domain/match.domain.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
 import { PredictionManagementDomain } from '../domain/prediction-management.domain.js';
 import { ScoringDomain } from '../scoring/scoring.domain.js';
+import { renderResultBadge } from '../prediction/admin/renderers/prediction-status-badge.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 
 /**
@@ -254,31 +255,35 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
     ),
     exactScoreCorrect: checkExactScore(prediction, match),
   };
-  const primaryBadge = PredictionManagementDomain.resolvePrimaryResultBadge(enrichedPrediction);
+  const resultBadges = PredictionManagementDomain.resolveResultBadges(enrichedPrediction);
 
-  if (!primaryBadge) {
+  if (resultBadges.length === 0) {
     return '';
   }
 
-  const isCorrect = primaryBadge.correct === true;
   const result = /** @type {Record<string, unknown>} */ (match.result);
-  const isPenaltyWinner = primaryBadge.label === 'Penalty Winner';
   const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
   const winnerSide = PredictionDomain.resolveResultWinnerSide(result, match);
   const winnerTeam = winnerSide === 'HOME'
     ? match.homeTeam
     : (winnerSide === 'AWAY' ? match.awayTeam : null);
 
+  const badgesHtml = resultBadges.map((badge) => {
+    const isPenaltyWinner = badge.label === 'Penalty Winner';
+    return `
+      <div>
+        ${renderResultBadge(badge.correct, badge.label)}
+        ${isPenaltyWinner && winnerTeam ? `<div class="d-flex justify-content-center mt-1">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
   return `
     <div class="mt-3 pt-3 border-top">
       <h6 class="mb-2">Result</h6>
-      <div class="d-flex justify-content-around text-center">
-        <div>
-          <div class="${isCorrect ? 'text-success' : 'text-danger'}">
-            <i class="bi ${isCorrect ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
-            ${escapeHtml(primaryBadge.label)}
-          </div>
-          ${isPenaltyWinner && winnerTeam ? `<div class="d-flex justify-content-center mt-1">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}</div>` : ''}
+      <div class="d-flex justify-content-around text-center flex-wrap gap-3">
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+          ${badgesHtml}
         </div>
         <div>
           <div class="text-primary">

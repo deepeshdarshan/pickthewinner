@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionHistoryDomain, resolvePrimaryResultBadge } from '../public/js/domain/prediction-history.domain.js';
+import { PredictionHistoryDomain, resolvePrimaryResultBadge, resolveResultBadges } from '../public/js/domain/prediction-history.domain.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
@@ -171,14 +171,49 @@ describe('PredictionHistoryDomain', () => {
     assert.equal(thisYear.length, 3);
   });
 
-  it('resolves primary result badge based on match resolution', () => {
+  it('resolves result badges based on match resolution', () => {
     const unpublished = {
       winnerPredictionCorrect: true,
       exactScoreCorrect: true,
       match: { result: { published: false } },
     };
-    assert.equal(resolvePrimaryResultBadge(unpublished), null);
+    assert.deepEqual(resolveResultBadges(unpublished), []);
 
+    const penalties = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: true,
+      match: {
+        result: {
+          published: true,
+          homeScore: 2,
+          awayScore: 2,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    };
+    assert.deepEqual(resolveResultBadges(penalties), [
+      { correct: true, label: 'Exact Score' },
+      { correct: true, label: 'Penalty Winner' },
+    ]);
+
+    const normalTime = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          homeScore: 2,
+          awayScore: 1,
+          winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+        },
+      },
+    };
+    assert.deepEqual(resolveResultBadges(normalTime), [
+      { correct: false, label: 'Exact Score' },
+    ]);
+  });
+
+  it('resolves primary result badge as first result badge', () => {
     const penalties = {
       winnerPredictionCorrect: true,
       exactScoreCorrect: false,
@@ -192,8 +227,8 @@ describe('PredictionHistoryDomain', () => {
       },
     };
     assert.deepEqual(resolvePrimaryResultBadge(penalties), {
-      correct: true,
-      label: 'Penalty Winner',
+      correct: false,
+      label: 'Exact Score',
     });
 
     const normalTime = {

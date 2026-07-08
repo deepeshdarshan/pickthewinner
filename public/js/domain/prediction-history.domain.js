@@ -6,6 +6,7 @@
 import { MATCH_STATUS } from './match.domain.js';
 import {
   resolvePrimaryResultBadge as resolveManagementPrimaryResultBadge,
+  resolveResultBadges as resolveManagementResultBadges,
 } from './prediction-management.domain.js';
 import { toDate } from '../utils/date.util.js';
 import {
@@ -350,6 +351,15 @@ export const PredictionHistoryDomain = {
   },
 
   /**
+   * Resolves scoring-relevant result badges for history display.
+   * @param {HistoryItem} item
+   * @returns {PrimaryResultBadge[]}
+   */
+  resolveResultBadges(item) {
+    return resolveResultBadges(item);
+  },
+
+  /**
    * Resolves the single scoring-relevant result badge for history display.
    * @param {HistoryItem} item
    * @returns {PrimaryResultBadge|null}
@@ -358,6 +368,14 @@ export const PredictionHistoryDomain = {
     return resolvePrimaryResultBadge(item);
   },
 };
+
+/**
+ * @param {HistoryItem} item
+ * @returns {PrimaryResultBadge[]}
+ */
+export function resolveResultBadges(item) {
+  return resolveManagementResultBadges(item);
+}
 
 /**
  * @param {HistoryItem} item
