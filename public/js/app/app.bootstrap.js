@@ -34,13 +34,14 @@ export async function bootstrapApplication() {
   showLoadingOverlay(AUTH_MESSAGES.RESTORING_SESSION);
 
   try {
+    const bootstrapPath = normalizePath(window.location.pathname);
     mountAppShell({
-      activePath: normalizePath(window.location.pathname),
+      activePath: bootstrapPath,
     });
 
     await runStartup();
     registerShellRefreshHandlers();
-    updateAppShell(normalizePath(window.location.pathname));
+    updateAppShell(bootstrapPath);
     await initRouter(outlet);
 
     Logger.info('Application bootstrap complete.');

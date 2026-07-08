@@ -136,6 +136,20 @@ export function renderSidebar(options = {}) {
 }
 
 /**
+ * Returns whether the mounted contestant sidebar reflects current leaderboard visibility.
+ * @param {HTMLElement|null} container
+ * @returns {boolean}
+ */
+export function contestantLeaderboardNavMatchesSettings(container) {
+  if (!container) {
+    return true;
+  }
+
+  const hasLeaderboardNav = Boolean(container.querySelector('a[href="/leaderboard"]'));
+  return PlatformSettingsService.isLeaderboardVisible() === hasLeaderboardNav;
+}
+
+/**
  * @param {ReadonlyArray<{ type: string, hideWhenLeaderboardHidden?: boolean }>} sections
  * @param {boolean} isContestant
  * @returns {ReadonlyArray<unknown>}

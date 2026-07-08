@@ -61,7 +61,7 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
   },
 ]);
 
-/** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean }>} */
+/** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string, hideWhenLeaderboardHidden?: boolean } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean }>} */
 export const CONTESTANT_NAV_SECTIONS = Object.freeze([
   { type: 'item', path: '/dashboard', label: 'Dashboard', icon: 'bi-grid' },
   {
@@ -84,13 +84,11 @@ export const CONTESTANT_NAV_SECTIONS = Object.freeze([
     ],
   },
   {
-    type: 'group',
+    type: 'item',
+    path: '/leaderboard',
     label: 'Leaderboard',
     icon: 'bi-bar-chart',
     hideWhenLeaderboardHidden: true,
-    children: [
-      { path: '/leaderboard', label: 'Tournament Leaderboards' },
-    ],
   },
   {
     type: 'group',

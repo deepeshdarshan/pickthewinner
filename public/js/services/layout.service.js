@@ -11,6 +11,7 @@ import {
   updateSidebarUserInfo,
   isSidebarShellPath,
   getSidebarVariant,
+  contestantLeaderboardNavMatchesSettings,
 } from '../components/sidebar.component.js';
 import { mountMobileNav } from '../components/mobile-nav.component.js';
 import { isAuthenticated } from '../auth/auth.service.js';
@@ -221,8 +222,13 @@ function updateSidebarVisibility(activePath, sidebarMount, bodyWrapper, options 
     sidebarMount.className = 'ptw-sidebar-mount';
 
     if (options.preserveSidebar && updateSidebarActiveState(sidebarMount, activePath, variant)) {
-      updateSidebarUserInfo(sidebarMount, variant);
-      return;
+      const leaderboardNavMatches = variant !== 'contestant'
+        || contestantLeaderboardNavMatchesSettings(sidebarMount);
+
+      if (leaderboardNavMatches) {
+        updateSidebarUserInfo(sidebarMount, variant);
+        return;
+      }
     }
 
     mountSidebar(sidebarMount, { activePath, variant });
