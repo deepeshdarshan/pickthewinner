@@ -10,6 +10,7 @@ import { escapeHtml } from '../utils/html.util.js';
 import { getActiveTournament, listTournamentsForContestant } from '../tournament/tournament.service.js';
 import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
 import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
@@ -126,8 +127,8 @@ export const ContestantDashboardService = {
 
     const activeTournamentCount = visibleTournaments.length;
 
-    await TournamentConfigurationService.load();
-    const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
+    await PlatformSettingsService.load();
+    const leaderboardVisible = PlatformSettingsService.isLeaderboardVisible();
 
     const allMatches = (await listMatchesForContestant()).filter(
       (match) => visibleTournamentIds.has(match.tournamentId),

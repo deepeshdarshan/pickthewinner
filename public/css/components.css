@@ -426,7 +426,7 @@
   overflow: visible;
 }
 
-.ptw-tournament-form .ptw-form-switch.form-switch {
+.ptw-form-switch.form-switch {
   display: flex;
   align-items: flex-start;
   gap: var(--ptw-space-3);
@@ -436,40 +436,42 @@
   padding-left: 0;
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-input {
+.ptw-form-switch .form-check-input {
   float: none;
   flex-shrink: 0;
-  width: 2.5em;
-  height: 1.25em;
+  width: 2.75rem;
+  height: 1.5rem;
   margin: 0.125rem 0 0;
   margin-left: 0;
   background-color: var(--ptw-color-bg-tertiary);
-  border-color: var(--ptw-color-border);
+  border: 1px solid var(--ptw-color-border);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23c7d2e0'/%3e%3c/svg%3e");
   cursor: pointer;
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-input:checked {
+.ptw-form-switch .form-check-input:checked {
   background-color: var(--ptw-color-primary-blue);
   border-color: var(--ptw-color-primary-blue);
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-input:focus {
+.ptw-form-switch .form-check-input:focus {
+  border-color: var(--ptw-color-primary-blue);
   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ptw-color-primary-blue) 25%, transparent);
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-input:disabled {
+.ptw-form-switch .form-check-input:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-label {
+.ptw-form-switch .form-check-label {
   flex: 1 1 auto;
   min-width: 0;
   padding-top: 0.125rem;
   cursor: pointer;
 }
 
-.ptw-tournament-form .ptw-form-switch .form-check-input:disabled ~ .form-check-label {
+.ptw-form-switch .form-check-input:disabled ~ .form-check-label {
   cursor: not-allowed;
   opacity: 0.75;
 }
@@ -1100,10 +1102,6 @@
 
 .ptw-tournament-form .form-label {
   margin-bottom: var(--ptw-space-2);
-}
-
-.ptw-tournament-form .form-text {
-  color: var(--ptw-color-text-secondary);
 }
 
 .ptw-tournament-form .invalid-feedback {

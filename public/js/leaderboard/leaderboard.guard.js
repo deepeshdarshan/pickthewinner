@@ -5,7 +5,7 @@
 
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { Roles } from '../authorization/permission.constants.js';
-import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
 
 /** @type {ReadonlySet<string>} */
 const LEADERBOARD_GUARDED_PATHS = new Set(['/leaderboard', '/leaderboard/unavailable']);
@@ -38,8 +38,8 @@ export async function canActivateLeaderboardRoute(route) {
     return { allowed: true };
   }
 
-  await TournamentConfigurationService.load();
-  const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
+  await PlatformSettingsService.load();
+  const leaderboardVisible = PlatformSettingsService.isLeaderboardVisible();
 
   if (route.path === '/leaderboard') {
     if (leaderboardVisible) {

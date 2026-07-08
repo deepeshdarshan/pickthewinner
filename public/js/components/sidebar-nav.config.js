@@ -56,6 +56,7 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
     icon: 'bi-shield-lock',
     children: [
       { path: '/admin/users', label: 'User Management' },
+      { path: '/admin/settings', label: 'General Settings' },
     ],
   },
 ]);

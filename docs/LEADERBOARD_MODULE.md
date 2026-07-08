@@ -133,7 +133,7 @@ The module reads from:
 
 ## Leaderboard Visibility
 
-Controlled by tournament configuration: `configuration.leaderboardVisible`
+Controlled by platform settings: `settings/general.leaderboardVisible` (managed at `/admin/settings`)
 
 - **`true`**: Leaderboard visible to all contestants
 - **`false`**: Leaderboard hidden (only admins can view)
@@ -218,7 +218,7 @@ match /leaderboard_cache/{tournamentId} {
 ```
 
 ### Permission Checks
-- Contestants: Can only view if `leaderboardVisible === true`
+- Contestants: Can only view if platform `leaderboardVisible === true`
 - Admins: Always have access regardless of visibility setting
 
 ## Future Enhancements

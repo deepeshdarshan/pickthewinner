@@ -90,7 +90,6 @@ No hardcoded point defaults. Legacy tournaments without these fields must be upd
 | `tieBreaker` | Object | Leaderboard tie-breaker strategy |
 | `predictionLockMinutes` | Integer | Minutes before kickoff when predictions lock (1–60, default 10) |
 | `predictionOpenHoursBeforeKickoff` | Integer | Hours before kickoff when predictions open (1–168, default 48) |
-| `leaderboardVisible` | Boolean | Whether contestants may view the tournament leaderboard (default `false`) |
 
 ### Example Tournament Document (configuration excerpt)
 
@@ -103,7 +102,6 @@ No hardcoded point defaults. Legacy tournaments without these fields must be upd
     "canEndInDraw": false,
     "requiresWinner": true,
     "winnerResolution": "regulation",
-    "leaderboardVisible": false,
     "tieBreaker": {
       "strategy": "totalPoints",
       "secondary": "correctWinnerPredictions"
@@ -122,7 +120,21 @@ The `scoringConfiguration` object may be extended with additional integer fields
 
 ## Access Pattern
 
-`TournamentConfigurationService` is the only approved read path for `configuration.scoringConfiguration` and `configuration.leaderboardVisible` values at runtime.
+`TournamentConfigurationService` is the only approved read path for `configuration.scoringConfiguration` values at runtime.
+
+## Settings Collection
+
+**Collection:** `settings`
+
+**Document:** `general`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `leaderboardVisible` | Boolean | Whether contestants may view the tournament leaderboard (default `false`) |
+| `updatedAt` | Timestamp | Last update time |
+| `updatedBy` | String | UID of the administrator who last updated settings |
+
+`PlatformSettingsService` is the only approved read path for `leaderboardVisible` at runtime.
 
 ## Teams Collection
 

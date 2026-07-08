@@ -210,18 +210,12 @@ async function handleTournamentSubmit(form, tournamentId) {
   try {
     if (tournamentId) {
       const updated = await updateTournament(tournamentId, payload, authUser.uid);
-      TournamentConfigurationService.setLeaderboardVisibility(
-        /** @type {Record<string, unknown>} */ (updated.configuration ?? {}).leaderboardVisible,
-      );
       showSuccessToast(TOURNAMENT_MESSAGES.UPDATED);
       await navigateTo(`${TOURNAMENT_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(tournamentId)}`);
       return;
     }
 
     const created = await createTournament(payload, authUser.uid);
-    TournamentConfigurationService.setLeaderboardVisibility(
-      /** @type {Record<string, unknown>} */ (created.configuration ?? {}).leaderboardVisible,
-    );
     showSuccessToast(TOURNAMENT_MESSAGES.CREATED);
     await navigateTo(`${TOURNAMENT_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(created.id)}`);
   } catch (error) {

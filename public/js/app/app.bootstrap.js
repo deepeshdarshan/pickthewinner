@@ -17,6 +17,7 @@ import { runStartup } from './app.startup.js';
 import { APP_EVENTS, onAppEvent } from './app.events.js';
 import { getCurrentPath } from '../services/router.service.js';
 import { TOURNAMENT_EVENTS, onTournamentEvent } from '../tournament/tournament.events.js';
+import { SETTINGS_EVENTS, onSettingsEvent } from '../settings/settings.events.js';
 
 /**
  * Bootstraps the single-page application.
@@ -70,4 +71,5 @@ function registerShellRefreshHandlers() {
   onAppEvent(APP_EVENTS.CONTEXT_READY, refreshShell);
   onTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_UPDATED, refreshShell);
   onTournamentEvent(TOURNAMENT_EVENTS.ACTIVE_TOURNAMENT_CHANGED, refreshShell);
+  onSettingsEvent(SETTINGS_EVENTS.SETTINGS_UPDATED, refreshShell);
 }

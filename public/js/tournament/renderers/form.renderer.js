@@ -76,7 +76,6 @@ export function renderTournamentFormPage(tournament = null, options = {}) {
           ${renderIdentitySection(data, defaults, readOnly)}
           ${renderBrandingSection(data, readOnly)}
           ${renderScoringConfigurationSection(scoringConfig, readOnly)}
-          ${renderVisibilitySettingsSection(config, readOnly)}
           ${renderConfigurationSection(config, readOnly)}
         </div>
         ${readOnly ? '' : renderFormActions(isCreate)}
@@ -143,7 +142,7 @@ function renderScoringConfigurationSection(scoringConfig, readOnly) {
         <h2 class="h5 mb-0" id="ptw-tournament-scoring-heading">Scoring Configuration</h2>
       </div>
       <div class="card-body ptw-tournament-form__grid">
-        <p class="ptw-tournament-form__field ptw-tournament-form__field--full form-text mb-0">
+        <p class="form-text ptw-text-muted mb-0">
           Configure how many points contestants receive for correct predictions.
         </p>
         ${renderTextField(
@@ -186,37 +185,6 @@ function renderScoringConfigurationSection(scoringConfig, readOnly) {
  * @param {boolean} readOnly
  * @returns {string}
  */
-function renderVisibilitySettingsSection(config, readOnly) {
-  const leaderboardVisible = Boolean(config.leaderboardVisible);
-
-  return `
-    <section class="card ptw-card ptw-tournament-form__section" aria-labelledby="ptw-tournament-visibility-heading">
-      <div class="card-header">
-        <h2 class="h5 mb-0" id="ptw-tournament-visibility-heading">Visibility Settings</h2>
-      </div>
-      <div class="card-body ptw-tournament-form__grid">
-        <div class="ptw-tournament-form__field ptw-tournament-form__field--full ptw-tournament-form__field--switch">
-          ${renderSwitchField({
-    id: 'ptw-tournament-leaderboardVisible',
-    name: 'leaderboardVisible',
-    label: 'Make Leaderboard Visible to Contestants',
-    checked: leaderboardVisible,
-    readOnly,
-  })}
-          <p class="form-text mb-0">
-            When enabled, contestants can view the tournament leaderboard. When disabled, only administrators can access the leaderboard.
-          </p>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-/**
- * @param {Record<string, unknown>} config
- * @param {boolean} readOnly
- * @returns {string}
- */
 function renderConfigurationSection(config, readOnly) {
   const requireWinnerForDraw = Boolean(
     config.requireWinnerSelectionForDrawPrediction ?? config.requireWinnerForDraw,
@@ -248,7 +216,7 @@ function renderConfigurationSection(config, readOnly) {
     checked: requireWinnerForDraw,
     readOnly,
   })}
-          <p class="form-text mb-0">
+          <p class="form-text ptw-text-muted mb-0">
             When enabled, contestants must select a winner if they predict equal scores.
             Leave disabled for league-style tournaments where draws are valid outcomes.
           </p>
@@ -286,6 +254,7 @@ function renderSwitchField(options) {
       <input
         class="form-check-input"
         type="checkbox"
+        role="switch"
         id="${escapeHtml(id)}"
         name="${escapeHtml(name)}"
         ${checked ? 'checked' : ''}
@@ -461,9 +430,6 @@ export function readTournamentForm(form) {
       timezone: formData.get('timezone') || 'Asia/Kolkata',
       requireWinnerSelectionForDrawPrediction,
       requireWinnerForDraw: requireWinnerSelectionForDrawPrediction,
-      leaderboardVisible: form.querySelector('[name="leaderboardVisible"]') instanceof HTMLInputElement
-        ? /** @type {HTMLInputElement} */ (form.querySelector('[name="leaderboardVisible"]')).checked
-        : false,
       predictionLockMinutes: lockMinutesRaw === '' || lockMinutesRaw === null
         ? null
         : Number(lockMinutesRaw),

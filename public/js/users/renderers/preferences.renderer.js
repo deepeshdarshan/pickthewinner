@@ -29,20 +29,22 @@ export function renderNotificationPreferences(
   return `
     <fieldset class="mb-4">
       <legend class="form-label fs-6 mb-2">Notification Preferences</legend>
-      <div class="form-check form-switch">
+      <div class="form-check form-switch ptw-form-switch mb-2">
         <input
           class="form-check-input"
           type="checkbox"
+          role="switch"
           id="${emailId}"
           name="notifyEmail"
           ${preferences.email ? 'checked' : ''}
         >
         <label class="form-check-label" for="${emailId}">Email notifications</label>
       </div>
-      <div class="form-check form-switch">
+      <div class="form-check form-switch ptw-form-switch">
         <input
           class="form-check-input"
           type="checkbox"
+          role="switch"
           id="${browserId}"
           name="notifyBrowser"
           ${preferences.browser ? 'checked' : ''}

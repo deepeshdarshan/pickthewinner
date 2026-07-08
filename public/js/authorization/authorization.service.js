@@ -21,7 +21,7 @@ import {
 import { showWarningToast } from '../utils/toast.util.js';
 import { Logger } from '../utils/logger.util.js';
 import { ApplicationContext } from '../app/application-context.js';
-import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
 
 /** @type {string|null} */
 let cachedRole = null;
@@ -198,7 +198,7 @@ export const AuthorizationService = {
       }
 
       if (route.name === 'leaderboard' && !this.hasRole(Roles.ADMIN)) {
-        return TournamentConfigurationService.isLeaderboardVisible();
+        return PlatformSettingsService.isLeaderboardVisible();
       }
 
       if (route.roles?.length && role) {

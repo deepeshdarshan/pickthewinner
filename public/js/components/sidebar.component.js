@@ -8,7 +8,7 @@ import { AppContext } from '../app/app.context.js';
 import { performLogout } from '../auth/actions/logout.action.js';
 import { renderAppLogo } from '../shared/logo/logo.component.js';
 import { renderAvatar } from '../shared/avatar/avatar.component.js';
-import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import {
   ADMIN_ACCOUNT_LINKS,
@@ -145,7 +145,7 @@ function filterNavSections(sections, isContestant) {
     return sections;
   }
 
-  const leaderboardVisible = TournamentConfigurationService.isLeaderboardVisible();
+  const leaderboardVisible = PlatformSettingsService.isLeaderboardVisible();
 
   return sections.filter((section) => {
     if (section.hideWhenLeaderboardHidden && !leaderboardVisible) {

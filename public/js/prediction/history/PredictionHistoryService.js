@@ -11,6 +11,7 @@ import { matchRepository } from '../../match/match.repository.js';
 import { normalizeMatchDocument, enrichMatch } from '../../match/match.service.js';
 import { getTournamentById } from '../../tournament/tournament.service.js';
 import { leaderboardService } from '../../leaderboard/leaderboard.service.js';
+import { PlatformSettingsService } from '../../settings/settings.service.js';
 import {
   validateUserAccess,
   validatePredictionOwnership,
@@ -235,12 +236,10 @@ export class PredictionHistoryService {
    */
   async buildTournamentSummaries(items, userId) {
     const summaries = PredictionHistoryDomain.groupByTournament(items);
+    await PlatformSettingsService.load();
+    const leaderboardEnabled = PlatformSettingsService.isLeaderboardVisible();
 
     return Promise.all(summaries.map(async (summary) => {
-      const tournament = this.tournamentCache.get(summary.tournamentId) ?? {};
-      const config = /** @type {Record<string, unknown>} */ (tournament.configuration ?? {});
-      const leaderboardEnabled = Boolean(config.leaderboardVisible);
-
       if (!leaderboardEnabled) {
         return summary;
       }

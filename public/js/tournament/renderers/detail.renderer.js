@@ -78,8 +78,6 @@ function renderSummaryList(tournament) {
       <dd class="col-sm-8">${escapeHtml(formatScoringPoints(scoring.correctMatchScorePoints))}</dd>
       <dt class="col-sm-4">Penalty Winner Points</dt>
       <dd class="col-sm-8">${escapeHtml(formatScoringPoints(scoring.correctPenaltyWinnerPoints))}</dd>
-      <dt class="col-sm-4">Leaderboard Visible</dt>
-      <dd class="col-sm-8">${formatBooleanLabel(config.leaderboardVisible)}</dd>
     </dl>
   `;
 }

@@ -96,28 +96,10 @@ export const TournamentConfigurationService = {
       tieBreaker: { ...DEFAULT_TIE_BREAKER },
       requireWinnerSelectionForDrawPrediction: false,
       winnerResolution: 'regulation',
-      leaderboardVisible: false,
       predictionLockMinutes: 10,
       predictionOpenHoursBeforeKickoff: 48,
       scoringConfiguration: {},
     };
-  },
-
-  /**
-   * @returns {boolean}
-   */
-  isLeaderboardVisible() {
-    const config = cachedConfiguration ?? this.getDefaultConfiguration();
-    return Boolean(config.leaderboardVisible);
-  },
-
-  /**
-   * @param {unknown} value
-   * @returns {void}
-   */
-  setLeaderboardVisibility(value) {
-    const base = cachedConfiguration ?? this.getDefaultConfiguration();
-    cachedConfiguration = { ...base, leaderboardVisible: Boolean(value) };
   },
 
   /**

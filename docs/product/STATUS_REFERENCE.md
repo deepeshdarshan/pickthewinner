@@ -91,7 +91,7 @@ Contestant visibility is determined by `TournamentDomain.isTournamentVisibleToCo
 | Tournaments (`/tournaments`) | Shown as a card with a **Published** badge (blue). Contestant can open tournament detail (name, season, sport, type, draw rules). |
 | Matches (`/matches`) | Published, visible matches from this tournament appear. |
 | Predictions (`/predictions`) | Match cards grouped by round. **Make Prediction** / **Edit Prediction** buttons appear when the match prediction window is open. |
-| Leaderboard | Shown only if `configuration.leaderboardVisible === true`. Otherwise navigation is hidden and direct access shows *"The tournament organizer has not yet made the leaderboard available."* |
+| Leaderboard | Shown only if `settings/general.leaderboardVisible === true`. Otherwise navigation is hidden and direct access shows *"The tournament organizer has not yet made the leaderboard available."* |
 
 ---
 
@@ -399,7 +399,7 @@ Primary workspace for submitting predictions. Shows stats cards and match cards 
 
 ### Leaderboard (`/leaderboard`)
 
-Controlled by `configuration.leaderboardVisible`, not directly by tournament or match status. When hidden, contestants see an informational page with a link back to Predictions.
+Controlled by `settings/general.leaderboardVisible`, not directly by tournament or match status. When hidden, contestants see an informational page with a link back to Predictions.
 
 ---
 

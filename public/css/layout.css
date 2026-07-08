@@ -371,8 +371,11 @@ h6 {
 
 .ptw-sidebar__nav {
   flex: 1 1 auto;
-  overflow: hidden;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: var(--ptw-space-4) var(--ptw-space-3);
+  -webkit-overflow-scrolling: touch;
 }
 
 .ptw-sidebar__menu {
@@ -600,6 +603,7 @@ h6 {
 }
 
 .ptw-sidebar-offcanvas .ptw-sidebar__nav {
+  min-height: 0;
   overflow-y: auto;
 }
 

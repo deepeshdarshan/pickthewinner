@@ -93,7 +93,6 @@ Stored in tournament document:
   "configuration": {
     "requireWinnerForDraw": false,
     "timezone": "Asia/Kolkata",
-    "leaderboardVisible": false,
     ...
   }
 }

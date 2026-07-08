@@ -328,7 +328,7 @@ function renderMatchScoringConfigPanel(options) {
     <div class="card ptw-card mb-3" id="ptw-match-custom-scoring">
       <div class="card-header"><h2 class="h5 mb-0">Match Scoring Configuration</h2></div>
       <div class="card-body">
-        <div class="form-check form-switch ptw-match-custom-points-switch mb-3">
+        <div class="form-check form-switch ptw-form-switch mb-3">
           <input
             class="form-check-input"
             type="checkbox"

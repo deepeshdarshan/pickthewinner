@@ -207,7 +207,6 @@ export function createDefaultConfiguration() {
     timezone: DEFAULT_TOURNAMENT_TIMEZONE,
     requireWinnerSelectionForDrawPrediction: false,
     winnerResolution: 'regulation',
-    leaderboardVisible: false,
     predictionLockMinutes: DEFAULT_PREDICTION_LOCK_MINUTES,
     predictionOpenHoursBeforeKickoff: DEFAULT_PREDICTION_OPEN_HOURS,
     tieBreaker: { ...DEFAULT_TIE_BREAKER_CONFIG },

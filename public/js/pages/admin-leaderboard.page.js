@@ -11,7 +11,8 @@ import { renderLeaderboardTable } from '../leaderboard/renderers/leaderboard-tab
 import { renderTournamentStats } from '../leaderboard/renderers/tournament-stats.renderer.js';
 import { renderLeaderboardFilters, initializeFilters } from '../leaderboard/components/leaderboard-filters.component.js';
 import { leaderboardService } from '../leaderboard/leaderboard.service.js';
-import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
+import { getCurrentUser } from '../auth/auth.service.js';
 import { listTournaments } from '../tournament/tournament.service.js';
 import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
 import { LEADERBOARD_MESSAGES } from '../leaderboard/leaderboard.constants.js';
@@ -138,8 +139,7 @@ async function loadLeaderboard(outlet, tournamentId) {
   try {
     showLoadingOverlay(LEADERBOARD_MESSAGES.LOADING);
 
-    // Load configuration
-    await TournamentConfigurationService.load(tournamentId);
+    await PlatformSettingsService.load();
 
     // Fetch leaderboard
     const entries = await leaderboardService.getTournamentLeaderboard(
@@ -249,11 +249,17 @@ async function handleRefresh(outlet) {
  * @returns {Promise<void>}
  */
 async function handleToggleVisibility(outlet) {
-  if (!currentTournamentId) return;
+  const authUser = getCurrentUser();
+
+  if (!authUser?.uid) {
+    showErrorToast('Failed to toggle leaderboard visibility');
+    return;
+  }
 
   try {
-    const isVisible = TournamentConfigurationService.isLeaderboardVisible();
-    // TODO: Implement toggle functionality via tournament service
+    await PlatformSettingsService.load();
+    const isVisible = PlatformSettingsService.isLeaderboardVisible();
+    await PlatformSettingsService.updateLeaderboardVisibility(!isVisible, authUser.uid);
     showSuccessToast(`Leaderboard visibility: ${!isVisible ? 'Enabled' : 'Disabled'}`);
   } catch (error) {
     Logger.error('[AdminLeaderboardPage] Toggle visibility failed:', error);
