@@ -55,8 +55,10 @@ function renderTimelineItem(item) {
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
-  const isSuccess = item.winnerPredictionCorrect === true;
-  const iconClass = isSuccess ? 'bi-check-circle-fill text-success' : item.winnerPredictionCorrect === false ? 'bi-x-circle-fill text-danger' : 'bi-circle text-muted';
+  const primaryBadge = PredictionHistoryDomain.resolvePrimaryResultBadge(item);
+  const primaryCorrect = primaryBadge?.correct;
+  const isSuccess = primaryCorrect === true;
+  const iconClass = isSuccess ? 'bi-check-circle-fill text-success' : primaryCorrect === false ? 'bi-x-circle-fill text-danger' : 'bi-circle text-muted';
   const points = Number(item.calculatedPoints ?? 0);
 
   return `

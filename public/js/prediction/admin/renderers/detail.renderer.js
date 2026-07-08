@@ -8,6 +8,7 @@ import { formatDateTime } from '../../../utils/date.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionDomain } from '../../../domain/prediction.domain.js';
+import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 import { renderPredictionStatusBadge, renderResultBadge } from './prediction-status-badge.renderer.js';
 import { renderModal } from '../../../components/modal-wrapper.component.js';
 import {
@@ -34,6 +35,9 @@ export function renderPredictionDetailBody(prediction) {
 
   const winnerName = hasResult
     ? PredictionDomain.resolveResultWinnerName(result, match)
+    : null;
+  const primaryBadge = hasResult
+    ? PredictionManagementDomain.resolvePrimaryResultBadge(prediction)
     : null;
 
   return `
@@ -73,7 +77,7 @@ export function renderPredictionDetailBody(prediction) {
           ${escapeHtml(String(prediction.awayScore ?? ''))}
         </p>
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
-          Predicted Winner: ${renderPredictedWinnerHtml(match, prediction)}
+          Predicted Winner: ${renderPredictedWinnerHtml(match, prediction, { result })}
         </p>
         <p class="mb-0">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
       </div>
@@ -82,9 +86,8 @@ export function renderPredictionDetailBody(prediction) {
         <div class="col-md-6">
           <h3 class="h6 text-muted text-uppercase">Result</h3>
           <p class="mb-1">Actual Score: ${escapeHtml(String(result.homeScore ?? ''))} - ${escapeHtml(String(result.awayScore ?? ''))}</p>
-          <p class="mb-1">Winner: ${escapeHtml(winnerName ?? 'Draw')}</p>
-          <p class="mb-1">Winner Prediction: ${renderResultBadge(prediction.winnerPredictionCorrect)}</p>
-          <p class="mb-1">Exact Score: ${renderResultBadge(prediction.exactScoreCorrect)}</p>
+          ${PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result) ? `<p class="mb-1">Penalty Winner: ${escapeHtml(winnerName ?? '—')}</p>` : ''}
+          ${primaryBadge ? `<p class="mb-1">${escapeHtml(primaryBadge.label)}: ${renderResultBadge(primaryBadge.correct)}</p>` : ''}
           <p class="mb-2">Points Awarded: ${escapeHtml(String(prediction.calculatedPoints ?? 0))}</p>
           ${breakdown.length ? `
             <ul class="list-unstyled small mb-0">

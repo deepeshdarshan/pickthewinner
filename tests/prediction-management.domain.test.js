@@ -1,11 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionManagementDomain } from '../public/js/domain/prediction-management.domain.js';
+import { PredictionManagementDomain, resolvePrimaryResultBadge, shouldShowPenaltyWinnerForPublishedResult } from '../public/js/domain/prediction-management.domain.js';
 import {
   PREDICTION_ADMIN_STATUS,
   PREDICTION_SORT_FIELD,
 } from '../public/js/prediction/admin/prediction-management.constants.js';
-import { MATCH_STATUS } from '../public/js/domain/match.domain.js';
+import { MATCH_STATUS, WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
 
 const samplePredictions = [
   {
@@ -154,5 +154,57 @@ describe('PredictionManagementDomain', () => {
 
     assert.equal(active.length, 1);
     assert.equal(archived.length, 1);
+  });
+
+  it('resolves primary result badge from published match resolution', () => {
+    const penaltiesPrediction = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    };
+
+    assert.deepEqual(resolvePrimaryResultBadge(penaltiesPrediction), {
+      correct: true,
+      label: 'Penalty Winner',
+    });
+
+    const scorePrediction = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+        },
+      },
+    };
+
+    assert.deepEqual(resolvePrimaryResultBadge(scorePrediction), {
+      correct: false,
+      label: 'Exact Score',
+    });
+  });
+
+  it('detects when penalty winner should be shown for published results', () => {
+    assert.equal(
+      shouldShowPenaltyWinnerForPublishedResult({
+        published: true,
+        winnerResolution: WINNER_RESOLUTION.PENALTIES,
+      }),
+      true,
+    );
+    assert.equal(
+      shouldShowPenaltyWinnerForPublishedResult({
+        published: true,
+        winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+      }),
+      false,
+    );
+    assert.equal(shouldShowPenaltyWinnerForPublishedResult({ published: false }), false);
   });
 });

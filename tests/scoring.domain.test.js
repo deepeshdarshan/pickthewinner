@@ -104,4 +104,16 @@ describe('ScoringDomain', () => {
       [25, 12],
     );
   });
+
+  it('detects penalty winner scoring applicability from result resolution', () => {
+    assert.equal(
+      ScoringDomain.isPenaltyWinnerScoringApplicable({ winnerResolution: WINNER_RESOLUTION.PENALTIES }),
+      true,
+    );
+    assert.equal(
+      ScoringDomain.isPenaltyWinnerScoringApplicable({ winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME }),
+      false,
+    );
+    assert.equal(ScoringDomain.isPenaltyWinnerScoringApplicable({}), false);
+  });
 });

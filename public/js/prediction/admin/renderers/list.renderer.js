@@ -234,7 +234,7 @@ export function renderPredictionTable(predictions, options = {}) {
         </td>
         <td class="d-none d-xl-table-cell">${escapeHtml(String(prediction.tournament?.name ?? ''))}</td>
         <td>${renderPredictedScoreHtml(match, prediction, { compact: true })}</td>
-        <td class="d-none d-md-table-cell">${renderPredictedWinnerHtml(match, prediction, { compact: true })}</td>
+        <td class="d-none d-md-table-cell">${renderPredictedWinnerHtml(match, prediction, { compact: true, result })}</td>
         <td>${renderActualScoreHtml(match, result, { compact: true })}</td>
         <td class="d-none d-lg-table-cell">${renderActualWinnerHtml(match, result, { compact: true })}</td>
         <td class="fw-semibold">${renderPointsHtml(prediction, result)}</td>

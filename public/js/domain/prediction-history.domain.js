@@ -4,6 +4,9 @@
  */
 
 import { MATCH_STATUS } from './match.domain.js';
+import {
+  resolvePrimaryResultBadge as resolveManagementPrimaryResultBadge,
+} from './prediction-management.domain.js';
 import { toDate } from '../utils/date.util.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
@@ -70,6 +73,10 @@ import {
  * @property {string} label
  * @property {boolean} completed
  * @property {boolean} current
+ */
+
+/**
+ * @typedef {import('./prediction-management.domain.js').PrimaryResultBadge} PrimaryResultBadge
  */
 
 export const PredictionHistoryDomain = {
@@ -341,7 +348,24 @@ export const PredictionHistoryDomain = {
   resolveBonusPoints(breakdown) {
     return resolveBonusPoints(breakdown);
   },
+
+  /**
+   * Resolves the single scoring-relevant result badge for history display.
+   * @param {HistoryItem} item
+   * @returns {PrimaryResultBadge|null}
+   */
+  resolvePrimaryResultBadge(item) {
+    return resolvePrimaryResultBadge(item);
+  },
 };
+
+/**
+ * @param {HistoryItem} item
+ * @returns {PrimaryResultBadge|null}
+ */
+export function resolvePrimaryResultBadge(item) {
+  return resolveManagementPrimaryResultBadge(item);
+}
 
 /**
  * @param {unknown} breakdown

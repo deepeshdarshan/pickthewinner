@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionHistoryDomain } from '../public/js/domain/prediction-history.domain.js';
+import { PredictionHistoryDomain, resolvePrimaryResultBadge } from '../public/js/domain/prediction-history.domain.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
@@ -8,7 +8,7 @@ import {
   PREDICTION_HISTORY_SORT_FIELD,
   PREDICTION_LIFECYCLE_STEP,
 } from '../public/js/prediction/history/prediction-history.constants.js';
-import { MATCH_STATUS } from '../public/js/domain/match.domain.js';
+import { MATCH_STATUS, WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
 
 const sampleItems = [
   {
@@ -169,5 +169,48 @@ describe('PredictionHistoryDomain', () => {
       dateRange: PREDICTION_HISTORY_DATE_RANGE.THIS_YEAR,
     });
     assert.equal(thisYear.length, 3);
+  });
+
+  it('resolves primary result badge based on match resolution', () => {
+    const unpublished = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: true,
+      match: { result: { published: false } },
+    };
+    assert.equal(resolvePrimaryResultBadge(unpublished), null);
+
+    const penalties = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          homeScore: 2,
+          awayScore: 2,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+        },
+      },
+    };
+    assert.deepEqual(resolvePrimaryResultBadge(penalties), {
+      correct: true,
+      label: 'Penalty Winner',
+    });
+
+    const normalTime = {
+      winnerPredictionCorrect: true,
+      exactScoreCorrect: false,
+      match: {
+        result: {
+          published: true,
+          homeScore: 2,
+          awayScore: 1,
+          winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+        },
+      },
+    };
+    assert.deepEqual(resolvePrimaryResultBadge(normalTime), {
+      correct: false,
+      label: 'Exact Score',
+    });
   });
 });

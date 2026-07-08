@@ -14,6 +14,8 @@ import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
 import { MatchDomain } from '../domain/match.domain.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
+import { PredictionManagementDomain } from '../domain/prediction-management.domain.js';
+import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { getRoundLabel } from './match.constants.js';
 
 /**
@@ -201,6 +203,11 @@ function renderPredictionDisplay(prediction, match) {
  */
 function renderOfficialResultDisplay(match) {
   const result = /** @type {Record<string, unknown>} */ (match.result);
+
+  if (!ScoringDomain.isPenaltyWinnerScoringApplicable(result)) {
+    return '';
+  }
+
   const homeScore = Number(result.homeScore ?? 0);
   const awayScore = Number(result.awayScore ?? 0);
   const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
@@ -237,11 +244,26 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
     return '';
   }
 
+  const enrichedPrediction = {
+    ...prediction,
+    match,
+    winnerPredictionCorrect: PredictionDomain.isWinnerPredictionCorrect(
+      prediction,
+      match.result,
+      match,
+    ),
+    exactScoreCorrect: checkExactScore(prediction, match),
+  };
+  const primaryBadge = PredictionManagementDomain.resolvePrimaryResultBadge(enrichedPrediction);
+
+  if (!primaryBadge) {
+    return '';
+  }
+
+  const isCorrect = primaryBadge.correct === true;
   const result = /** @type {Record<string, unknown>} */ (match.result);
-  const isCorrectWinner = PredictionDomain.isWinnerPredictionCorrect(prediction, result, match);
-  const isExactScore = checkExactScore(prediction, match);
+  const isPenaltyWinner = primaryBadge.label === 'Penalty Winner';
   const winnerName = PredictionDomain.resolveResultWinnerName(result, match);
-  const isDrawResult = Number(result.homeScore ?? 0) === Number(result.awayScore ?? 0);
   const winnerSide = PredictionDomain.resolveResultWinnerSide(result, match);
   const winnerTeam = winnerSide === 'HOME'
     ? match.homeTeam
@@ -252,17 +274,11 @@ function renderPointsDisplay(pointsEarned, prediction, match) {
       <h6 class="mb-2">Result</h6>
       <div class="d-flex justify-content-around text-center">
         <div>
-          <div class="${isCorrectWinner ? 'text-success' : 'text-danger'}">
-            <i class="bi ${isCorrectWinner ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
-            Winner
+          <div class="${isCorrect ? 'text-success' : 'text-danger'}">
+            <i class="bi ${isCorrect ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
+            ${escapeHtml(primaryBadge.label)}
           </div>
-          ${isDrawResult && winnerTeam ? `<div class="d-flex justify-content-center mt-1">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}</div>` : ''}
-        </div>
-        <div>
-          <div class="${isExactScore ? 'text-success' : 'text-danger'}">
-            <i class="bi ${isExactScore ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}" aria-hidden="true"></i>
-            Exact Score
-          </div>
+          ${isPenaltyWinner && winnerTeam ? `<div class="d-flex justify-content-center mt-1">${renderTeamInlineHtml(winnerTeam, { fallback: winnerName ?? 'Winner', marginClass: 'me-0', className: 'ptw-team-flag ptw-team-flag--sm' })}</div>` : ''}
         </div>
         <div>
           <div class="text-primary">

@@ -5,6 +5,8 @@
 
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderTeamInlineHtml } from '../../master-data/teams/team-flag.util.js';
+import { PredictionDomain } from '../../domain/prediction.domain.js';
+import { PredictionManagementDomain } from '../../domain/prediction-management.domain.js';
 
 /**
  * @typedef {Object} ComparisonData
@@ -25,6 +27,8 @@ export function renderPredictionComparison(data) {
   const totalPoints = Number(prediction?.calculatedPoints ?? 0);
   const customScoringConfig = match.customScoringConfig;
   const hasCustomPoints = Boolean(customScoringConfig?.useCustomPoints);
+  const showPenaltyWinner = Boolean(result.published)
+    && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
 
   if (!prediction) {
     return `
@@ -43,13 +47,13 @@ export function renderPredictionComparison(data) {
             <h3 class="h6">Official Result</h3>
             <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })} <strong>${escapeHtml(String(result.homeScore ?? ''))}</strong></p>
             <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })} <strong>${escapeHtml(String(result.awayScore ?? ''))}</strong></p>
-            <p class="mb-0"><strong>Resolution:</strong> ${escapeHtml(String(result.winnerResolution ?? ''))}</p>
+            ${showPenaltyWinner ? `<p class="mb-0 d-flex align-items-center gap-2 flex-wrap"><strong>Penalty Winner:</strong> ${renderPenaltyWinnerHtml(match, result)}</p>` : ''}
           </div>
           <div class="col-md-6">
             <h3 class="h6">My Prediction</h3>
             <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })} <strong>${escapeHtml(String(prediction.homeScore ?? ''))}</strong></p>
             <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })} <strong>${escapeHtml(String(prediction.awayScore ?? ''))}</strong></p>
-            ${(prediction.predictedWinner ?? prediction.penaltyWinner) ? `<p class="mb-0"><strong>Predicted Winner:</strong> ${escapeHtml(String(prediction.predictedWinner ?? prediction.penaltyWinner))}</p>` : ''}
+            ${showPenaltyWinner && (prediction.predictedWinner ?? prediction.penaltyWinner) ? `<p class="mb-0"><strong>Predicted Penalty Winner:</strong> ${escapeHtml(String(prediction.predictedWinner ?? prediction.penaltyWinner))}</p>` : ''}
           </div>
         </div>
         <hr>
@@ -77,4 +81,23 @@ export function renderPredictionComparison(data) {
       </div>
     </div>
   `;
+}
+
+/**
+ * @param {import('../match.service.js').EnrichedMatch} match
+ * @param {Record<string, unknown>} result
+ * @returns {string}
+ */
+function renderPenaltyWinnerHtml(match, result) {
+  const side = PredictionDomain.resolveResultWinnerSide(result, match);
+
+  if (side === 'HOME') {
+    return renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' });
+  }
+
+  if (side === 'AWAY') {
+    return renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' });
+  }
+
+  return escapeHtml(PredictionDomain.resolveResultWinnerName(result, match) ?? '—');
 }

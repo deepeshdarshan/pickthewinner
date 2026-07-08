@@ -5,6 +5,7 @@
 
 import { PREDICTION_STATUS, PredictionDomain, PENALTY_WINNER } from './prediction.domain.js';
 import { TOURNAMENT_STATUS } from './tournament.domain.js';
+import { ScoringDomain } from '../scoring/scoring.domain.js';
 import {
   PREDICTION_ADMIN_STATUS,
   PREDICTION_SORT_FIELD,
@@ -33,6 +34,12 @@ import {
  * @property {string|null} [predictedWinnerName]
  * @property {boolean|null} [winnerPredictionCorrect]
  * @property {boolean|null} [exactScoreCorrect]
+ */
+
+/**
+ * @typedef {Object} PrimaryResultBadge
+ * @property {boolean|null} correct
+ * @property {string} label
  */
 
 /**
@@ -258,7 +265,58 @@ export const PredictionManagementDomain = {
       errors,
     };
   },
+
+  /**
+   * Whether penalty-winner result details apply for a published match result.
+   * @param {Record<string, unknown>} result
+   * @returns {boolean}
+   */
+  shouldShowPenaltyWinnerForPublishedResult(result) {
+    return shouldShowPenaltyWinnerForPublishedResult(result);
+  },
+
+  /**
+   * Resolves the single scoring-relevant result badge for prediction result display.
+   * @param {EnrichedPrediction} prediction
+   * @returns {PrimaryResultBadge|null}
+   */
+  resolvePrimaryResultBadge(prediction) {
+    return resolvePrimaryResultBadge(prediction);
+  },
 };
+
+/**
+ * @param {Record<string, unknown>} result
+ * @returns {boolean}
+ */
+export function shouldShowPenaltyWinnerForPublishedResult(result) {
+  return Boolean(result?.published)
+    && ScoringDomain.isPenaltyWinnerScoringApplicable(result);
+}
+
+/**
+ * @param {EnrichedPrediction} prediction
+ * @returns {PrimaryResultBadge|null}
+ */
+export function resolvePrimaryResultBadge(prediction) {
+  const result = /** @type {Record<string, unknown>} */ (prediction.match?.result ?? {});
+
+  if (!result.published) {
+    return null;
+  }
+
+  if (ScoringDomain.isPenaltyWinnerScoringApplicable(result)) {
+    return {
+      correct: prediction.winnerPredictionCorrect ?? null,
+      label: 'Penalty Winner',
+    };
+  }
+
+  return {
+    correct: prediction.exactScoreCorrect ?? null,
+    label: 'Exact Score',
+  };
+}
 
 /**
  * @param {EnrichedPrediction} prediction

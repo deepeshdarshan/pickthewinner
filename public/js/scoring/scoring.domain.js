@@ -21,6 +21,14 @@ import { PENALTY_WINNER } from '../domain/prediction.domain.js';
 
 export const ScoringDomain = {
   /**
+   * @param {Record<string, unknown>} result
+   * @returns {boolean}
+   */
+  isPenaltyWinnerScoringApplicable(result) {
+    return String(result?.winnerResolution) === WINNER_RESOLUTION.PENALTIES;
+  },
+
+  /**
    * @param {Record<string, unknown>} prediction
    * @param {Record<string, unknown>} result
    * @param {{ correctMatchScorePoints: number, correctPenaltyWinnerPoints: number }} config
@@ -41,7 +49,7 @@ export const ScoringDomain = {
     });
     totalPoints += scorePoints;
 
-    if (String(result.winnerResolution) === WINNER_RESOLUTION.PENALTIES) {
+    if (ScoringDomain.isPenaltyWinnerScoringApplicable(result)) {
       const predictedWinner = String(prediction.predictedWinner ?? prediction.penaltyWinner ?? '');
       const actualWinner = resolvePenaltyWinner(result);
       const penaltyPoints = predictedWinner && predictedWinner === actualWinner

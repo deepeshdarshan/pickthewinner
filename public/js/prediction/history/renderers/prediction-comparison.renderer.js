@@ -12,7 +12,8 @@ import {
   renderActualWinnerHtml,
   renderPointsHtml,
 } from '../../admin/renderers/prediction-display.renderer.js';
-import { resolveBonusPoints } from '../../../domain/prediction-history.domain.js';
+import { resolveBonusPoints, resolvePrimaryResultBadge } from '../../../domain/prediction-history.domain.js';
+import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 
 /**
  * @typedef {import('../../../domain/prediction-history.domain.js').HistoryItem} HistoryItem
@@ -31,11 +32,11 @@ export function renderComparisonBadges(item) {
   }
 
   const bonusPoints = resolveBonusPoints(item.scoringBreakdown);
+  const primaryBadge = resolvePrimaryResultBadge(item);
 
   return `
     <div class="d-flex flex-wrap gap-2 ptw-prediction-badges">
-      ${renderResultBadge(item.winnerPredictionCorrect, 'Winner')}
-      ${renderResultBadge(item.exactScoreCorrect, 'Exact Score')}
+      ${primaryBadge ? renderResultBadge(primaryBadge.correct, primaryBadge.label) : ''}
       ${bonusPoints > 0 ? `<span class="badge bg-warning text-dark" aria-label="Bonus points awarded"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>Bonus +${bonusPoints}</span>` : ''}
     </div>
   `;
@@ -84,7 +85,9 @@ export function renderPredictionComparisonPanel(item) {
   const match = item.match ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
   const hasResult = Boolean(result.published);
-  const predictedWinnerHtml = renderPredictedWinnerHtml(match, item);
+  const showPenaltyWinner = hasResult
+    && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
+  const predictedWinnerHtml = renderPredictedWinnerHtml(match, item, { result });
   const actualWinnerHtml = hasResult ? renderActualWinnerHtml(match, result) : '';
 
   return `
@@ -94,14 +97,14 @@ export function renderPredictionComparisonPanel(item) {
         <div class="ptw-prediction-comparison__score">
           ${renderPredictedScoreHtml(match, item)}
         </div>
-        ${hasResult ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
+        ${showPenaltyWinner ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
       </div>
       <div class="col-md-6 ptw-prediction-comparison__column">
         <h3 class="h6 text-uppercase ptw-text-muted mb-0">Official Result</h3>
         <div class="ptw-prediction-comparison__score">
           ${hasResult ? renderActualScoreHtml(match, result) : '<span class="ptw-text-muted">Not published yet</span>'}
         </div>
-        ${hasResult ? renderWinnerComparisonRow('Winner', actualWinnerHtml) : ''}
+        ${showPenaltyWinner ? renderWinnerComparisonRow('Penalty Winner', actualWinnerHtml) : ''}
       </div>
     </div>
     <hr>

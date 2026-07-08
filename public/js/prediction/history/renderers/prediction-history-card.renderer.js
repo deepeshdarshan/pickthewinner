@@ -9,9 +9,12 @@ import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.
 import {
   renderPredictedScoreHtml,
   renderActualScoreHtml,
+  renderPredictedWinnerHtml,
+  renderActualWinnerHtml,
   renderPointsHtml,
 } from '../../admin/renderers/prediction-display.renderer.js';
 import { renderComparisonBadges } from './prediction-comparison.renderer.js';
+import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
@@ -34,6 +37,8 @@ export function renderHistoryCard(item) {
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
+  const showPenaltyWinner = Boolean(result.published)
+    && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
 
   return `
     <article class="card ptw-card ptw-prediction-history-card mb-3" data-prediction-id="${escapeHtml(String(item.id))}">
@@ -64,10 +69,12 @@ export function renderHistoryCard(item) {
           <div class="col-md-6">
             <h3 class="h6 text-uppercase text-muted">My Prediction</h3>
             ${renderPredictedScoreHtml(match, item)}
+            ${showPenaltyWinner ? `<p class="mb-0 small mt-2"><span class="text-muted">Predicted Winner:</span> ${renderPredictedWinnerHtml(match, item, { result })}</p>` : ''}
           </div>
           <div class="col-md-6">
             <h3 class="h6 text-uppercase text-muted">Official Result</h3>
             ${result.published ? renderActualScoreHtml(match, result) : '<p class="text-muted mb-0 small">Pending</p>'}
+            ${showPenaltyWinner ? `<p class="mb-0 small mt-2"><span class="text-muted">Penalty Winner:</span> ${renderActualWinnerHtml(match, result)}</p>` : ''}
           </div>
         </div>
 

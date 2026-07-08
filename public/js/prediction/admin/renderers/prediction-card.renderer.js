@@ -41,7 +41,7 @@ export function renderPredictionCard(prediction) {
           </div>
           <div class="col-6">
             <p class="small text-muted mb-1">Predicted Winner</p>
-            <div class="mb-0">${renderPredictedWinnerHtml(match, prediction)}</div>
+            <div class="mb-0">${renderPredictedWinnerHtml(match, prediction, { result })}</div>
           </div>
           <div class="col-6">
             <p class="small text-muted mb-1">Actual Score</p>

@@ -7,6 +7,7 @@ import { escapeHtml } from '../../../utils/html.util.js';
 import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { renderResultBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
+import { PredictionHistoryDomain } from '../../../domain/prediction-history.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
@@ -62,6 +63,13 @@ function renderHistoryTableRow(item, index) {
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
   const collapseId = `ph-table-detail-${index}`;
+  const primaryBadge = PredictionHistoryDomain.resolvePrimaryResultBadge(item);
+  const winnerCell = primaryBadge?.label === 'Penalty Winner'
+    ? renderResultBadge(primaryBadge.correct, '')
+    : '<span class="text-muted">—</span>';
+  const exactCell = primaryBadge?.label === 'Exact Score'
+    ? renderResultBadge(primaryBadge.correct, '')
+    : '<span class="text-muted">—</span>';
 
   return `
     <tr class="ptw-prediction-history-table__row" data-prediction-id="${escapeHtml(String(item.id))}" tabindex="0" data-ph-detail-row="${escapeHtml(String(item.id))}">
@@ -76,8 +84,8 @@ function renderHistoryTableRow(item, index) {
       </td>
       <td>${escapeHtml(String(item.homeScore))} - ${escapeHtml(String(item.awayScore))}</td>
       <td>${result.published ? `${escapeHtml(String(result.homeScore))} - ${escapeHtml(String(result.awayScore))}` : '—'}</td>
-      <td>${renderResultBadge(item.winnerPredictionCorrect, '')}</td>
-      <td>${renderResultBadge(item.exactScoreCorrect, '')}</td>
+      <td>${winnerCell}</td>
+      <td>${exactCell}</td>
       <td class="fw-semibold">${Number(item.calculatedPoints ?? 0)}</td>
       <td>
         <a href="${detailUrl}" class="btn btn-sm btn-link" data-ph-detail="${escapeHtml(String(item.id))}" aria-label="View details">
