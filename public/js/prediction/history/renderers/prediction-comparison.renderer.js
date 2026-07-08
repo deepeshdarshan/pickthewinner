@@ -84,18 +84,24 @@ export function renderPredictionComparisonPanel(item) {
   const match = item.match ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
   const hasResult = Boolean(result.published);
+  const predictedWinnerHtml = renderPredictedWinnerHtml(match, item);
+  const actualWinnerHtml = hasResult ? renderActualWinnerHtml(match, result) : '';
 
   return `
-    <div class="row g-4">
-      <div class="col-md-6">
-        <h3 class="h6 text-uppercase text-muted">My Prediction</h3>
-        ${renderPredictedScoreHtml(match, item)}
-        ${item.predictedWinnerName ? `<p class="mb-0 mt-2 small"><strong>Predicted Winner:</strong> ${renderPredictedWinnerHtml(match, item)}</p>` : ''}
+    <div class="row g-4 ptw-prediction-comparison">
+      <div class="col-md-6 ptw-prediction-comparison__column">
+        <h3 class="h6 text-uppercase ptw-text-muted mb-0">My Prediction</h3>
+        <div class="ptw-prediction-comparison__score">
+          ${renderPredictedScoreHtml(match, item)}
+        </div>
+        ${hasResult ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
       </div>
-      <div class="col-md-6">
-        <h3 class="h6 text-uppercase text-muted">Official Result</h3>
-        ${hasResult ? renderActualScoreHtml(match, result) : '<p class="text-muted mb-0">Not published yet</p>'}
-        ${hasResult ? `<p class="mb-0 mt-2 small"><strong>Winner:</strong> ${renderActualWinnerHtml(match, result)}</p>` : ''}
+      <div class="col-md-6 ptw-prediction-comparison__column">
+        <h3 class="h6 text-uppercase ptw-text-muted mb-0">Official Result</h3>
+        <div class="ptw-prediction-comparison__score">
+          ${hasResult ? renderActualScoreHtml(match, result) : '<span class="ptw-text-muted">Not published yet</span>'}
+        </div>
+        ${hasResult ? renderWinnerComparisonRow('Winner', actualWinnerHtml) : ''}
       </div>
     </div>
     <hr>
@@ -106,6 +112,20 @@ export function renderPredictionComparisonPanel(item) {
     <div class="mt-3">
       <h3 class="h6">Scoring Breakdown</h3>
       ${renderScoringBreakdown(item)}
+    </div>
+  `;
+}
+
+/**
+ * @param {string} label
+ * @param {string} valueHtml
+ * @returns {string}
+ */
+function renderWinnerComparisonRow(label, valueHtml) {
+  return `
+    <div class="ptw-prediction-comparison__winner-row">
+      <span class="ptw-prediction-comparison__winner-label">${escapeHtml(label)}</span>
+      <span class="ptw-prediction-comparison__winner-value">${valueHtml}</span>
     </div>
   `;
 }

@@ -15,7 +15,7 @@
 
 .ptw-leaderboard-table {
   margin-bottom: 0;
-  table-layout: fixed;
+  table-layout: auto;
   width: 100%;
 }
 
@@ -24,12 +24,12 @@
   line-height: 1.2;
   vertical-align: bottom;
   font-size: var(--ptw-font-size-xs);
-  padding: 0.4rem 0.35rem;
+  padding: 0.4rem 0.5rem;
   letter-spacing: 0.02em;
 }
 
 .ptw-leaderboard-table tbody td {
-  padding: 0.45rem 0.35rem;
+  padding: 0.45rem 0.5rem;
   font-size: var(--ptw-font-size-sm);
 }
 
@@ -38,24 +38,30 @@
 }
 
 .ptw-leaderboard-table__rank {
-  width: 3.25rem;
+  width: 3.5rem;
+  white-space: nowrap;
 }
 
 .ptw-leaderboard-table__contestant {
-  width: auto;
-  min-width: 0;
+  width: 11rem;
+  max-width: 11rem;
+  overflow: hidden;
 }
 
 .ptw-leaderboard-table__points {
-  width: 4.5rem;
+  width: 5.5rem;
+  white-space: nowrap;
 }
 
 .ptw-leaderboard-table__stat {
-  width: 4.75rem;
+  width: 6.25rem;
+  min-width: 6.25rem;
+  white-space: nowrap;
 }
 
 .ptw-leaderboard-table__movement {
-  width: 3.5rem;
+  width: 4.5rem;
+  white-space: nowrap;
 }
 
 .ptw-leaderboard-table__avatar {

@@ -15,8 +15,10 @@ import {
   ADMIN_NAV_SECTIONS,
   CONTESTANT_ACCOUNT_LINKS,
   CONTESTANT_NAV_SECTIONS,
+  collectNavPaths,
   isAdminShellPath,
   isContestantShellPath,
+  isNavPathActive,
   normalizeShellPath,
 } from './sidebar-nav.config.js';
 
@@ -90,8 +92,9 @@ export function renderSidebar(options = {}) {
     isContestant,
   );
   const accountLinks = isContestant ? CONTESTANT_ACCOUNT_LINKS : ADMIN_ACCOUNT_LINKS;
-  const navMarkup = navSections.map((section) => renderNavSection(section, activePath, homePath)).join('');
-  const accountMarkup = accountLinks.map((link) => renderAccountLink(link, activePath)).join('');
+  const navPaths = collectNavPaths(navSections, accountLinks);
+  const navMarkup = navSections.map((section) => renderNavSection(section, activePath, homePath, navPaths)).join('');
+  const accountMarkup = accountLinks.map((link) => renderAccountLink(link, activePath, navPaths)).join('');
   const displayName = resolveSidebarDisplayName(isContestant);
   const roleLabel = isContestant ? 'Contestant' : 'Administrator';
   const photoURL = AppContext.getPhotoURL();
@@ -190,11 +193,12 @@ export function renderSidebarOffcanvas(options = {}) {
  * @param {{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }> }} section
  * @param {string} activePath
  * @param {string} homePath
+ * @param {ReadonlyArray<string>} navPaths
  * @returns {string}
  */
-function renderNavSection(section, activePath, homePath) {
+function renderNavSection(section, activePath, homePath, navPaths) {
   if (section.type === 'item') {
-    const isActive = isSidebarPathActive(activePath, section.path, homePath);
+    const isActive = isNavPathActive(activePath, section.path, homePath, navPaths);
 
     return `
       <li class="ptw-sidebar__item">
@@ -211,9 +215,9 @@ function renderNavSection(section, activePath, homePath) {
     `;
   }
 
-  const childActive = section.children.some((child) => isSidebarPathActive(activePath, child.path, homePath));
+  const childActive = section.children.some((child) => isNavPathActive(activePath, child.path, homePath, navPaths));
   const childMarkup = section.children.map((child) => {
-    const isActive = isSidebarPathActive(activePath, child.path, homePath);
+    const isActive = isNavPathActive(activePath, child.path, homePath, navPaths);
 
     return `
       <li class="ptw-sidebar__subitem">
@@ -245,10 +249,11 @@ function renderNavSection(section, activePath, homePath) {
 /**
  * @param {{ path: string, label: string, icon: string }} link
  * @param {string} activePath
+ * @param {ReadonlyArray<string>} navPaths
  * @returns {string}
  */
-function renderAccountLink(link, activePath) {
-  const isActive = isSidebarPathActive(activePath, link.path, link.path);
+function renderAccountLink(link, activePath, navPaths) {
+  const isActive = isNavPathActive(activePath, link.path, link.path, navPaths);
 
   return `
     <a
@@ -364,10 +369,16 @@ export function updateSidebarActiveState(container, activePath, variant = 'admin
   }
 
   const homePath = variant === 'contestant' ? '/dashboard' : '/admin';
+  const navSections = filterNavSections(
+    variant === 'contestant' ? CONTESTANT_NAV_SECTIONS : ADMIN_NAV_SECTIONS,
+    variant === 'contestant',
+  );
+  const accountLinks = variant === 'contestant' ? CONTESTANT_ACCOUNT_LINKS : ADMIN_ACCOUNT_LINKS;
+  const navPaths = collectNavPaths(navSections, accountLinks);
 
   container.querySelectorAll('.ptw-sidebar__link, .ptw-sidebar__sublink, .ptw-sidebar__account-link').forEach((link) => {
     const href = link.getAttribute('href') ?? '';
-    const isActive = isSidebarPathActive(activePath, href, homePath);
+    const isActive = isNavPathActive(activePath, href, homePath, navPaths);
     link.classList.toggle('active', isActive);
     link.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
@@ -378,20 +389,6 @@ export function updateSidebarActiveState(container, activePath, variant = 'admin
   });
 
   return true;
-}
-
-/**
- * @param {string} activePath
- * @param {string} itemPath
- * @param {string} homePath
- * @returns {boolean}
- */
-function isSidebarPathActive(activePath, itemPath, homePath) {
-  const normalizedActive = normalizeShellPath(activePath);
-  const normalizedItem = normalizeShellPath(itemPath);
-
-  return normalizedActive === normalizedItem
-    || (normalizedItem !== homePath && normalizedActive.startsWith(`${normalizedItem}/`));
 }
 
 /**

@@ -7,7 +7,7 @@ import {
   setAdminTabFlag,
   ADMIN_TAB_STORAGE_KEY,
 } from '../public/js/components/admin-list-tabs.component.js';
-import { ADMIN_NAV_SECTIONS } from '../public/js/components/sidebar-nav.config.js';
+import { ADMIN_NAV_SECTIONS, CONTESTANT_NAV_SECTIONS, collectNavPaths, isNavPathActive } from '../public/js/components/sidebar-nav.config.js';
 
 describe('admin-list-tabs.component', () => {
   /** @type {Storage|null} */
@@ -92,5 +92,32 @@ describe('sidebar-nav.config admin sections', () => {
       ['/admin/matches', '/admin/predictions'],
     );
     assert.ok(!matchGroup.children.some((child) => child.path.includes('archived')));
+  });
+});
+
+describe('sidebar-nav.config active path matching', () => {
+  const contestantNavPaths = collectNavPaths(CONTESTANT_NAV_SECTIONS);
+
+  it('highlights only Prediction History when on /predictions/history', () => {
+    assert.equal(isNavPathActive('/predictions/history', '/predictions/history', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/predictions/history', '/predictions', '/dashboard', contestantNavPaths), false);
+    assert.equal(isNavPathActive('/predictions/history', '/matches', '/dashboard', contestantNavPaths), false);
+  });
+
+  it('highlights only My Predictions when on /predictions', () => {
+    assert.equal(isNavPathActive('/predictions', '/predictions', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/predictions', '/predictions/history', '/dashboard', contestantNavPaths), false);
+  });
+
+  it('highlights only Archived Tournaments when on /tournaments/archived', () => {
+    assert.equal(isNavPathActive('/tournaments/archived', '/tournaments/archived', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/tournaments/archived', '/tournaments', '/dashboard', contestantNavPaths), false);
+  });
+
+  it('keeps parent admin routes active for nested detail paths', () => {
+    const adminNavPaths = collectNavPaths(ADMIN_NAV_SECTIONS);
+
+    assert.equal(isNavPathActive('/admin/tournaments/t1', '/admin/tournaments', '/admin', adminNavPaths), true);
+    assert.equal(isNavPathActive('/admin/matches/m1', '/admin/matches', '/admin', adminNavPaths), true);
   });
 });

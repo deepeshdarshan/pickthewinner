@@ -22,6 +22,16 @@ export function renderLeaderboardTable(entries) {
   return `
     <div class="ptw-leaderboard-table-wrap">
       <table class="table table-dark table-hover ptw-table ptw-table--compact ptw-leaderboard-table">
+        <colgroup>
+          <col class="ptw-leaderboard-table__rank">
+          <col class="ptw-leaderboard-table__contestant">
+          <col class="ptw-leaderboard-table__points">
+          <col class="ptw-leaderboard-table__stat">
+          <col class="ptw-leaderboard-table__stat">
+          <col class="ptw-leaderboard-table__stat">
+          <col class="ptw-leaderboard-table__stat">
+          <col class="ptw-leaderboard-table__movement">
+        </colgroup>
         <thead class="sticky-top">
           <tr>
             <th scope="col" class="ptw-leaderboard-table__rank">${renderLeaderboardTableHeader('Rank')}</th>

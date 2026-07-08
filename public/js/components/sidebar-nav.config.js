@@ -124,6 +124,80 @@ export function normalizeShellPath(path) {
 }
 
 /**
+ * Collects all navigation paths from sections and account links.
+ * @param {ReadonlyArray<{ type: string, path?: string, children?: ReadonlyArray<{ path: string }> }>} sections
+ * @param {ReadonlyArray<{ path: string }>} [accountLinks]
+ * @returns {string[]}
+ */
+export function collectNavPaths(sections, accountLinks = []) {
+  /** @type {string[]} */
+  const paths = [];
+
+  for (const section of sections) {
+    if (section.type === 'item' && section.path) {
+      paths.push(section.path);
+      continue;
+    }
+
+    if (section.type === 'group' && section.children) {
+      for (const child of section.children) {
+        paths.push(child.path);
+      }
+    }
+  }
+
+  for (const link of accountLinks) {
+    paths.push(link.path);
+  }
+
+  return paths;
+}
+
+/**
+ * Returns whether a navigation item should be marked active for the current path.
+ * Prefers the most specific registered nav path so siblings like
+ * `/predictions` and `/predictions/history` do not both highlight.
+ * @param {string} activePath
+ * @param {string} itemPath
+ * @param {string} homePath
+ * @param {ReadonlyArray<string>} [allNavPaths]
+ * @returns {boolean}
+ */
+export function isNavPathActive(activePath, itemPath, homePath, allNavPaths = []) {
+  const normalizedActive = normalizeShellPath(activePath);
+  const normalizedItem = normalizeShellPath(itemPath);
+
+  if (normalizedActive === normalizedItem) {
+    return true;
+  }
+
+  if (normalizedItem === homePath || !normalizedActive.startsWith(`${normalizedItem}/`)) {
+    return false;
+  }
+
+  return !hasMoreSpecificNavMatch(normalizedActive, normalizedItem, allNavPaths);
+}
+
+/**
+ * @param {string} normalizedActive
+ * @param {string} normalizedItem
+ * @param {ReadonlyArray<string>} allNavPaths
+ * @returns {boolean}
+ */
+function hasMoreSpecificNavMatch(normalizedActive, normalizedItem, allNavPaths) {
+  return allNavPaths.some((path) => {
+    const normalizedPath = normalizeShellPath(path);
+
+    if (normalizedPath === normalizedItem || !normalizedPath.startsWith(`${normalizedItem}/`)) {
+      return false;
+    }
+
+    return normalizedActive === normalizedPath
+      || normalizedActive.startsWith(`${normalizedPath}/`);
+  });
+}
+
+/**
  * @param {string} path
  * @returns {boolean}
  */
