@@ -352,7 +352,7 @@
 }
 
 .ptw-tournament-form-page .ptw-page-header__title {
-  font-size: clamp(1.35rem, 4vw, var(--ptw-font-size-2xl));
+  font-size: clamp(1.125rem, 3.25vw, var(--ptw-font-size-2xl));
   word-break: break-word;
 }
 
@@ -750,7 +750,7 @@
 }
 
 .ptw-landing-hero__heading {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
   font-weight: var(--ptw-font-weight-bold);
   color: var(--ptw-color-primary-blue);
   margin: var(--ptw-space-5) 0 var(--ptw-space-3);
@@ -947,6 +947,46 @@
 .ptw-profile-summary {
   background-color: var(--ptw-color-bg-tertiary);
   border: 1px solid var(--ptw-color-border);
+}
+
+@media (max-width: 767.98px) {
+  .ptw-profile-page .ptw-page-header__title {
+    font-size: var(--ptw-font-size-lg);
+  }
+
+  .ptw-profile-page .ptw-page-header__subtitle {
+    font-size: var(--ptw-font-size-xs);
+  }
+
+  .ptw-profile-page .card-body .h5 {
+    font-size: var(--ptw-font-size-base);
+  }
+
+  .ptw-profile-page .card-header .h6 {
+    font-size: var(--ptw-font-size-sm);
+  }
+
+  .ptw-profile-page dl {
+    font-size: var(--ptw-font-size-sm);
+  }
+
+  .ptw-profile-page dl dt {
+    font-size: var(--ptw-font-size-xs);
+  }
+
+  .ptw-profile-page .card-body > .ptw-text-muted {
+    font-size: var(--ptw-font-size-xs);
+  }
+
+  .ptw-profile-page .badge {
+    font-size: var(--ptw-font-size-xs);
+  }
+
+  .ptw-profile-page .ptw-profile-avatar--lg {
+    width: 72px;
+    height: 72px;
+    font-size: 2rem;
+  }
 }
 
 /* Breadcrumb */
@@ -2596,9 +2636,7 @@
    -------------------------------------------------------------------------- */
 
 .ptw-prediction-history__filters {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: static;
 }
 
 .ptw-prediction-history-card__banner {
@@ -2805,10 +2843,6 @@
 @media (max-width: 991.98px) {
   .ptw-prediction-history__sidebar {
     margin-top: var(--ptw-space-2);
-  }
-
-  .ptw-prediction-history__filters {
-    top: 0;
   }
 }
 

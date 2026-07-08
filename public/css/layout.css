@@ -4,6 +4,9 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: var(--ptw-root-font-size);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -72,11 +75,15 @@ h6 {
 
 @media (max-width: 991.98px) {
   .ptw-app-shell--admin .ptw-body-wrapper--with-sidebar {
+    display: flex;
     flex-direction: column;
+    align-items: stretch;
     height: 100%;
   }
 
-  .ptw-app-shell--admin .ptw-sidebar-mount {
+  #ptw-sidebar-mount:not(.d-none),
+  .ptw-sidebar-mount:not(.d-none) {
+    flex: 0 0 auto;
     flex-shrink: 0;
     width: 100%;
   }
@@ -84,7 +91,8 @@ h6 {
   .ptw-app-shell--admin .ptw-main {
     flex: 1 1 auto;
     min-height: 0;
-    padding-top: 0;
+    height: auto;
+    padding-top: var(--ptw-space-4);
   }
 }
 
@@ -293,6 +301,8 @@ h6 {
   padding: var(--ptw-space-2) var(--ptw-space-3);
   background-color: var(--ptw-color-bg-secondary);
   border-bottom: 1px solid var(--ptw-color-border);
+  position: relative;
+  z-index: calc(var(--ptw-z-sticky) + 1);
 }
 
 .ptw-admin-mobile-bar__toggle {

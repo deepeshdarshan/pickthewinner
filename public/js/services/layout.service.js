@@ -198,6 +198,15 @@ function ensureFooterMounted(footerMount) {
 }
 
 /**
+ * Returns whether the sidebar mount includes the mobile menu toggle bar.
+ * @param {HTMLElement} container
+ * @returns {boolean}
+ */
+function sidebarMobileBarExists(container) {
+  return Boolean(container.querySelector('.ptw-admin-mobile-bar'));
+}
+
+/**
  * Shows or hides the sidebar based on the current path.
  * @param {string} activePath
  * @param {HTMLElement|null} sidebarMount
@@ -221,7 +230,9 @@ function updateSidebarVisibility(activePath, sidebarMount, bodyWrapper, options 
   if (showSidebar && variant) {
     sidebarMount.className = 'ptw-sidebar-mount';
 
-    if (options.preserveSidebar && updateSidebarActiveState(sidebarMount, activePath, variant)) {
+    if (options.preserveSidebar
+      && sidebarMobileBarExists(sidebarMount)
+      && updateSidebarActiveState(sidebarMount, activePath, variant)) {
       const leaderboardNavMatches = variant !== 'contestant'
         || contestantLeaderboardNavMatchesSettings(sidebarMount);
 

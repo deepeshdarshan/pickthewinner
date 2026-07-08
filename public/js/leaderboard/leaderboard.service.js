@@ -5,6 +5,7 @@
 
 import { leaderboardRepository } from './leaderboard.repository.js';
 import { LeaderboardDomain } from '../domain/leaderboard.domain.js';
+import { listMatchesForContestant } from '../match/match.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { Logger } from '../utils/logger.util.js';
 import { LEADERBOARD_EVENTS, emitLeaderboardEvent } from './leaderboard.events.js';
@@ -94,7 +95,7 @@ class LeaderboardService {
 
       // Get all predictions to calculate detailed statistics
       const predictions = await leaderboardRepository.listPredictionsByTournament(tournamentId);
-      const matches = await leaderboardRepository.listMatchesByTournament(tournamentId);
+      const activeMatches = await listMatchesForContestant({ tournamentId });
 
       // Get unique user IDs
       const userIds = Object.keys(leaderboardCache.totals);
@@ -105,12 +106,16 @@ class LeaderboardService {
 
       // Fetch user data
       const users = await leaderboardRepository.getUsersByIds(userIds);
-      const matchById = new Map(matches.map((match) => [match.id, match]));
+      const matchById = new Map(activeMatches.map((match) => [match.id, match]));
 
       // Build leaderboard entries
       const entries = userIds.map((userId) => {
         const userPredictions = predictions.filter((p) => p.userId === userId);
         const stats = LeaderboardDomain.calculateContestantStats(userPredictions, matchById);
+        const participation = LeaderboardDomain.calculatePredictionParticipation(
+          userPredictions,
+          activeMatches,
+        );
 
         const user = users[userId] || {};
         const totalPoints = leaderboardCache.totals[userId] || 0;
@@ -122,8 +127,8 @@ class LeaderboardService {
           exactScoreCount: stats.exactScoreCount,
           bonusPoints: 0, // TODO: Implement bonus points if needed
           accuracy: stats.accuracy,
-          matchesPredicted: userPredictions.length,
-          matchesRemaining: matches.length - userPredictions.length,
+          matchesPredicted: participation.matchesPredicted,
+          matchesRemaining: participation.matchesRemaining,
           previousRank: null, // TODO: Implement historical rank tracking
           displayName: user.name || user.displayName || user.email?.split('@')[0] || 'Unknown User',
           photoURL: user.photoURL || null,
@@ -214,10 +219,14 @@ class LeaderboardService {
   async getTournamentStatistics(tournamentId, tournamentName) {
     try {
       const leaderboard = await this.getTournamentLeaderboard(tournamentId);
-      const matches = await leaderboardRepository.listMatchesByTournament(tournamentId);
+      const activeMatches = await listMatchesForContestant({ tournamentId });
       const predictions = await leaderboardRepository.listPredictionsByTournament(tournamentId);
+      const activeMatchIds = new Set(activeMatches.map((match) => match.id));
+      const activePredictions = predictions.filter((prediction) => (
+        activeMatchIds.has(String(prediction.matchId ?? ''))
+      ));
 
-      const completedMatches = matches.filter((m) => m.result?.published).length;
+      const completedMatches = activeMatches.filter((match) => match.result?.published).length;
       const totalContestants = leaderboard.length;
 
       const averagePoints = totalContestants > 0
@@ -228,8 +237,8 @@ class LeaderboardService {
         ? Math.round(leaderboard.reduce((sum, e) => sum + e.accuracy, 0) / totalContestants)
         : 0;
 
-      const predictionCompletionPercentage = matches.length > 0
-        ? Math.round((predictions.length / (matches.length * totalContestants)) * 100)
+      const predictionCompletionPercentage = activeMatches.length > 0 && totalContestants > 0
+        ? Math.round((activePredictions.length / (activeMatches.length * totalContestants)) * 100)
         : 0;
 
       const leaderboardCache = await leaderboardRepository.getLeaderboardCache(tournamentId);
@@ -241,10 +250,10 @@ class LeaderboardService {
         tournamentId,
         tournamentName,
         totalContestants,
-        totalMatches: matches.length,
+        totalMatches: activeMatches.length,
         completedMatches,
-        remainingMatches: matches.length - completedMatches,
-        totalPredictions: predictions.length,
+        remainingMatches: activeMatches.length - completedMatches,
+        totalPredictions: activePredictions.length,
         predictionCompletionPercentage,
         averageAccuracy,
         averagePoints,

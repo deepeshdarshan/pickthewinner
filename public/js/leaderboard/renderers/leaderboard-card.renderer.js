@@ -5,8 +5,8 @@
 
 import { escapeHtml } from '../../utils/html.util.js';
 import {
+  RANK_MOVEMENT,
   RANK_MOVEMENT_ICONS,
-  RANK_MOVEMENT_COLORS,
 } from '../leaderboard.constants.js';
 
 /**
@@ -33,50 +33,48 @@ export function renderLeaderboardCards(entries) {
  */
 function renderLeaderboardCard(entry) {
   const rankBadgeClass = getRankBadgeClass(entry.rank);
-  const movementIcon = RANK_MOVEMENT_ICONS[entry.movement] || '';
-  const movementClass = RANK_MOVEMENT_COLORS[entry.movement] || 'text-muted';
   return `
-    <div class="card ptw-card mb-3" data-user-id="${escapeHtml(entry.userId)}">
+    <div class="card ptw-card ptw-leaderboard-card mb-3" data-user-id="${escapeHtml(entry.userId)}">
       <div class="card-body">
         <div class="d-flex align-items-center mb-3">
-          <span class="badge ${rankBadgeClass} fs-5 me-3">${entry.rank}</span>
+          <span class="badge ptw-leaderboard-card__rank ${rankBadgeClass}">${entry.rank}</span>
           ${renderAvatar(entry.photoURL, entry.displayName)}
-          <div class="ms-3 flex-grow-1">
-            <h6 class="mb-0 fw-semibold">${escapeHtml(entry.displayName)}</h6>
-            ${entry.country ? `<small class="text-muted">${escapeHtml(entry.country)}</small>` : ''}
+          <div class="ms-3 flex-grow-1 min-w-0">
+            <h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>
+            ${entry.country ? `<small class="ptw-leaderboard-card__country">${escapeHtml(entry.country)}</small>` : ''}
           </div>
-          <span class="${movementClass} fw-bold fs-4">${movementIcon}</span>
+          ${renderMovementIndicator(entry.movement)}
         </div>
 
-        <div class="row g-3">
+        <div class="row g-2">
           <div class="col-6">
-            <div class="text-center">
-              <div class="text-muted small">Points</div>
-              <div class="fs-4 fw-bold text-primary">${entry.totalPoints}</div>
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Points</div>
+              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--primary">${entry.totalPoints}</div>
             </div>
           </div>
           <div class="col-6">
-            <div class="text-center">
-              <div class="text-muted small">Accuracy</div>
-              <div class="fs-4 fw-bold">${entry.accuracy}%</div>
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Accuracy</div>
+              <div class="ptw-leaderboard-card__stat-value">${entry.accuracy}%</div>
             </div>
           </div>
           <div class="col-6">
-            <div class="text-center">
-              <div class="text-muted small">Winners</div>
-              <div class="fs-5 text-success">${entry.correctWinnerCount}</div>
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Winners</div>
+              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--success">${entry.correctWinnerCount}</div>
             </div>
           </div>
           <div class="col-6">
-            <div class="text-center">
-              <div class="text-muted small">Exact Scores</div>
-              <div class="fs-5 text-info">${entry.exactScoreCount}</div>
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Exact Scores</div>
+              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--info">${entry.exactScoreCount}</div>
             </div>
           </div>
         </div>
 
-        <div class="mt-3 pt-3 border-top border-secondary">
-          <div class="d-flex justify-content-between text-muted small">
+        <div class="ptw-leaderboard-card__footer">
+          <div class="d-flex justify-content-between">
             <span>Predicted: ${entry.matchesPredicted}</span>
             <span>Remaining: ${entry.matchesRemaining}</span>
           </div>
@@ -87,15 +85,33 @@ function renderLeaderboardCard(entry) {
 }
 
 /**
+ * Renders rank movement indicator (omits "new" entries).
+ * @param {string} movement
+ * @returns {string}
+ */
+function renderMovementIndicator(movement) {
+  if (!movement || movement === RANK_MOVEMENT.NEW) {
+    return '';
+  }
+
+  const movementIcon = RANK_MOVEMENT_ICONS[movement] || '';
+  if (!movementIcon) {
+    return '';
+  }
+
+  return `<span class="ptw-leaderboard-card__movement ptw-leaderboard-card__movement--${movement}" aria-hidden="true">${movementIcon}</span>`;
+}
+
+/**
  * Gets badge class for rank.
  * @param {number} rank
  * @returns {string}
  */
 function getRankBadgeClass(rank) {
-  if (rank === 1) return 'bg-warning text-dark';
-  if (rank === 2) return 'bg-secondary';
-  if (rank === 3) return 'bg-info text-dark';
-  return 'bg-dark';
+  if (rank === 1) return 'ptw-leaderboard-card__rank--gold';
+  if (rank === 2) return 'ptw-leaderboard-card__rank--silver';
+  if (rank === 3) return 'ptw-leaderboard-card__rank--bronze';
+  return 'ptw-leaderboard-card__rank--default';
 }
 
 /**
@@ -119,10 +135,10 @@ function renderAvatar(photoURL, displayName) {
   const initial = displayName.charAt(0).toUpperCase();
   return `
     <div 
-      class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+      class="ptw-leaderboard-card__avatar-placeholder rounded-circle d-flex align-items-center justify-content-center"
       style="width: 48px; height: 48px;"
     >
-      <span class="text-white fw-bold fs-5">${escapeHtml(initial)}</span>
+      <span class="fw-bold fs-5">${escapeHtml(initial)}</span>
     </div>
   `;
 }

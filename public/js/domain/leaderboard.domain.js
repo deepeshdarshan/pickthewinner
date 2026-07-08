@@ -4,6 +4,7 @@
  */
 
 import { RANK_MOVEMENT } from '../leaderboard/leaderboard.constants.js';
+import { MatchDomain } from './match.domain.js';
 import { PredictionManagementDomain } from './prediction-management.domain.js';
 
 export const LeaderboardDomain = {
@@ -95,6 +96,36 @@ export const LeaderboardDomain = {
     }
 
     return RANK_MOVEMENT.SAME;
+  },
+
+  /**
+   * Keeps only contestant-visible, non-archived matches.
+   * @param {Array<Record<string, unknown>>} matches
+   * @returns {Array<Record<string, unknown>>}
+   */
+  filterActiveContestantMatches(matches) {
+    return matches.filter((match) => MatchDomain.isVisibleToContestants(
+      String(match.status ?? ''),
+      Boolean(match.visible),
+    ));
+  },
+
+  /**
+   * Calculates how many active matches a contestant has predicted vs still pending.
+   * @param {Array<Record<string, unknown>>} userPredictions
+   * @param {Array<Record<string, unknown>>} activeMatches
+   * @returns {{ matchesPredicted: number, matchesRemaining: number }}
+   */
+  calculatePredictionParticipation(userPredictions, activeMatches) {
+    const activeMatchIds = new Set(activeMatches.map((match) => String(match.id)));
+    const activePredictions = userPredictions.filter((prediction) => (
+      activeMatchIds.has(String(prediction.matchId ?? ''))
+    ));
+
+    return {
+      matchesPredicted: activePredictions.length,
+      matchesRemaining: Math.max(activeMatches.length - activePredictions.length, 0),
+    };
   },
 
   /**

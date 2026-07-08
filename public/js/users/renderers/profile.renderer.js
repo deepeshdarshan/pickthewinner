@@ -16,6 +16,9 @@ import { renderIconInputField } from '../../shared/form/icon-input.component.js'
 import { USER_MESSAGES, APP_TIMEZONE_LABEL } from '../user.constants.js';
 import { renderAppTimezoneDisplay } from './shared-form.renderer.js';
 
+/** Scoped page class for profile-specific layout and responsive typography. */
+const PROFILE_PAGE_CLASS = 'ptw-profile-page';
+
 /**
  * @typedef {import('../user.service.js').UserProfile} UserProfile
  */
@@ -47,7 +50,8 @@ function formatTimestamp(value) {
  * @returns {string}
  */
 function getShellClasses(shell = 'contestant') {
-  return shell === 'admin' ? ADMIN_PAGE_SHELL_CLASSES : CONTESTANT_PAGE_SHELL_CLASSES;
+  const base = shell === 'admin' ? ADMIN_PAGE_SHELL_CLASSES : CONTESTANT_PAGE_SHELL_CLASSES;
+  return `${base} ${PROFILE_PAGE_CLASS}`;
 }
 
 /**
@@ -66,7 +70,7 @@ function renderProfileHeader(options, shell) {
  */
 export function renderProfileLoading() {
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ${PROFILE_PAGE_CLASS}">
       <div class="card ptw-card">
         <div class="card-body ptw-placeholder-card" role="status" aria-live="polite">
           <div class="spinner-border text-primary" role="status" aria-label="${escapeHtml(USER_MESSAGES.LOADING_PROFILE)}">

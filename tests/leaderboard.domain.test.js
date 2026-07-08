@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { LeaderboardDomain } from '../public/js/domain/leaderboard.domain.js';
 import { RANK_MOVEMENT } from '../public/js/leaderboard/leaderboard.constants.js';
-import { WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
+import { MATCH_STATUS, WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
 
 describe('LeaderboardDomain', () => {
   describe('canContestantViewLeaderboard', () => {
@@ -99,6 +99,56 @@ describe('LeaderboardDomain', () => {
     it('should return NEW when no previous rank', () => {
       const movement = LeaderboardDomain.calculateMovement(5, null);
       assert.equal(movement, RANK_MOVEMENT.NEW);
+    });
+  });
+
+  describe('calculatePredictionParticipation', () => {
+    const activeMatches = [
+      { id: 'm1', status: MATCH_STATUS.PREDICTION_OPEN, visible: true },
+      { id: 'm2', status: MATCH_STATUS.RESULT_PUBLISHED, visible: true },
+      { id: 'm3', status: MATCH_STATUS.PUBLISHED, visible: true },
+    ];
+
+    it('should count only predictions on active contestant-visible matches', () => {
+      const participation = LeaderboardDomain.calculatePredictionParticipation(
+        [
+          { matchId: 'm1' },
+          { matchId: 'm2' },
+          { matchId: 'archived-match' },
+        ],
+        activeMatches,
+      );
+
+      assert.equal(participation.matchesPredicted, 2);
+      assert.equal(participation.matchesRemaining, 1);
+    });
+
+    it('should return zero remaining when all active matches are predicted', () => {
+      const participation = LeaderboardDomain.calculatePredictionParticipation(
+        [
+          { matchId: 'm1' },
+          { matchId: 'm2' },
+          { matchId: 'm3' },
+        ],
+        activeMatches,
+      );
+
+      assert.equal(participation.matchesPredicted, 3);
+      assert.equal(participation.matchesRemaining, 0);
+    });
+  });
+
+  describe('filterActiveContestantMatches', () => {
+    it('should exclude archived, draft, and hidden matches', () => {
+      const filtered = LeaderboardDomain.filterActiveContestantMatches([
+        { id: 'm1', status: MATCH_STATUS.PUBLISHED, visible: true },
+        { id: 'm2', status: MATCH_STATUS.ARCHIVED, visible: true },
+        { id: 'm3', status: MATCH_STATUS.DRAFT, visible: true },
+        { id: 'm4', status: MATCH_STATUS.PREDICTION_OPEN, visible: false },
+        { id: 'm5', status: MATCH_STATUS.RESULT_PUBLISHED, visible: true },
+      ]);
+
+      assert.deepEqual(filtered.map((match) => match.id), ['m1', 'm5']);
     });
   });
 

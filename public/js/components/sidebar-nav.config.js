@@ -17,7 +17,6 @@ export const CONTESTANT_SHELL_EXACT_PATHS = new Set([
   '/leaderboard/unavailable',
   '/profile',
   '/settings',
-  '/statistics',
 ]);
 
 /** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean }>} */
@@ -90,15 +89,6 @@ export const CONTESTANT_NAV_SECTIONS = Object.freeze([
     icon: 'bi-bar-chart',
     hideWhenLeaderboardHidden: true,
   },
-  {
-    type: 'group',
-    label: 'Statistics',
-    icon: 'bi-graph-up',
-    children: [
-      { path: '/statistics', label: 'My Statistics' },
-      { path: '/statistics/performance', label: 'Performance' },
-    ],
-  },
 ]);
 
 /** @type {ReadonlyArray<{ path: string, label: string, icon: string }>} */
@@ -110,7 +100,6 @@ export const ADMIN_ACCOUNT_LINKS = Object.freeze([
 /** @type {ReadonlyArray<{ path: string, label: string, icon: string }>} */
 export const CONTESTANT_ACCOUNT_LINKS = Object.freeze([
   { path: '/profile', label: 'Profile', icon: 'bi-person' },
-  { path: '/settings', label: 'Settings', icon: 'bi-gear' },
 ]);
 
 /**
@@ -222,6 +211,5 @@ export function isContestantShellPath(path) {
   }
 
   return normalized.startsWith('/tournaments/')
-    || normalized.startsWith('/predictions/')
-    || normalized.startsWith('/statistics/');
+    || normalized.startsWith('/predictions/');
 }
