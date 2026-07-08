@@ -32,6 +32,62 @@
   opacity: 1;
 }
 
+/* Temporal input pickers — white icons on dark backgrounds (app-wide) */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  width: var(--ptw-picker-icon-size);
+  height: var(--ptw-picker-icon-size);
+  margin-inline-end: 0.125rem;
+  cursor: pointer;
+  opacity: 1;
+  filter: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: var(--ptw-picker-icon-size) var(--ptw-picker-icon-size);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  background-image: var(--ptw-picker-icon-calendar);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background-image: var(--ptw-picker-icon-clock);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+input[type="week"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.85;
+}
+
+input:disabled[type="date"]::-webkit-calendar-picker-indicator,
+input:disabled[type="time"]::-webkit-calendar-picker-indicator,
+input:disabled[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input:disabled[type="month"]::-webkit-calendar-picker-indicator,
+input:disabled[type="week"]::-webkit-calendar-picker-indicator {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Firefox — use light native controls on dark inputs */
+@supports (-moz-appearance: none) {
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    color-scheme: dark;
+  }
+}
+
 .form-text {
   color: var(--ptw-color-text-secondary);
 }
