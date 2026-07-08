@@ -29,15 +29,6 @@ function renderSelectOptionsHtml(placeholder, options, selectedValue = '') {
 }
 
 /**
- * @param {Team} team
- * @returns {string}
- */
-function formatTeamOptionLabel(team) {
-  const country = team.country?.trim();
-  return country ? `${team.name} (${country})` : team.name;
-}
-
-/**
  * @typedef {import('../match.service.js').EnrichedMatch} EnrichedMatch
  * @typedef {import('../../master-data/teams/team.service.js').Team} Team
  * @typedef {import('../../tournament/tournament.service.js').Tournament} Tournament
@@ -76,11 +67,11 @@ export function renderMatchFormPage(options) {
 
   const tournamentOptions = tournaments.map((tournament) => ({
     value: tournament.id,
-    label: `${tournament.name} (${tournament.season})`,
+    label: tournament.name,
   }));
   const teamOptions = teams.map((team) => ({
     value: team.id,
-    label: formatTeamOptionLabel(team),
+    label: team.name,
   }));
   const roundOptions = buildRoundOptions(stages ?? [], data);
   const customScoringConfig = /** @type {{ useCustomPoints?: boolean, correctMatchScorePoints?: number, correctPenaltyWinnerPoints?: number }|null} */ (
