@@ -59,22 +59,10 @@
   white-space: nowrap;
 }
 
-.ptw-leaderboard-table__movement {
-  width: 4.5rem;
-  white-space: nowrap;
-}
-
 .ptw-leaderboard-table__avatar {
   width: 28px;
   height: 28px;
   object-fit: cover;
-}
-
-.ptw-leaderboard-table__movement-icon {
-  display: inline-block;
-  font-size: var(--ptw-font-size-xs);
-  font-weight: var(--ptw-font-weight-semibold);
-  white-space: nowrap;
 }
 
 .ptw-leaderboard-table thead {

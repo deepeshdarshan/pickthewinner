@@ -4,10 +4,6 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
-import {
-  RANK_MOVEMENT_ICONS,
-  RANK_MOVEMENT_COLORS,
-} from '../leaderboard.constants.js';
 
 /**
  * Renders a leaderboard table for desktop.
@@ -30,7 +26,6 @@ export function renderLeaderboardTable(entries) {
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
-          <col class="ptw-leaderboard-table__movement">
         </colgroup>
         <thead class="sticky-top">
           <tr>
@@ -41,7 +36,6 @@ export function renderLeaderboardTable(entries) {
             <th scope="col" class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Exact')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Accuracy')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Predicted', 'Matches')}</th>
-            <th scope="col" class="text-center ptw-leaderboard-table__movement">${renderLeaderboardTableHeader('Move')}</th>
           </tr>
         </thead>
         <tbody>
@@ -59,8 +53,6 @@ export function renderLeaderboardTable(entries) {
  */
 function renderLeaderboardRow(entry) {
   const rankBadgeClass = getRankBadgeClass(entry.rank);
-  const movementIcon = RANK_MOVEMENT_ICONS[entry.movement] || '';
-  const movementClass = RANK_MOVEMENT_COLORS[entry.movement] || 'text-muted';
   return `
     <tr data-user-id="${escapeHtml(entry.userId)}">
       <td class="ptw-leaderboard-table__rank">
@@ -89,9 +81,6 @@ function renderLeaderboardRow(entry) {
       </td>
       <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
         ${entry.matchesPredicted}/${entry.matchesPredicted + entry.matchesRemaining}
-      </td>
-      <td class="text-center ptw-leaderboard-table__movement">
-        <span class="${movementClass} ptw-leaderboard-table__movement-icon">${movementIcon}</span>
       </td>
     </tr>
   `;

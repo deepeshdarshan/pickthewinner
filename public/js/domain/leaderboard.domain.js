@@ -4,6 +4,7 @@
  */
 
 import { RANK_MOVEMENT } from '../leaderboard/leaderboard.constants.js';
+import { PredictionManagementDomain } from './prediction-management.domain.js';
 
 export const LeaderboardDomain = {
   /**
@@ -108,6 +109,43 @@ export const LeaderboardDomain = {
     }
 
     return Math.round((correctPredictions / totalPredictions) * 100);
+  },
+
+  /**
+   * Calculates contestant prediction stats from published match results.
+   * @param {Array<Record<string, unknown>>} predictions
+   * @param {Map<string, Record<string, unknown>>} matchById
+   * @returns {{ correctWinnerCount: number, exactScoreCount: number, accuracy: number, completedCount: number }}
+   */
+  calculateContestantStats(predictions, matchById) {
+    let correctWinnerCount = 0;
+    let exactScoreCount = 0;
+    let completedCount = 0;
+
+    for (const prediction of predictions) {
+      const match = matchById.get(String(prediction.matchId ?? ''));
+      if (!match?.result?.published) {
+        continue;
+      }
+
+      const enriched = PredictionManagementDomain.enrichPrediction(prediction, match);
+      completedCount += 1;
+
+      if (enriched.winnerPredictionCorrect) {
+        correctWinnerCount += 1;
+      }
+
+      if (enriched.exactScoreCorrect) {
+        exactScoreCount += 1;
+      }
+    }
+
+    return {
+      correctWinnerCount,
+      exactScoreCount,
+      accuracy: LeaderboardDomain.calculateAccuracy(correctWinnerCount, completedCount),
+      completedCount,
+    };
   },
 
   /**

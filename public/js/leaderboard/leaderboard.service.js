@@ -105,29 +105,23 @@ class LeaderboardService {
 
       // Fetch user data
       const users = await leaderboardRepository.getUsersByIds(userIds);
+      const matchById = new Map(matches.map((match) => [match.id, match]));
 
       // Build leaderboard entries
       const entries = userIds.map((userId) => {
         const userPredictions = predictions.filter((p) => p.userId === userId);
-        const scoredPredictions = userPredictions.filter((p) => p.scored === true);
-        const correctWinners = scoredPredictions.filter((p) =>
-          p.scoringBreakdown?.correctMatchScore || p.scoringBreakdown?.correctPenaltyWinner
-        ).length;
-        const exactScores = scoredPredictions.filter((p) =>
-          p.scoringBreakdown?.correctMatchScore
-        ).length;
+        const stats = LeaderboardDomain.calculateContestantStats(userPredictions, matchById);
 
         const user = users[userId] || {};
         const totalPoints = leaderboardCache.totals[userId] || 0;
-        const accuracy = LeaderboardDomain.calculateAccuracy(correctWinners, scoredPredictions.length);
 
         return {
           userId,
           totalPoints,
-          correctWinnerCount: correctWinners,
-          exactScoreCount: exactScores,
+          correctWinnerCount: stats.correctWinnerCount,
+          exactScoreCount: stats.exactScoreCount,
           bonusPoints: 0, // TODO: Implement bonus points if needed
-          accuracy,
+          accuracy: stats.accuracy,
           matchesPredicted: userPredictions.length,
           matchesRemaining: matches.length - userPredictions.length,
           previousRank: null, // TODO: Implement historical rank tracking
