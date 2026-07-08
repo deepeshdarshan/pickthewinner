@@ -275,13 +275,13 @@ export function readMatchForm(form) {
   }
 
   const roundField = form.elements.namedItem('round');
-  const selectedRoundLabel = roundField instanceof HTMLSelectElement
+  const selectedRoundLabel = roundField && 'selectedOptions' in roundField
     ? (roundField.selectedOptions[0]?.textContent?.trim() ?? '')
     : '';
 
-  const useCustomPoints = form.elements.namedItem('useCustomPoints')?.checked ?? false;
-  const correctMatchScorePointsRaw = form.elements.namedItem('correctMatchScorePoints')?.value ?? '';
-  const correctPenaltyWinnerPointsRaw = form.elements.namedItem('correctPenaltyWinnerPoints')?.value ?? '';
+  const useCustomPoints = readCheckboxValue(form, 'useCustomPoints');
+  const correctMatchScorePointsRaw = readFieldValue(form, 'correctMatchScorePoints');
+  const correctPenaltyWinnerPointsRaw = readFieldValue(form, 'correctPenaltyWinnerPoints');
 
   return {
     tournamentId: form.elements.namedItem('tournamentId')?.value ?? '',
@@ -298,6 +298,47 @@ export function readMatchForm(form) {
       }
       : null,
   };
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {string} name
+ * @returns {boolean}
+ */
+function readCheckboxValue(form, name) {
+  const toggle = form.querySelector?.(`[name="${name}"]`) ?? form.elements.namedItem(name);
+
+  if (typeof HTMLInputElement !== 'undefined' && toggle instanceof HTMLInputElement) {
+    return toggle.checked;
+  }
+
+  if (toggle && typeof toggle === 'object' && 'checked' in toggle) {
+    return Boolean(/** @type {{ checked?: boolean }} */ (toggle).checked);
+  }
+
+  return false;
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {string} name
+ * @returns {string}
+ */
+function readFieldValue(form, name) {
+  const field = form.querySelector?.(`[name="${name}"]`) ?? form.elements.namedItem(name);
+
+  if (typeof HTMLInputElement !== 'undefined'
+    && (field instanceof HTMLInputElement
+      || field instanceof HTMLSelectElement
+      || field instanceof HTMLTextAreaElement)) {
+    return field.value;
+  }
+
+  if (field && typeof field === 'object' && 'value' in field) {
+    return String(/** @type {{ value?: string }} */ (field).value ?? '');
+  }
+
+  return '';
 }
 
 /**

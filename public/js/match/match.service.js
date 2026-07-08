@@ -23,6 +23,7 @@ import {
   getMatchValidationMessage,
 } from './match.validator.js';
 import { matchRepository } from './match.repository.js';
+import { normalizeCustomScoringConfig, normalizeMatchDocument } from './match.normalize.js';
 import { applyLifecycleAction, getMatchWithEffectiveStatus } from './match-status.service.js';
 import { MATCH_EVENTS, emitMatchEvent } from './match.events.js';
 import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
@@ -130,101 +131,7 @@ export function getMatchErrorMessage(error) {
   return MATCH_MESSAGES.GENERIC_ERROR;
 }
 
-/**
- * @param {string} id
- * @param {Record<string, unknown>} data
- * @returns {Match}
- */
-export function normalizeMatchDocument(id, data) {
-  const defaults = createDefaultMatchFields();
-
-  return {
-    id,
-    tournamentId: String(data.tournamentId ?? ''),
-    matchNumber: Number(data.matchNumber ?? 0),
-    round: String(data.round ?? ''),
-    stage: String(data.stage ?? ''),
-    homeTeamId: String(data.homeTeamId ?? ''),
-    awayTeamId: String(data.awayTeamId ?? ''),
-    kickoffUtc: data.kickoffUtc ?? null,
-    status: MatchDomain.normalizeStatus(String(data.status ?? defaults.status)),
-    visible: Boolean(data.visible),
-    result: /** @type {Record<string, unknown>|null} */ (data.result ?? null),
-    scoringStatus: data.scoringStatus ? String(data.scoringStatus) : null,
-    customScoringConfig: normalizeCustomScoringConfig(data),
-    predictionOverride: normalizePredictionOverride(data.predictionOverride),
-    createdBy: String(data.createdBy ?? ''),
-    updatedBy: String(data.updatedBy ?? ''),
-    createdAt: data.createdAt ?? null,
-    updatedAt: data.updatedAt ?? null,
-  };
-}
-
-/**
- * @param {unknown} value
- * @returns {PredictionOverride|null}
- */
-function normalizePredictionOverride(value) {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-
-  const override = /** @type {Record<string, unknown>} */ (value);
-
-  if (!override.isActive) {
-    return null;
-  }
-
-  return {
-    isActive: Boolean(override.isActive),
-    status: String(override.status ?? ''),
-    timestamp: override.timestamp ?? null,
-    performedBy: String(override.performedBy ?? ''),
-    reason: override.reason ? String(override.reason) : undefined,
-  };
-}
-
-/**
- * @param {Record<string, unknown>} data
- * @returns {CustomScoringConfig|null}
- */
-function normalizeCustomScoringConfig(data) {
-  const directConfig = data.customScoringConfig;
-  const legacyUseCustomPoints = Boolean(data.useCustomPoints);
-  const legacyCustomPoints = data.customPoints;
-
-  /** @type {Record<string, unknown>|null} */
-  let source = null;
-
-  if (directConfig && typeof directConfig === 'object') {
-    source = /** @type {Record<string, unknown>} */ (directConfig);
-  } else if (legacyUseCustomPoints || (legacyCustomPoints && typeof legacyCustomPoints === 'object')) {
-    source = {
-      useCustomPoints: legacyUseCustomPoints,
-      ...(legacyCustomPoints && typeof legacyCustomPoints === 'object' ? /** @type {Record<string, unknown>} */ (legacyCustomPoints) : {}),
-    };
-  }
-
-  if (!source) {
-    return null;
-  }
-
-  const normalized = MatchDomain.normalizeCustomScoringConfig(source);
-
-  if (!normalized.useCustomPoints) {
-    return null;
-  }
-
-  if (normalized.correctMatchScorePoints === null || normalized.correctPenaltyWinnerPoints === null) {
-    return null;
-  }
-
-  return {
-    useCustomPoints: true,
-    correctMatchScorePoints: normalized.correctMatchScorePoints,
-    correctPenaltyWinnerPoints: normalized.correctPenaltyWinnerPoints,
-  };
-}
+export { normalizeMatchDocument } from './match.normalize.js';
 
 /**
  * @param {Record<string, unknown>} payload
@@ -406,7 +313,7 @@ export async function createMatch(payload) {
     const matchNumber = await matchRepository.getNextMatchNumber(String(payload.tournamentId));
     const defaults = createDefaultMatchFields();
     const data = {
-      ...buildFirestorePayload({ ...payload, matchNumber, ...defaults }),
+      ...buildFirestorePayload({ ...defaults, ...payload, matchNumber }),
       createdBy: user.uid,
       updatedBy: user.uid,
       createdAt: serverTimestamp(),

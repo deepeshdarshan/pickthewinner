@@ -14,6 +14,7 @@ import {
 } from './match.constants.js';
 import { validateLifecycleAction } from './match.validator.js';
 import { matchRepository } from './match.repository.js';
+import { normalizeMatchDocument } from './match.normalize.js';
 import { MATCH_EVENTS, emitMatchEvent } from './match.events.js';
 import { writeAuditLog } from '../audit/audit.service.js';
 
@@ -161,56 +162,6 @@ export async function getMatchWithEffectiveStatus(matchId) {
   }
 
   return match;
-}
-
-/**
- * @param {string} id
- * @param {Record<string, unknown>} data
- * @returns {Match}
- */
-function normalizeMatchDocument(id, data) {
-  return {
-    id,
-    tournamentId: String(data.tournamentId ?? ''),
-    matchNumber: Number(data.matchNumber ?? 0),
-    round: String(data.round ?? ''),
-    homeTeamId: String(data.homeTeamId ?? ''),
-    awayTeamId: String(data.awayTeamId ?? ''),
-    kickoffUtc: data.kickoffUtc ?? null,
-    status: MatchDomain.normalizeStatus(String(data.status ?? MATCH_STATUS.DRAFT)),
-    visible: Boolean(data.visible),
-    result: data.result ?? null,
-    scoringStatus: data.scoringStatus ?? null,
-    predictionOverride: normalizePredictionOverride(data.predictionOverride),
-    createdBy: String(data.createdBy ?? ''),
-    updatedBy: String(data.updatedBy ?? ''),
-    createdAt: data.createdAt ?? null,
-    updatedAt: data.updatedAt ?? null,
-  };
-}
-
-/**
- * @param {unknown} value
- * @returns {import('./match.service.js').PredictionOverride|null}
- */
-function normalizePredictionOverride(value) {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-
-  const override = /** @type {Record<string, unknown>} */ (value);
-
-  if (!override.isActive) {
-    return null;
-  }
-
-  return {
-    isActive: Boolean(override.isActive),
-    status: String(override.status ?? ''),
-    timestamp: override.timestamp ?? null,
-    performedBy: String(override.performedBy ?? ''),
-    reason: override.reason ? String(override.reason) : undefined,
-  };
 }
 
 /**

@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { MatchDomain } from '../public/js/domain/match.domain.js';
+import { createDefaultMatchFields } from '../public/js/match/match.constants.js';
+import { normalizeMatchDocument } from '../public/js/match/match.normalize.js';
 import { readMatchForm } from '../public/js/match/renderers/form.renderer.js';
 
 describe('Match custom scoring', () => {
@@ -38,6 +40,7 @@ describe('Match custom scoring', () => {
             awayTeamId: { value: 'team-b' },
             kickoffDate: { value: '2026-07-12' },
             kickoffTime: { value: '18:30' },
+            round: { value: 'group', selectedOptions: [{ textContent: 'Group Stage' }] },
             useCustomPoints: { checked: true },
             correctMatchScorePoints: { value: '15' },
             correctPenaltyWinnerPoints: { value: '5' },
@@ -68,6 +71,7 @@ describe('Match custom scoring', () => {
             awayTeamId: { value: 'team-b' },
             kickoffDate: { value: '2026-07-12' },
             kickoffTime: { value: '18:30' },
+            round: { value: 'group', selectedOptions: [{ textContent: 'Group Stage' }] },
             useCustomPoints: { checked: false },
             correctMatchScorePoints: { value: '99' },
             correctPenaltyWinnerPoints: { value: '99' },
@@ -81,6 +85,41 @@ describe('Match custom scoring', () => {
     const payload = readMatchForm(form);
 
     assert.equal(payload.customScoringConfig, null);
+  });
+
+  it('preserves custom scoring config when merging create defaults', () => {
+    const defaults = createDefaultMatchFields();
+    const payload = {
+      tournamentId: 't1',
+      customScoringConfig: {
+        useCustomPoints: true,
+        correctMatchScorePoints: 15,
+        correctPenaltyWinnerPoints: 5,
+      },
+    };
+
+    const merged = { ...defaults, ...payload, matchNumber: 1 };
+
+    assert.equal(merged.customScoringConfig?.useCustomPoints, true);
+    assert.equal(merged.customScoringConfig?.correctMatchScorePoints, 15);
+    assert.equal(merged.customScoringConfig?.correctPenaltyWinnerPoints, 5);
+  });
+
+  it('preserves custom scoring config when normalizing match documents', () => {
+    const match = normalizeMatchDocument('m1', {
+      tournamentId: 't1',
+      homeTeamId: 'team-a',
+      awayTeamId: 'team-b',
+      customScoringConfig: {
+        useCustomPoints: true,
+        correctMatchScorePoints: 12,
+        correctPenaltyWinnerPoints: 4,
+      },
+    });
+
+    assert.equal(match.customScoringConfig?.useCustomPoints, true);
+    assert.equal(match.customScoringConfig?.correctMatchScorePoints, 12);
+    assert.equal(match.customScoringConfig?.correctPenaltyWinnerPoints, 4);
   });
 });
 
