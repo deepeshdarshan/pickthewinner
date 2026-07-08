@@ -4,7 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateDisplay } from '../../../utils/date.util.js';
+import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionHistoryDomain } from '../../../domain/prediction-history.domain.js';
 import { renderComparisonBadges } from './prediction-comparison.renderer.js';
@@ -29,7 +29,7 @@ export function renderHistoryTimeline(items) {
     <div class="ptw-prediction-timeline">
       ${groups.map((group) => `
         <section class="ptw-prediction-timeline__group mb-4" aria-label="${escapeHtml(group.label)}">
-          <h2 class="h6 text-muted text-uppercase mb-3">${escapeHtml(group.label)}</h2>
+          <h2 class="h6 text-uppercase mb-3 ptw-prediction-timeline__group-label">${escapeHtml(group.label)}</h2>
           <ol class="list-unstyled mb-0 ptw-prediction-timeline__list">
             ${group.items.map((item) => renderTimelineItem(item)).join('')}
           </ol>
@@ -47,7 +47,11 @@ function renderTimelineItem(item) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-  const kickoffLabel = formatDateDisplay(match.kickoffUtc, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  const kickoffDate = toDate(match.kickoffUtc);
+  const kickoffLabel = kickoffDate
+    ? formatDateDisplay(kickoffDate, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+    : '—';
+  const kickoffDatetime = kickoffDate?.toISOString() ?? '';
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
@@ -64,8 +68,8 @@ function renderTimelineItem(item) {
         <div class="card-body">
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
             <div>
-              <time class="small fw-semibold d-block" datetime="${escapeHtml(String(match.kickoffUtc ?? ''))}">${escapeHtml(kickoffLabel)}</time>
-              <p class="mb-0 small text-muted">${escapeHtml(tournamentName)}${stage ? ` · ${escapeHtml(stage)}` : ''}</p>
+              <time class="small fw-semibold d-block" datetime="${escapeHtml(kickoffDatetime)}">${escapeHtml(kickoffLabel)}</time>
+              <p class="mb-0 small ptw-prediction-timeline__meta">${escapeHtml(tournamentName)}${stage ? ` · ${escapeHtml(stage)}` : ''}</p>
             </div>
             <span class="badge bg-primary">${points} pts</span>
           </div>

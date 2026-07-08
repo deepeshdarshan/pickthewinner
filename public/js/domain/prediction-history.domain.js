@@ -4,6 +4,7 @@
  */
 
 import { MATCH_STATUS } from './match.domain.js';
+import { toDate } from '../utils/date.util.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
@@ -489,25 +490,4 @@ function getAccuracyScore(item) {
 function toTime(value) {
   const date = toDate(value);
   return date ? date.getTime() : 0;
-}
-
-/**
- * @param {unknown} value
- * @returns {Date|null}
- */
-function toDate(value) {
-  if (!value) {
-    return null;
-  }
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-
-  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof value.toDate === 'function') {
-    return value.toDate();
-  }
-
-  const parsed = new Date(String(value));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }

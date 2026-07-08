@@ -91,12 +91,36 @@ export function formatDate(value, locale = appSettings.locale) {
 
 /**
  * Converts supported values to a Date instance.
- * @param {Date|string|number} value
+ * Handles Date, ISO strings, epoch numbers, and Firestore Timestamps.
+ * @param {Date|string|number|{ toDate?: () => Date, seconds?: number, _seconds?: number, nanoseconds?: number, _nanoseconds?: number }|null|undefined} value
  * @returns {Date|null}
  */
 export function toDate(value) {
+  if (!value) {
+    return null;
+  }
+
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === 'object') {
+    if ('toDate' in value && typeof value.toDate === 'function') {
+      const date = value.toDate();
+      return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null;
+    }
+
+    const seconds = 'seconds' in value
+      ? value.seconds
+      : ('_seconds' in value ? value._seconds : undefined);
+
+    if (typeof seconds === 'number') {
+      const nanoseconds = 'nanoseconds' in value
+        ? Number(value.nanoseconds ?? 0)
+        : Number(value._nanoseconds ?? 0);
+      const date = new Date(seconds * 1000 + nanoseconds / 1e6);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
   }
 
   const date = new Date(value);

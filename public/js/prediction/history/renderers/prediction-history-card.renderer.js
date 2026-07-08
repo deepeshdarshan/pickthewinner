@@ -4,7 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateDisplay } from '../../../utils/date.util.js';
+import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import {
   renderPredictedScoreHtml,
@@ -26,7 +26,11 @@ export function renderHistoryCard(item) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-  const kickoffLabel = formatDateDisplay(match.kickoffUtc, { day: '2-digit', month: 'short', year: 'numeric' });
+  const kickoffDate = toDate(match.kickoffUtc);
+  const kickoffLabel = kickoffDate
+    ? formatDateDisplay(kickoffDate, { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
+  const kickoffDatetime = kickoffDate?.toISOString() ?? '';
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
@@ -41,7 +45,7 @@ export function renderHistoryCard(item) {
       </div>
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-          <time class="small text-muted" datetime="${escapeHtml(String(match.kickoffUtc ?? ''))}">${escapeHtml(kickoffLabel)}</time>
+          <time class="small ptw-text-muted" datetime="${escapeHtml(kickoffDatetime)}">${escapeHtml(kickoffLabel)}</time>
           <div>${renderPointsHtml(item, result)}</div>
         </div>
 

@@ -8,6 +8,7 @@ import { PredictionHistoryDomain } from '../../domain/prediction-history.domain.
 import { filterHistoryItems } from '../../domain/contestant-match-view.domain.js';
 import { predictionHistoryRepository } from './PredictionHistoryRepository.js';
 import { matchRepository } from '../../match/match.repository.js';
+import { normalizeMatchDocument, enrichMatch } from '../../match/match.service.js';
 import { getTournamentById } from '../../tournament/tournament.service.js';
 import { leaderboardService } from '../../leaderboard/leaderboard.service.js';
 import {
@@ -194,10 +195,14 @@ export class PredictionHistoryService {
 
     await Promise.all(missing.map(async (matchId) => {
       try {
-        const match = await matchRepository.getById(matchId, false);
-        if (match) {
-          this.matchCache.set(matchId, { id: matchId, ...match });
+        const data = await matchRepository.getById(matchId, false);
+        if (!data) {
+          return;
         }
+
+        const normalized = normalizeMatchDocument(matchId, data);
+        const enriched = await enrichMatch(normalized);
+        this.matchCache.set(matchId, enriched);
       } catch (error) {
         Logger.warn('[PredictionHistoryService] Failed to load match:', matchId, error);
       }

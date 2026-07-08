@@ -4,7 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateDisplay } from '../../../utils/date.util.js';
+import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { renderResultBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
@@ -55,7 +55,10 @@ function renderHistoryTableRow(item, index) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-  const kickoffLabel = formatDateDisplay(match.kickoffUtc, { day: '2-digit', month: 'short', year: 'numeric' });
+  const kickoffDate = toDate(match.kickoffUtc);
+  const kickoffLabel = kickoffDate
+    ? formatDateDisplay(kickoffDate, { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
   const collapseId = `ph-table-detail-${index}`;

@@ -85,12 +85,6 @@ export function renderActiveTournamentHero(data) {
             <i class="bi bi-eye me-2" aria-hidden="true"></i>View Tournament
           </a>
         </div>
-
-        ${heroImage ? `
-          <div class="ptw-active-tournament-hero__art" aria-hidden="true">
-            <img src="${escapeHtml(heroImage)}" alt="">
-          </div>
-        ` : ''}
       </div>
     </section>
   `;

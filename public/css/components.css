@@ -2618,6 +2618,11 @@
   min-height: 72px;
 }
 
+.ptw-prediction-timeline__group-label,
+.ptw-prediction-timeline__meta {
+  color: var(--ptw-color-text-muted);
+}
+
 .ptw-prediction-timeline__list {
   position: relative;
   padding-left: var(--ptw-space-4);

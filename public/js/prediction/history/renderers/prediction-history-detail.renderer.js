@@ -4,7 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateDisplay, formatDateTime } from '../../../utils/date.util.js';
+import { formatDateDisplay, formatDateTime, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { renderPredictionStatusBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import { renderPredictionComparisonPanel } from './prediction-comparison.renderer.js';
@@ -23,7 +23,10 @@ import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 export function renderPredictionDetail(item, lifecycle) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
-  const kickoffLabel = formatDateDisplay(match.kickoffUtc, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const kickoffDate = toDate(match.kickoffUtc);
+  const kickoffLabel = kickoffDate
+    ? formatDateDisplay(kickoffDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
 
