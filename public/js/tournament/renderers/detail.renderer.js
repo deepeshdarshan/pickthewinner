@@ -37,9 +37,9 @@ export function renderTournamentDetailPage(tournament, options = {}) {
  * @returns {string}
  */
 function renderStatusPanel(tournament, readOnly, incompleteVisibleMatchCount = 0) {
-  const isArchived = tournament.archived || tournament.status === TOURNAMENT_STATUS.ARCHIVED;
+  const isArchived = TournamentDomain.isTournamentArchived(tournament);
   const lifecycleActions = isArchived
-    ? ''
+    ? renderArchivedDeleteActions(tournament)
     : renderLifecycleActions(tournament, incompleteVisibleMatchCount);
 
   return `
@@ -183,15 +183,8 @@ function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
     actions.unshift(`
       <p class="text-muted small mb-2 w-100" role="status">
         This tournament is completed. Archive it to remove it from active lists while preserving historical data.
+        To permanently remove all tournament data, archive it first, then delete it from the Archived tab.
       </p>
-    `);
-  }
-
-  if (!tournament.active) {
-    actions.push(`
-      <button type="button" class="btn btn-danger" data-ptw-tournament-delete>
-        Delete Permanently
-      </button>
     `);
   }
 
@@ -202,6 +195,24 @@ function renderLifecycleActions(tournament, incompleteVisibleMatchCount = 0) {
   return `
     <div class="mt-4 d-flex flex-wrap gap-2" role="group" aria-label="Tournament lifecycle actions">
       ${actions.join('')}
+    </div>
+  `;
+}
+
+/**
+ * @param {Tournament} tournament
+ * @returns {string}
+ */
+export function renderArchivedDeleteActions(tournament) {
+  if (!TournamentDomain.canPermanentlyDeleteTournament(tournament)) {
+    return '';
+  }
+
+  return `
+    <div class="mt-4 d-flex flex-wrap gap-2" role="group" aria-label="Archived tournament actions">
+      <button type="button" class="btn btn-danger" data-ptw-tournament-delete>
+        Delete Permanently
+      </button>
     </div>
   `;
 }

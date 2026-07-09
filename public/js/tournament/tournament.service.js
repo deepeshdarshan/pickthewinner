@@ -42,7 +42,9 @@ import { Logger } from '../utils/logger.util.js';
 import { matchRepository } from '../match/match.repository.js';
 import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 import { MATCH_COLLECTIONS } from '../match/match.constants.js';
-import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
+import { predictionManagementRepository } from '../prediction/admin/PredictionManagementRepository.js';
+import { FIRESTORE_COLLECTIONS } from '../config/application.constants.js';
+import { chunkDocumentRefsForDelete } from './tournament-delete.util.js';
 import { writeAuditLog } from '../audit/audit.service.js';
 
 /**
@@ -833,6 +835,20 @@ function resolveRestoredMatchStatus(matchData) {
 }
 
 /**
+ * @param {Array<import('firebase/firestore').DocumentReference>} refs
+ * @returns {Promise<void>}
+ */
+async function commitDeleteBatches(refs) {
+  const chunks = chunkDocumentRefsForDelete(refs);
+
+  for (const chunk of chunks) {
+    const batch = writeBatch(db);
+    chunk.forEach((ref) => batch.delete(ref));
+    await batch.commit();
+  }
+}
+
+/**
  * @param {string} id
  * @param {string} uid
  * @returns {Promise<void>}
@@ -848,27 +864,25 @@ export async function deleteTournament(id, uid) {
     throw new Error(TOURNAMENT_MESSAGES.CANNOT_DELETE_ACTIVE);
   }
 
-  const matches = await matchRepository.listByTournament(id);
-
-  for (const match of matches) {
-    const predictions = await listPredictionsByMatch(match.id);
-
-    if (predictions.length > 0) {
-      throw new Error(TOURNAMENT_MESSAGES.CANNOT_DELETE_HAS_PREDICTIONS);
-    }
+  if (!TournamentDomain.canPermanentlyDeleteTournament(existing)) {
+    throw new Error(TOURNAMENT_MESSAGES.CANNOT_DELETE_NOT_ARCHIVED);
   }
+
+  const [matches, predictions] = await Promise.all([
+    matchRepository.listByTournament(id),
+    predictionManagementRepository.listByTournament(id),
+  ]);
+
+  const deleteRefs = [
+    ...predictions.map((prediction) => doc(db, FIRESTORE_COLLECTIONS.PREDICTIONS, prediction.id)),
+    ...matches.map((match) => doc(db, MATCH_COLLECTIONS.MATCHES, match.id)),
+    doc(db, FIRESTORE_COLLECTIONS.LEADERBOARD_CACHE, id),
+    getTournamentDocRef(id),
+  ];
 
   await runSerializedFirestoreWrite(async () => {
     await ensureFirestoreOnline();
-
-    const batch = writeBatch(db);
-
-    matches.forEach((match) => {
-      batch.delete(doc(db, MATCH_COLLECTIONS.MATCHES, match.id));
-    });
-
-    batch.delete(getTournamentDocRef(id));
-    await batch.commit();
+    await commitDeleteBatches(deleteRefs);
 
     tournamentCache.delete(id);
     adminListCache = null;
@@ -885,7 +899,11 @@ export async function deleteTournament(id, uid) {
       action: 'tournament_deleted',
       entityType: 'tournament',
       entityId: id,
-      details: { name: existing.name },
+      details: {
+        name: existing.name,
+        matchCount: matches.length,
+        predictionCount: predictions.length,
+      },
     });
 
     emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_DELETED, { id });

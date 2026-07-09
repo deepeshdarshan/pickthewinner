@@ -44,6 +44,7 @@ import {
   renderTournamentNotFound,
   bindTournamentMatchBehaviourPreview,
 } from './tournament.renderer.js';
+import { renderArchivedDeleteActions } from './renderers/detail.renderer.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -105,7 +106,6 @@ async function renderListView(outlet, options = {}) {
     ]);
 
     outlet.innerHTML = renderTournamentListPageWithTabs(activeTournaments, archivedTournaments, { activeTabId });
-    bindListDeleteActions(outlet, () => renderListView(outlet));
     bindArchivedActions(outlet, () => renderListView(outlet, { activeTabId: 'archived' }));
 
     if (activeTabId === 'archived') {
@@ -152,6 +152,12 @@ async function renderEditView(outlet, tournamentId, forceReadOnly = false, optio
 
     if (readOnly && forceReadOnly) {
       outlet.innerHTML = renderTournamentFormPage(tournament, { readOnly: true, isCreate: false });
+
+      if (TournamentDomain.isTournamentArchived(tournament)) {
+        outlet.insertAdjacentHTML('beforeend', renderArchivedDeleteActions(tournament));
+        bindDeleteAction(outlet, tournament);
+      }
+
       return;
     }
 
@@ -379,23 +385,6 @@ function bindDeleteAction(outlet, tournament) {
 
   deleteButton.addEventListener('click', () => {
     void handleDeleteTournament(tournament.id, TOURNAMENT_ROUTES.ADMIN_LIST);
-  });
-}
-
-/**
- * @param {HTMLElement} outlet
- * @param {() => Promise<void>} onRefresh
- * @returns {void}
- */
-function bindListDeleteActions(outlet, onRefresh) {
-  outlet.querySelectorAll('[data-ptw-tournament-tab="active"] [data-ptw-tournament-delete]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const tournamentId = button.getAttribute('data-tournament-id');
-
-      if (tournamentId) {
-        void handleDeleteTournament(tournamentId, onRefresh);
-      }
-    });
   });
 }
 

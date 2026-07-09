@@ -166,16 +166,6 @@ function renderTournamentRow(tournament) {
           <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route aria-label="Manage ${escapeHtml(tournament.name)}">
             Manage
           </a>
-          ${!tournament.active ? `
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              data-ptw-tournament-delete
-              data-tournament-id="${escapeHtml(tournament.id)}"
-            >
-              Delete
-            </button>
-          ` : ''}
         </div>
       </td>
     </tr>

@@ -333,6 +333,13 @@ export function validateLifecycleAction(action, tournament) {
           : TOURNAMENT_VALIDATION_MESSAGES.CANNOT_DEACTIVATE_PUBLISHED;
       }
       break;
+    case LIFECYCLE_ACTIONS.DELETE:
+      if (!TournamentDomain.canPermanentlyDeleteTournament(tournament)) {
+        errors.lifecycle = tournament.active
+          ? TOURNAMENT_MESSAGES.CANNOT_DELETE_ACTIVE
+          : TOURNAMENT_MESSAGES.CANNOT_DELETE_NOT_ARCHIVED;
+      }
+      break;
     default:
       errors.lifecycle = TOURNAMENT_VALIDATION_MESSAGES.LIFECYCLE_INVALID;
   }

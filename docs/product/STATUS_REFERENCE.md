@@ -143,6 +143,7 @@ Contestant visibility is determined by `TournamentDomain.isTournamentVisibleToCo
 - Tournament is moved to historical storage.
 - Excluded from default admin and contestant lists (`includeArchived: false`).
 - Fully read-only.
+- Administrators may permanently delete an archived tournament from the Archived tab. Permanent delete removes all tournament data (matches, predictions, leaderboard cache) regardless of prediction count. Contestants will no longer see any trace of the tournament, including prediction history.
 
 **Contestant UI**
 

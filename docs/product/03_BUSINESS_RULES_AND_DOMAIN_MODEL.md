@@ -171,7 +171,11 @@ Archived tournaments become read-only.
 
 Completed tournaments cannot accept predictions.
 
-Deleting tournaments should not remove historical prediction data.
+Permanent tournament deletion is allowed only after a tournament is archived.
+
+Permanent deletion removes the tournament, all matches, all predictions, and leaderboard cache for that tournament.
+
+Contestants lose all visibility of a permanently deleted tournament, including prediction history entries.
 
 ---
 

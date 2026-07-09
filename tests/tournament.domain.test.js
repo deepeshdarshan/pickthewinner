@@ -148,4 +148,26 @@ describe('TournamentDomain', () => {
     assert.equal(TournamentDomain.isActiveStateLocked(draftActive), false);
     assert.equal(TournamentDomain.isActiveStateLocked(publishedActive), true);
   });
+
+  it('allows permanent delete only for archived non-active tournaments', () => {
+    const archived = {
+      status: TOURNAMENT_STATUS.ARCHIVED,
+      archived: true,
+      active: false,
+    };
+    const completed = {
+      status: TOURNAMENT_STATUS.COMPLETED,
+      archived: false,
+      active: false,
+    };
+    const activeArchived = {
+      status: TOURNAMENT_STATUS.ARCHIVED,
+      archived: true,
+      active: true,
+    };
+
+    assert.equal(TournamentDomain.canPermanentlyDeleteTournament(archived), true);
+    assert.equal(TournamentDomain.canPermanentlyDeleteTournament(completed), false);
+    assert.equal(TournamentDomain.canPermanentlyDeleteTournament(activeArchived), false);
+  });
 });

@@ -216,6 +216,19 @@ export const TournamentDomain = {
   },
 
   /**
+   * Permanent delete is allowed only for archived, non-active tournaments.
+   * @param {{ status?: string, visibility?: string, archived?: boolean, active?: boolean }} tournament
+   * @returns {boolean}
+   */
+  canPermanentlyDeleteTournament(tournament) {
+    if (tournament.active) {
+      return false;
+    }
+
+    return this.isTournamentArchived(tournament);
+  },
+
+  /**
    * @param {string} status
    * @param {string} [visibility]
    * @param {boolean} [archived]
