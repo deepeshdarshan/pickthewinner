@@ -1,6 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { MatchDomain, MATCH_STATUS, WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
+import {
+  MatchDomain,
+  MATCH_STATUS,
+  MATCH_COUNTDOWN_PHASE,
+  MATCH_COUNTDOWN_LABELS,
+  WINNER_RESOLUTION,
+} from '../public/js/domain/match.domain.js';
 
 describe('MatchDomain', () => {
   it('allows draft to published transition', () => {
@@ -49,6 +55,104 @@ describe('MatchDomain', () => {
   it('allows result publication only when completed', () => {
     assert.equal(MatchDomain.canPublishResult(MATCH_STATUS.COMPLETED), true);
     assert.equal(MatchDomain.canPublishResult(MATCH_STATUS.LIVE), false);
+  });
+
+  describe('resolveMatchCountdownPhase', () => {
+    const kickoff = new Date('2026-07-10T18:00:00Z');
+    const openHours = 12;
+    const lockMinutes = 15;
+    const { opensAt, locksAt } = MatchDomain.calculatePredictionWindow(kickoff, openHours, lockMinutes);
+
+    it('returns pre_open before prediction window opens', () => {
+      const now = new Date(opensAt.getTime() - 60 * 60 * 1000);
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.PUBLISHED,
+        predictionStatus: 'Closed',
+        now,
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.PRE_OPEN);
+      assert.equal(result.targetDate?.getTime(), opensAt.getTime());
+      assert.equal(result.label, MATCH_COUNTDOWN_LABELS.PRE_OPEN);
+    });
+
+    it('returns open during prediction window with kickoff target', () => {
+      const now = new Date(opensAt.getTime() + 60 * 60 * 1000);
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.PREDICTION_OPEN,
+        predictionStatus: 'Open',
+        now,
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.OPEN);
+      assert.equal(result.targetDate?.getTime(), kickoff.getTime());
+      assert.equal(result.label, MATCH_COUNTDOWN_LABELS.OPEN);
+    });
+
+    it('returns closed after lock time', () => {
+      const now = new Date(locksAt.getTime() + 60 * 1000);
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.PREDICTION_LOCKED,
+        predictionStatus: 'Locked',
+        now,
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.CLOSED);
+      assert.equal(result.targetDate, null);
+      assert.equal(result.label, null);
+    });
+
+    it('returns hidden when match is live', () => {
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.LIVE,
+        now: new Date(opensAt.getTime() + 60 * 60 * 1000),
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.HIDDEN);
+    });
+
+    it('respects manual lock override before natural lock time', () => {
+      const now = new Date(opensAt.getTime() + 60 * 60 * 1000);
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.PREDICTION_LOCKED,
+        predictionStatus: 'Locked',
+        predictionOverride: { isActive: true, status: MATCH_STATUS.PREDICTION_LOCKED },
+        now,
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.CLOSED);
+    });
+
+    it('respects manual open override before natural open time', () => {
+      const now = new Date(opensAt.getTime() - 60 * 60 * 1000);
+      const result = MatchDomain.resolveMatchCountdownPhase({
+        kickoffUtc: kickoff,
+        openHours,
+        lockMinutes,
+        status: MATCH_STATUS.PREDICTION_OPEN,
+        predictionStatus: 'Open',
+        predictionOverride: { isActive: true, status: MATCH_STATUS.PREDICTION_OPEN },
+        now,
+      });
+
+      assert.equal(result.phase, MATCH_COUNTDOWN_PHASE.OPEN);
+      assert.equal(result.targetDate?.getTime(), kickoff.getTime());
+    });
   });
 
   describe('shouldShowKickoffCountdown', () => {

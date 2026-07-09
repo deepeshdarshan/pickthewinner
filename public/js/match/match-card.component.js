@@ -3,8 +3,7 @@
  * @module match/match-card.component
  */
 
-import { renderCountdown } from '../components/countdown.component.js';
-import { renderStatusBadge } from '../components/status-badge.component.js';
+import { renderMatchCountdownFromDto } from '../components/countdown.component.js';
 import {
   renderTeamInlineHtml,
   renderTeamStackHtml,
@@ -12,7 +11,6 @@ import {
 } from '../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime } from '../utils/date.util.js';
-import { MatchDomain } from '../domain/match.domain.js';
 import { PredictionDomain } from '../domain/prediction.domain.js';
 import { PredictionManagementDomain } from '../domain/prediction-management.domain.js';
 import { ScoringDomain } from '../scoring/scoring.domain.js';
@@ -22,6 +20,12 @@ import {
   renderMatchScoringPointsHtml,
 } from './renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from './match.constants.js';
+import {
+  CONTESTANT_PREDICTION_UI_STATUS,
+  getContestantPredictionUiStatus,
+  renderContestantPredictionDisabledButton,
+  renderContestantPredictionStatusBadge,
+} from './match-prediction-ui.util.js';
 
 /**
  * @typedef {Object} MatchCardOptions
@@ -52,10 +56,17 @@ export function renderMatchCard(options) {
 
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
 
-  const predictionStatus = getPredictionStatus(match, prediction);
-  const statusBadge = renderPredictionStatusBadge(predictionStatus);
+  const predictionStatus = getContestantPredictionUiStatus(match, prediction);
+  const statusBadge = renderContestantPredictionStatusBadge(predictionStatus);
   const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
-  const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
+  const countdownHtml = match.matchCountdown
+    ? renderMatchCountdownFromDto(match.matchCountdown, {
+      id: `ptw-countdown-${match.id}`,
+      status: String(match.status ?? ''),
+      predictionStatus: String(match.predictionStatus ?? ''),
+      predictionOverride: match.predictionOverride ?? undefined,
+    })
+    : '';
 
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
   const tournamentName = resolveTournamentName(match);
@@ -69,11 +80,7 @@ export function renderMatchCard(options) {
           ${statusBadge}
           ${customPointsBadge}
         </div>
-        ${showCountdown ? renderCountdown({
-    targetDate: kickoff.toISOString(),
-    label: 'Time remaining',
-    id: `ptw-countdown-${match.id}`,
-  }) : ''}
+        ${countdownHtml}
       </div>
       <div class="card-body">
         <div class="row align-items-center g-3">
@@ -123,49 +130,6 @@ export function renderMatchCard(options) {
       </div>
     </div>
   `;
-}
-
-/**
- * Gets prediction status for a match.
- * @param {import('./match.service.js').EnrichedMatch} match
- * @param {Record<string, unknown>|null} prediction
- * @returns {string}
- */
-function getPredictionStatus(match, prediction) {
-  if (!prediction) {
-    return match.predictionStatus === 'Open' ? 'pending' : 'locked';
-  }
-
-  if (prediction.locked) {
-    return 'locked';
-  }
-
-  if (match.predictionStatus === 'Open') {
-    return 'submitted';
-  }
-
-  return 'locked';
-}
-
-/**
- * Renders prediction status badge.
- * @param {string} status
- * @returns {string}
- */
-function renderPredictionStatusBadge(status) {
-  const statusConfig = {
-    pending: { label: 'Prediction Pending', variant: 'warning', icon: 'bi-exclamation-circle' },
-    submitted: { label: 'Prediction Submitted', variant: 'success', icon: 'bi-check-circle' },
-    locked: { label: 'Prediction Locked', variant: 'secondary', icon: 'bi-lock' },
-  };
-
-  const config = statusConfig[status] || statusConfig.pending;
-
-  return renderStatusBadge({
-    label: config.label,
-    variant: config.variant,
-    icon: config.icon,
-  });
 }
 
 /**
@@ -343,17 +307,18 @@ function renderActionButtons(match, prediction, predictionStatus) {
     `;
   }
 
-  if (predictionStatus === 'locked') {
+  if (
+    predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.LOCKED
+    || predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON
+  ) {
     return `
       <div class="mt-3 pt-3 border-top">
-        <button class="btn btn-secondary w-100" disabled>
-          <i class="bi bi-lock me-2" aria-hidden="true"></i>Prediction Locked
-        </button>
+        ${renderContestantPredictionDisabledButton(predictionStatus)}
       </div>
     `;
   }
 
-  if (prediction && predictionStatus === 'submitted') {
+  if (prediction && predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED) {
     return `
       <div class="mt-3 pt-3 border-top">
         <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-primary w-100" data-route>
@@ -380,7 +345,7 @@ function renderActionButtons(match, prediction, predictionStatus) {
  */
 export function renderCompactMatchCard(match, prediction = null) {
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
-  const predictionStatus = getPredictionStatus(match, prediction);
+  const predictionStatus = getContestantPredictionUiStatus(match, prediction);
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
 
   return `
@@ -390,7 +355,7 @@ export function renderCompactMatchCard(match, prediction = null) {
           <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-2">
               ${stageLabel ? `<span class="badge bg-secondary">${escapeHtml(stageLabel)}</span>` : ''}
-              ${renderPredictionStatusBadge(predictionStatus)}
+              ${renderContestantPredictionStatusBadge(predictionStatus)}
               ${renderCustomScoringSourceBadge(match.effectiveScoringConfig)}
             </div>
             <div class="mt-1">

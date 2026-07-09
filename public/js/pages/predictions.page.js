@@ -18,8 +18,7 @@ import {
   renderPredictionForm,
   attachPredictionFormHandlers,
 } from '../prediction/prediction-form.component.js';
-import { MatchDomain } from '../domain/match.domain.js';
-import { toDate } from '../utils/date.util.js';
+
 import {
   submitPrediction,
   updatePrediction,
@@ -225,11 +224,6 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     await TournamentConfigurationService.load(match.tournamentId);
     const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
     const tournament = tournamentCache.get(match.tournamentId);
-    const kickoff = toDate(match.kickoffUtc);
-    const lockMinutes = TournamentConfigurationService.getPredictionLockMinutes();
-    const predictionLocksAt = kickoff
-      ? MatchDomain.calculatePredictionLock(kickoff, lockMinutes).toISOString()
-      : null;
     const tournamentBannerUrl = tournament?.banner || appSettings.assets.dashboardHeroBanner;
 
     outlet.innerHTML = `
@@ -242,7 +236,7 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
           existingPrediction,
           isEdit,
           requireWinnerSelectionForDrawPrediction,
-          predictionLocksAt,
+          matchCountdown: match.matchCountdown ?? null,
           tournamentBannerUrl,
         })}
       </div>

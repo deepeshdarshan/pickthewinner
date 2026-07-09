@@ -190,9 +190,9 @@ When a match is loaded, the system may **automatically transition** its stored s
 
 | Condition | Effective status |
 |-----------|------------------|
-| Before prediction window opens | Stays `published` (predictions **Closed**) |
-| Inside prediction window | `prediction_open` |
-| After lock time, before kickoff | `prediction_locked` |
+| Before prediction window opens | Stays `published` (predictions **Closed**) | Countdown: **Time Remaining for Prediction Window Opens** (target: window open time) |
+| Inside prediction window | `prediction_open` | Countdown: **Time Remaining for Kickoff** (target: kickoff) |
+| After lock time, before kickoff | `prediction_locked` | Countdown hidden |
 | At or after kickoff | `live` |
 | Admin-set terminal states | `completed`, `result_published` are not auto-changed |
 

@@ -5,6 +5,7 @@
 
 import { appSettings } from '../../config/app.config.js';
 import { renderStatusBadge } from '../../components/status-badge.component.js';
+import { renderSeeAllUpcomingMatchesLink } from '../../match/renderers/upcoming-matches-cta.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 
 /** @type {Readonly<Record<string, { label: string, variant: 'success'|'warning'|'danger'|'info'|'muted', icon: string }>>} */
@@ -84,13 +85,18 @@ export function renderActiveTournamentHero(data) {
             </div>
           ` : ''}
 
-          <a
-            href="/tournaments?id=${encodeURIComponent(tournament.id)}"
-            class="btn btn-ptw-primary ptw-active-tournament-hero__cta"
-            data-route
-          >
-            <i class="bi bi-eye me-2" aria-hidden="true"></i>View Tournament
-          </a>
+          <div class="ptw-active-tournament-hero__actions">
+            <a
+              href="/tournaments?id=${encodeURIComponent(tournament.id)}"
+              class="btn btn-ptw-primary ptw-active-tournament-hero__cta"
+              data-route
+            >
+              <i class="bi bi-eye me-2" aria-hidden="true"></i>View Tournament
+            </a>
+            ${renderSeeAllUpcomingMatchesLink(data.upcomingMatches.length, {
+    className: 'btn btn-ptw-secondary ptw-active-tournament-hero__cta',
+  })}
+          </div>
         </div>
       </div>
     </section>

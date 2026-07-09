@@ -516,11 +516,49 @@
 }
 
 .btn-ptw-secondary {
+  --bs-btn-bg: var(--ptw-color-primary-green);
+  --bs-btn-border-color: var(--ptw-color-primary-green);
+  --bs-btn-color: var(--ptw-color-bg-primary);
+  --bs-btn-hover-bg: var(--ptw-color-primary-green);
+  --bs-btn-hover-border-color: var(--ptw-color-primary-green);
+  --bs-btn-hover-color: var(--ptw-color-bg-primary);
+  --bs-btn-active-bg: var(--ptw-color-primary-green);
+  --bs-btn-active-border-color: var(--ptw-color-primary-green);
+  --bs-btn-active-color: var(--ptw-color-bg-primary);
+  --bs-btn-focus-shadow-rgb: 0, 200, 83;
   background-color: var(--ptw-color-primary-green);
   border-color: var(--ptw-color-primary-green);
   color: var(--ptw-color-bg-primary);
   font-weight: var(--ptw-font-weight-medium);
   border-radius: var(--ptw-radius-md);
+  box-shadow: 0 4px 14px rgba(0, 200, 83, 0.3);
+  transition:
+    background-color var(--ptw-transition-fast),
+    border-color var(--ptw-transition-fast),
+    box-shadow var(--ptw-transition-fast),
+    transform var(--ptw-transition-fast);
+}
+
+.btn-ptw-secondary:hover,
+.btn-ptw-secondary:focus,
+.btn-ptw-secondary:focus-visible {
+  background-color: var(--ptw-color-primary-green);
+  border-color: var(--ptw-color-primary-green);
+  color: var(--ptw-color-bg-primary);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-primary-green) 70%, white),
+    0 0 22px rgba(0, 200, 83, 0.55),
+    0 6px 18px rgba(0, 200, 83, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-ptw-secondary:active,
+.btn-ptw-secondary.active {
+  background-color: color-mix(in srgb, var(--ptw-color-primary-green) 92%, black);
+  border-color: color-mix(in srgb, var(--ptw-color-primary-green) 92%, black);
+  color: var(--ptw-color-bg-primary);
+  box-shadow: 0 2px 10px rgba(0, 200, 83, 0.35);
+  transform: translateY(0);
 }
 
 .btn-ptw-gold {
@@ -1418,6 +1456,11 @@
   border-top: 1px solid var(--ptw-color-border);
 }
 
+.ptw-countdown.is-hidden,
+.ptw-countdown[hidden] {
+  display: none;
+}
+
 /* Countdown */
 .ptw-countdown {
   display: inline-flex;
@@ -1880,8 +1923,8 @@
 
 .ptw-match-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ptw-space-2);
+  grid-template-columns: 1fr;
+  gap: var(--ptw-space-3);
 }
 
 .ptw-match-cards--single-col {
@@ -2053,6 +2096,34 @@
   padding: var(--ptw-space-3);
 }
 
+.ptw-tournament-card__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-tournament-card__action-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+  padding: 0.5rem 0.75rem;
+  transition:
+    background-color var(--ptw-transition-fast),
+    border-color var(--ptw-transition-fast),
+    box-shadow var(--ptw-transition-fast),
+    transform var(--ptw-transition-fast);
+}
+
+.ptw-tournament-card__actions--single {
+  display: block;
+}
+
 .ptw-tournament-card .progress {
   background-color: var(--ptw-color-bg-tertiary);
   border-radius: var(--ptw-radius-full);
@@ -2105,7 +2176,8 @@
   font-size: var(--ptw-font-size-sm);
 }
 
-.ptw-prediction-form__countdown {
+.ptw-prediction-form__countdown,
+.ptw-prediction-form__header-meta .ptw-countdown {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2119,7 +2191,8 @@
   border-radius: var(--ptw-radius-lg);
 }
 
-.ptw-prediction-form__countdown-label {
+.ptw-prediction-form__countdown-label,
+.ptw-prediction-form__header-meta .ptw-countdown__label {
   display: inline-flex;
   align-items: center;
   gap: var(--ptw-space-2);
@@ -2127,7 +2200,8 @@
   color: var(--ptw-color-text-muted);
 }
 
-.ptw-prediction-form__countdown-value {
+.ptw-prediction-form__countdown-value,
+.ptw-prediction-form__header-meta .ptw-countdown__value {
   font-family: var(--ptw-font-heading);
   font-size: clamp(1.125rem, 2vw, 1.375rem);
   font-weight: var(--ptw-font-weight-bold);
@@ -2135,7 +2209,8 @@
   letter-spacing: 0.02em;
 }
 
-.ptw-prediction-form__countdown-value.is-expired {
+.ptw-prediction-form__countdown-value.is-expired,
+.ptw-prediction-form__header-meta .ptw-countdown__value.is-expired {
   color: var(--ptw-color-danger);
 }
 
@@ -2810,7 +2885,7 @@
 .ptw-active-tournament-hero__content {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 28rem;
+  max-width: 38rem;
   padding: var(--ptw-space-5);
   display: flex;
   flex-direction: column;
@@ -2914,12 +2989,52 @@
   gap: var(--ptw-space-2);
 }
 
+.ptw-active-tournament-hero__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--ptw-space-2);
+  width: 100%;
+}
+
 .ptw-active-tournament-hero__cta {
-  align-self: flex-start;
-  min-width: 11rem;
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: auto;
   font-weight: var(--ptw-font-weight-semibold);
   border-radius: var(--ptw-radius-md);
+  white-space: nowrap;
+  text-align: center;
+  transition:
+    background-color var(--ptw-transition-fast),
+    border-color var(--ptw-transition-fast),
+    box-shadow var(--ptw-transition-fast),
+    transform var(--ptw-transition-fast);
+}
+
+.ptw-active-tournament-hero__actions .btn-ptw-primary {
   box-shadow: 0 4px 14px rgba(21, 101, 255, 0.35);
+}
+
+.ptw-active-tournament-hero__actions .btn-ptw-primary:hover,
+.ptw-active-tournament-hero__actions .btn-ptw-primary:focus,
+.ptw-active-tournament-hero__actions .btn-ptw-primary:focus-visible {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-primary-blue) 70%, white),
+    0 0 22px rgba(21, 101, 255, 0.55),
+    0 6px 18px rgba(21, 101, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.ptw-tournament-card__actions .btn-ptw-primary:hover,
+.ptw-tournament-card__actions .btn-ptw-primary:focus,
+.ptw-tournament-card__actions .btn-ptw-primary:focus-visible {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-primary-blue) 70%, white),
+    0 0 22px rgba(21, 101, 255, 0.55),
+    0 6px 18px rgba(21, 101, 255, 0.4);
+  transform: translateY(-1px);
 }
 
 /* Dashboard tournament card */
@@ -3095,8 +3210,23 @@
     padding: var(--ptw-space-4);
   }
 
+  .ptw-active-tournament-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
   .ptw-active-tournament-hero__cta {
-    align-self: stretch;
+    flex: 1 1 auto;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .ptw-tournament-card__actions {
+    flex-direction: column;
+  }
+
+  .ptw-tournament-card__action-btn {
+    flex: 1 1 auto;
     width: 100%;
   }
 
@@ -3246,12 +3376,13 @@
 }
 
 
-.ptw-upcoming-match .ptw-countdown__value {
-  color: var(--ptw-color-success);
-  font-family: var(--ptw-font-mono, ui-monospace, monospace);
-  font-size: var(--ptw-font-size-sm);
+.ptw-upcoming-match .ptw-countdown__value,
+.ptw-upcoming-match .ptw-prediction-form__countdown-value {
+  font-family: var(--ptw-font-heading);
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
   font-weight: var(--ptw-font-weight-bold);
-  letter-spacing: 0.04em;
+  color: var(--ptw-color-accent-gold);
+  letter-spacing: 0.02em;
 }
 
 .ptw-match-scoring-points__pill {

@@ -30,6 +30,7 @@ import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
 import { writeAuditLog } from '../audit/audit.service.js';
 import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { Logger } from '../utils/logger.util.js';
+import { buildMatchCountdownSync } from './match-countdown.service.js';
 
 /**
  * @typedef {Object} Match
@@ -76,6 +77,7 @@ import { Logger } from '../utils/logger.util.js';
  *   awayTeam?: import('../master-data/teams/team.service.js').Team,
  *   predictionStatus?: string,
  *   effectiveScoringConfig?: import('../scoring/scoring.domain.js').EffectiveScoringConfig|null,
+ *   matchCountdown?: import('./match-countdown.service.js').MatchCountdownDto|null,
  * }} EnrichedMatch
  */
 
@@ -195,14 +197,21 @@ export async function enrichMatch(match) {
 
   const kickoff = toDate(match.kickoffUtc);
   let predictionStatus = 'Unavailable';
+  let matchCountdown = null;
 
   if (kickoff && match.tournamentId) {
     try {
       await TournamentConfigurationService.load(match.tournamentId);
       const lockMinutes = TournamentConfigurationService.getPredictionLockMinutes();
+      const openHours = TournamentConfigurationService.getPredictionOpenHoursBeforeKickoff();
       predictionStatus = MatchDomain.isPredictionOpen(match.status, kickoff, lockMinutes)
         ? 'Open'
         : (match.status === MATCH_STATUS.PREDICTION_LOCKED ? 'Locked' : 'Closed');
+      matchCountdown = buildMatchCountdownSync(
+        { ...match, predictionStatus },
+        openHours,
+        lockMinutes,
+      );
     } catch {
       predictionStatus = 'Unknown';
     }
@@ -214,6 +223,7 @@ export async function enrichMatch(match) {
     homeTeam: teams.get(match.homeTeamId),
     awayTeam: teams.get(match.awayTeamId),
     predictionStatus,
+    matchCountdown,
     effectiveScoringConfig: ScoringDomain.resolveEffectiveScoringConfig(
       match,
       tournament?.configuration?.scoringConfiguration,

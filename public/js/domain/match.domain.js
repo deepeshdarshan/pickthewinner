@@ -24,6 +24,20 @@ export const WINNER_RESOLUTION = Object.freeze({
   PENALTIES: 'penalties',
 });
 
+/** @enum {string} */
+export const MATCH_COUNTDOWN_PHASE = Object.freeze({
+  PRE_OPEN: 'pre_open',
+  OPEN: 'open',
+  CLOSED: 'closed',
+  HIDDEN: 'hidden',
+});
+
+/** @type {Readonly<Record<string, string>>} */
+export const MATCH_COUNTDOWN_LABELS = Object.freeze({
+  PRE_OPEN: 'Time Remaining for Prediction Window Opens',
+  OPEN: 'Time Remaining for Kickoff',
+});
+
 /** @type {Readonly<Record<string, ReadonlySet<string>>>} */
 const ALLOWED_TRANSITIONS = Object.freeze({
   [MATCH_STATUS.DRAFT]: new Set([MATCH_STATUS.PUBLISHED, MATCH_STATUS.ARCHIVED]),
@@ -151,40 +165,151 @@ export const MatchDomain = {
   },
 
   /**
-   * Whether a kickoff countdown should appear on contestant match cards.
-   * @param {Record<string, unknown>} match
-   * @param {Date|null} kickoffUtc
-   * @param {Date} [now]
-   * @returns {boolean}
+   * Resolves the match countdown phase, target, and label for lifecycle-aware timers.
+   * @param {{
+   *   kickoffUtc: Date,
+   *   openHours: number,
+   *   lockMinutes: number,
+   *   status?: string,
+   *   predictionStatus?: string,
+   *   result?: { published?: boolean },
+   *   predictionOverride?: { isActive?: boolean, status?: string },
+   *   now?: Date,
+   * }} input
+   * @returns {{
+   *   phase: string,
+   *   targetDate: Date|null,
+   *   label: string|null,
+   *   opensAt: Date,
+   *   locksAt: Date,
+   *   kickoffUtc: Date,
+   * }}
    */
-  shouldShowKickoffCountdown(match, kickoffUtc, now = new Date()) {
-    if (!kickoffUtc) {
-      return false;
+  resolveMatchCountdownPhase(input) {
+    const {
+      kickoffUtc,
+      openHours,
+      lockMinutes,
+      status: rawStatus = '',
+      predictionStatus = '',
+      result,
+      predictionOverride,
+      now = new Date(),
+    } = input;
+
+    const { opensAt, locksAt } = this.calculatePredictionWindow(kickoffUtc, openHours, lockMinutes);
+    const base = {
+      opensAt,
+      locksAt,
+      kickoffUtc,
+      targetDate: null,
+      label: null,
+    };
+
+    if (result?.published) {
+      return { ...base, phase: MATCH_COUNTDOWN_PHASE.HIDDEN };
     }
 
-    if (match.result?.published) {
-      return false;
-    }
+    const status = this.normalizeStatus(String(rawStatus));
 
-    const status = this.normalizeStatus(String(match.status ?? ''));
     if (
       status === MATCH_STATUS.COMPLETED
       || status === MATCH_STATUS.RESULT_PUBLISHED
       || status === MATCH_STATUS.LIVE
       || status === MATCH_STATUS.ARCHIVED
     ) {
-      return false;
-    }
-
-    if (match.predictionStatus === 'Locked') {
-      return false;
+      return { ...base, phase: MATCH_COUNTDOWN_PHASE.HIDDEN };
     }
 
     if (now >= kickoffUtc) {
+      return { ...base, phase: MATCH_COUNTDOWN_PHASE.HIDDEN };
+    }
+
+    const isManuallyLocked = predictionOverride?.isActive
+      && predictionOverride?.status === MATCH_STATUS.PREDICTION_LOCKED;
+    const isLockedStatus = status === MATCH_STATUS.PREDICTION_LOCKED
+      || predictionStatus === 'Locked'
+      || isManuallyLocked;
+
+    if (isLockedStatus || now >= locksAt) {
+      return { ...base, phase: MATCH_COUNTDOWN_PHASE.CLOSED };
+    }
+
+    const isManuallyOpen = predictionOverride?.isActive
+      && predictionOverride?.status === MATCH_STATUS.PREDICTION_OPEN;
+    const isOpenStatus = status === MATCH_STATUS.PREDICTION_OPEN
+      || predictionStatus === 'Open'
+      || isManuallyOpen;
+    const isWithinOpenWindow = now >= opensAt && now < locksAt;
+
+    if (isOpenStatus || isWithinOpenWindow) {
+      return {
+        ...base,
+        phase: MATCH_COUNTDOWN_PHASE.OPEN,
+        targetDate: kickoffUtc,
+        label: MATCH_COUNTDOWN_LABELS.OPEN,
+      };
+    }
+
+    if (now < opensAt) {
+      return {
+        ...base,
+        phase: MATCH_COUNTDOWN_PHASE.PRE_OPEN,
+        targetDate: opensAt,
+        label: MATCH_COUNTDOWN_LABELS.PRE_OPEN,
+      };
+    }
+
+    return { ...base, phase: MATCH_COUNTDOWN_PHASE.CLOSED };
+  },
+
+  /**
+   * Whether a lifecycle countdown should appear on match cards.
+   * @param {Record<string, unknown>} match
+   * @param {Date|null} kickoffUtc
+   * @param {number|Date} [openHoursOrNow=48]
+   * @param {number} [lockMinutes=10]
+   * @param {Date} [now]
+   * @returns {boolean}
+   */
+  shouldShowKickoffCountdown(match, kickoffUtc, openHoursOrNow = 48, lockMinutes = 10, now) {
+    if (!kickoffUtc) {
       return false;
     }
 
-    return true;
+    const matchCountdown = /** @type {{ phase?: string }|undefined} */ (match.matchCountdown);
+    if (matchCountdown?.phase) {
+      return matchCountdown.phase === MATCH_COUNTDOWN_PHASE.PRE_OPEN
+        || matchCountdown.phase === MATCH_COUNTDOWN_PHASE.OPEN;
+    }
+
+    let openHours = 48;
+    let lockMins = 10;
+    let currentNow = new Date();
+
+    if (openHoursOrNow instanceof Date) {
+      currentNow = openHoursOrNow;
+    } else {
+      openHours = Number(openHoursOrNow) || 48;
+      lockMins = Number(lockMinutes) || 10;
+      if (now instanceof Date) {
+        currentNow = now;
+      }
+    }
+
+    const phase = this.resolveMatchCountdownPhase({
+      kickoffUtc,
+      openHours,
+      lockMinutes: lockMins,
+      status: String(match.status ?? ''),
+      predictionStatus: String(match.predictionStatus ?? ''),
+      result: /** @type {{ published?: boolean }|undefined} */ (match.result),
+      predictionOverride: /** @type {{ isActive?: boolean, status?: string }|undefined} */ (match.predictionOverride),
+      now: currentNow,
+    });
+
+    return phase.phase === MATCH_COUNTDOWN_PHASE.PRE_OPEN
+      || phase.phase === MATCH_COUNTDOWN_PHASE.OPEN;
   },
 
   /**

@@ -3,7 +3,7 @@
  * @module dashboard/renderers/admin-featured-match.renderer
  */
 
-import { renderPredictionWindowCountdown } from '../../components/countdown.component.js';
+import { renderMatchCountdownFromDto } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import {
   renderCustomScoringSourceBadge,
@@ -73,7 +73,7 @@ export function renderAdminFeaturedMatchSection(data) {
  *   heading: string,
  *   sectionClass: string,
  *   showLiveIndicator: boolean,
- *   countdown: { targetDate: string, label: string }|null,
+ *   countdown: import('../../match/match-countdown.service.js').MatchCountdownDto|null,
  * }} options
  * @returns {string}
  */
@@ -90,9 +90,12 @@ function renderAdminMatchSpotlightCard(options) {
   const headerRight = showLiveIndicator
     ? '<span class="ptw-live-indicator" aria-hidden="true"><span class="ptw-live-indicator__dot"></span> LIVE NOW</span>'
     : (countdown
-      ? renderPredictionWindowCountdown({
-        targetDate: countdown.targetDate,
+      ? renderMatchCountdownFromDto(countdown, {
         id: `ptw-admin-featured-countdown-${match.id}`,
+        status: String(match.status ?? ''),
+        predictionStatus: String(match.predictionStatus ?? ''),
+        predictionOverride: match.predictionOverride ?? undefined,
+        variant: 'dashboard',
       })
       : '');
 

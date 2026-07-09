@@ -4,6 +4,7 @@
  */
 
 import { renderStatusBadge } from './status-badge.component.js';
+import { renderSeeAllUpcomingMatchesLink } from '../match/renderers/upcoming-matches-cta.renderer.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { formatDateTime, formatDate } from '../utils/date.util.js';
 
@@ -14,6 +15,7 @@ import { formatDateTime, formatDate } from '../utils/date.util.js';
  * @property {number} [submittedPredictions]
  * @property {boolean} [showProgress]
  * @property {string} [actionLabel]
+ * @property {number} [upcomingMatchCount]
  */
 
 /**
@@ -28,10 +30,17 @@ export function renderTournamentCard(options) {
     submittedPredictions = 0,
     showProgress = false,
     actionLabel = 'View Tournament',
+    upcomingMatchCount = 0,
   } = options;
 
   const statusBadge = renderTournamentStatusBadge(tournament.status);
   const progressPercentage = totalMatches > 0 ? Math.round((submittedPredictions / totalMatches) * 100) : 0;
+  const seeAllUpcomingHtml = renderSeeAllUpcomingMatchesLink(upcomingMatchCount, {
+    className: 'btn btn-ptw-secondary ptw-tournament-card__action-btn',
+  });
+  const viewTournamentButtonClass = seeAllUpcomingHtml
+    ? 'btn btn-ptw-primary ptw-tournament-card__action-btn'
+    : 'btn btn-ptw-primary w-100';
 
   return `
     <div class="card ptw-card ptw-tournament-card h-100">
@@ -82,11 +91,14 @@ export function renderTournamentCard(options) {
         </div>
       </div>
       <div class="card-footer bg-transparent border-top-0 pt-0">
-        <a href="/tournaments?id=${encodeURIComponent(tournament.id)}" 
-           class="btn btn-ptw-primary w-100" 
-           data-route>
-          <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>${escapeHtml(actionLabel)}
-        </a>
+        <div class="ptw-tournament-card__actions${seeAllUpcomingHtml ? '' : ' ptw-tournament-card__actions--single'}">
+          <a href="/tournaments?id=${encodeURIComponent(tournament.id)}" 
+             class="${viewTournamentButtonClass}" 
+             data-route>
+            <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>${escapeHtml(actionLabel)}
+          </a>
+          ${seeAllUpcomingHtml}
+        </div>
       </div>
     </div>
   `;

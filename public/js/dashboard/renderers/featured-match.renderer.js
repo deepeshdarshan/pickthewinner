@@ -3,8 +3,13 @@
  * @module dashboard/renderers/featured-match.renderer
  */
 
-import { renderPredictionWindowCountdown } from '../../components/countdown.component.js';
+import { renderMatchCountdownFromDto } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
+import {
+  CONTESTANT_PREDICTION_UI_STATUS,
+  getContestantPredictionUiStatus,
+  renderContestantPredictionDisabledButton,
+} from '../../match/match-prediction-ui.util.js';
 import {
   renderCustomScoringSourceBadge,
   renderMatchScoringPointsHtml,
@@ -58,7 +63,7 @@ export function renderFeaturedMatchSection(data) {
   }
 
   const prediction = data.featuredMatchPrediction ?? null;
-  const predictionStatus = getPredictionStatus(match, prediction);
+  const predictionStatus = getContestantPredictionUiStatus(match, prediction);
   const countdown = data.featuredMatchCountdown;
 
   return renderMatchSpotlightCard({
@@ -81,7 +86,7 @@ export function renderFeaturedMatchSection(data) {
  *   heading: string,
  *   sectionClass: string,
  *   showLiveIndicator: boolean,
- *   countdown: { targetDate: string, label: string }|null,
+ *   countdown: import('../../match/match-countdown.service.js').MatchCountdownDto|null,
  *   actionButtons: string,
  * }} options
  * @returns {string}
@@ -108,9 +113,12 @@ function renderMatchSpotlightCard(options) {
   const headerRight = showLiveIndicator
     ? '<span class="ptw-live-indicator" aria-hidden="true"><span class="ptw-live-indicator__dot"></span> LIVE NOW</span>'
     : (countdown
-      ? renderPredictionWindowCountdown({
-        targetDate: countdown.targetDate,
+      ? renderMatchCountdownFromDto(countdown, {
         id: `ptw-featured-countdown-${match.id}`,
+        status: String(match.status ?? ''),
+        predictionStatus: String(match.predictionStatus ?? ''),
+        predictionOverride: match.predictionOverride ?? undefined,
+        variant: 'dashboard',
       })
       : '');
 
@@ -165,7 +173,7 @@ function renderMatchSpotlightCard(options) {
         ${prediction && !showLiveIndicator ? renderPredictionSummary(prediction) : ''}
 
         ${actionButtons ? `
-          <div class="d-flex flex-wrap gap-2 justify-content-center mt-auto pt-3">
+          <div class="d-flex flex-wrap gap-2 justify-content-center mt-auto pt-3 w-100">
             ${actionButtons}
           </div>
         ` : ''}
@@ -197,27 +205,6 @@ function renderPredictionSummary(prediction) {
 /**
  * @param {import('../../match/match.service.js').EnrichedMatch} match
  * @param {Record<string, unknown>|null} prediction
- * @returns {string}
- */
-function getPredictionStatus(match, prediction) {
-  if (!prediction) {
-    return match.predictionStatus === 'Open' ? 'pending' : 'locked';
-  }
-
-  if (prediction.locked) {
-    return 'locked';
-  }
-
-  if (match.predictionStatus === 'Open') {
-    return 'submitted';
-  }
-
-  return 'locked';
-}
-
-/**
- * @param {import('../../match/match.service.js').EnrichedMatch} match
- * @param {Record<string, unknown>|null} prediction
  * @param {string} predictionStatus
  * @returns {string}
  */
@@ -230,15 +217,17 @@ function renderUpcomingActionButtons(match, prediction, predictionStatus) {
     `;
   }
 
-  if (predictionStatus === 'locked') {
-    return `
-      <button type="button" class="btn btn-secondary ptw-featured-match__action-btn" disabled>
-        <i class="bi bi-lock me-2" aria-hidden="true"></i>Prediction Locked
-      </button>
-    `;
+  if (
+    predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.LOCKED
+    || predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON
+  ) {
+    return renderContestantPredictionDisabledButton(
+      predictionStatus,
+      'btn btn-secondary ptw-featured-match__action-btn',
+    );
   }
 
-  if (prediction && predictionStatus === 'submitted') {
+  if (prediction && predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED) {
     return `
       <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
         <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction

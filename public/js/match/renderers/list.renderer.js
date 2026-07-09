@@ -7,14 +7,13 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderAdminListTabs } from '../../components/admin-list-tabs.component.js';
-import { renderCountdown } from '../../components/countdown.component.js';
+import { renderMatchCountdownFromDto } from '../../components/countdown.component.js';
 import {
   renderTeamStackHtml,
   renderTeamsMatchupHtml,
 } from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderPagination } from '../../components/pagination.component.js';
-import { MatchDomain } from '../../domain/match.domain.js';
 import {
   MATCH_MESSAGES,
   MATCH_ROUTES,
@@ -381,9 +380,15 @@ function renderMatchCard(match, options = {}) {
   const listRoute = options.listRoute ?? MATCH_ROUTES.ADMIN_LIST;
   const editUrl = `${listRoute}?id=${encodeURIComponent(match.id)}`;
   const kickoff = toDate(match.kickoffUtc);
-  const kickoffIso = kickoff ? kickoff.toISOString() : '';
   const showPredictionOpen = shouldShowPredictionOpenBadge(match, kickoff);
-  const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
+  const countdownHtml = match.matchCountdown
+    ? renderMatchCountdownFromDto(match.matchCountdown, {
+      id: `ptw-countdown-${match.id}`,
+      status: String(match.status ?? ''),
+      predictionStatus: String(match.predictionStatus ?? ''),
+      predictionOverride: match.predictionOverride ?? undefined,
+    })
+    : '';
 
   return `
     <article class="card ptw-card ptw-admin-match-card" data-match-id="${escapeHtml(match.id)}">
@@ -420,13 +425,9 @@ function renderMatchCard(match, options = {}) {
         <div class="ptw-admin-match-card__points">${renderPointsConfigurationBadge(match)}</div>
         <div class="ptw-admin-match-card__date">${escapeHtml(formatKickoff(match))}</div>
 
-        ${showCountdown && kickoffIso ? `
+        ${countdownHtml ? `
           <div class="ptw-admin-match-card__countdown">
-            ${renderCountdown({
-    targetDate: kickoffIso,
-    label: 'Kickoff in',
-    id: `ptw-countdown-${match.id}`,
-  })}
+            ${countdownHtml}
           </div>
         ` : ''}
 

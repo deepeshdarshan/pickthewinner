@@ -12,6 +12,7 @@ import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { listTournamentsForContestant } from '../tournament/tournament.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
+import { filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { Logger } from '../utils/logger.util.js';
 
@@ -74,12 +75,14 @@ async function initTournamentsPage(outlet) {
       return;
     }
 
+    const matches = await listMatchesForContestant();
+
     // Load match counts and prediction progress for each tournament
     const tournamentData = await Promise.all(
       tournaments.map(async (tournament) => {
         try {
-          const matches = await listMatchesForContestant();
           const tournamentMatches = matches.filter((m) => m.tournamentId === tournament.id);
+          const upcomingMatchCount = filterUpcomingMatches(tournamentMatches).length;
 
           // Count submitted predictions
           let submittedCount = 0;
@@ -94,6 +97,7 @@ async function initTournamentsPage(outlet) {
             tournament,
             totalMatches: tournamentMatches.length,
             submittedPredictions: submittedCount,
+            upcomingMatchCount,
           };
         } catch (error) {
           Logger.error('[TournamentsPage] Failed to load tournament data:', error);
@@ -101,6 +105,7 @@ async function initTournamentsPage(outlet) {
             tournament,
             totalMatches: 0,
             submittedPredictions: 0,
+            upcomingMatchCount: 0,
           };
         }
       }),
@@ -118,7 +123,7 @@ async function initTournamentsPage(outlet) {
 
 /**
  * Renders the tournaments page.
- * @param {Array<{tournament: import('../tournament/tournament.service.js').Tournament, totalMatches: number, submittedPredictions: number}>} tournamentData
+ * @param {Array<{tournament: import('../tournament/tournament.service.js').Tournament, totalMatches: number, submittedPredictions: number, upcomingMatchCount: number}>} tournamentData
  * @returns {string}
  */
 function renderTournamentsPage(tournamentData) {
@@ -142,12 +147,13 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${live.map((data) => `
-              <div class="col-12 col-md-6 col-lg-4">
+              <div class="col-12 col-lg-6">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,
                   submittedPredictions: data.submittedPredictions,
                   showProgress: true,
+                  upcomingMatchCount: data.upcomingMatchCount,
                 })}
               </div>
             `).join('')}
@@ -163,12 +169,13 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${upcoming.map((data) => `
-              <div class="col-12 col-md-6 col-lg-4">
+              <div class="col-12 col-lg-6">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,
                   submittedPredictions: data.submittedPredictions,
                   showProgress: true,
+                  upcomingMatchCount: data.upcomingMatchCount,
                 })}
               </div>
             `).join('')}
@@ -184,12 +191,13 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${completed.map((data) => `
-              <div class="col-12 col-md-6 col-lg-4">
+              <div class="col-12 col-lg-6">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,
                   submittedPredictions: data.submittedPredictions,
                   showProgress: false,
+                  upcomingMatchCount: data.upcomingMatchCount,
                 })}
               </div>
             `).join('')}

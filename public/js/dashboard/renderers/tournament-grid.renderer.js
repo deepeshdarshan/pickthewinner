@@ -82,14 +82,12 @@ function renderDashboardTournamentCard(tournament) {
 export function renderTournamentGridSection(data) {
   if (data.tournamentCards.length === 0) {
     return `
-      <section class="ptw-dashboard-tournaments h-100" aria-labelledby="ptw-my-tournaments-heading">
-        <div class="ptw-dashboard-section-header mb-3">
-          <h2 class="ptw-dashboard-section-header__title mb-0" id="ptw-my-tournaments-heading">My Tournaments</h2>
-        </div>
-        <div class="card ptw-card h-100">
-          <div class="card-body">
-            <p class="ptw-text-muted mb-0">No tournaments available yet.</p>
+      <section class="card ptw-card ptw-dashboard-tournaments h-100" aria-labelledby="ptw-my-tournaments-heading">
+        <div class="card-body d-flex flex-column h-100">
+          <div class="ptw-dashboard-section-header mb-3">
+            <h2 class="ptw-dashboard-section-header__title mb-0" id="ptw-my-tournaments-heading">My Tournaments</h2>
           </div>
+          <p class="ptw-text-muted mb-0">No tournaments available yet.</p>
         </div>
       </section>
     `;
@@ -102,12 +100,14 @@ export function renderTournamentGridSection(data) {
   `).join('');
 
   return `
-    <section class="ptw-dashboard-tournaments h-100" aria-labelledby="ptw-my-tournaments-heading">
-      <div class="ptw-dashboard-section-header mb-3">
-        <h2 class="ptw-dashboard-section-header__title mb-1" id="ptw-my-tournaments-heading">My Tournaments</h2>
-        <p class="ptw-dashboard-section-header__subtitle mb-0">${escapeHtml(String(data.activeTournamentCount))} active tournament${data.activeTournamentCount === 1 ? '' : 's'}</p>
+    <section class="card ptw-card ptw-dashboard-tournaments h-100" aria-labelledby="ptw-my-tournaments-heading">
+      <div class="card-body d-flex flex-column h-100">
+        <div class="ptw-dashboard-section-header mb-3">
+          <h2 class="ptw-dashboard-section-header__title mb-1" id="ptw-my-tournaments-heading">My Tournaments</h2>
+          <p class="ptw-dashboard-section-header__subtitle mb-0">${escapeHtml(String(data.activeTournamentCount))} active tournament${data.activeTournamentCount === 1 ? '' : 's'}</p>
+        </div>
+        <div class="row g-3 ptw-tournament-grid">${cards}</div>
       </div>
-      <div class="row g-3 ptw-tournament-grid">${cards}</div>
     </section>
   `;
 }

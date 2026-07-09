@@ -4,7 +4,7 @@
  */
 
 import { appSettings } from '../config/app.config.js';
-import { renderPredictionWindowCountdown } from '../components/countdown.component.js';
+import { renderMatchCountdownFromDto } from '../components/countdown.component.js';
 import { escapeHtml } from '../utils/html.util.js';
 import {
   getTeamFlagUrl,
@@ -22,7 +22,7 @@ import { formatDateTime, toDate } from '../utils/date.util.js';
  * @property {Record<string, unknown>|null} [existingPrediction]
  * @property {boolean} [isEdit]
  * @property {boolean} [requireWinnerSelectionForDrawPrediction] - Tournament configuration
- * @property {string|null} [predictionLocksAt] - ISO date when the prediction window closes
+ * @property {import('../match/match-countdown.service.js').MatchCountdownDto|null} [matchCountdown]
  * @property {string|null} [tournamentBannerUrl] - Optional hero background image
  */
 
@@ -118,15 +118,21 @@ function renderPredictionFormTeamHtml(team, fallback) {
 }
 
 /**
- * @param {string|null|undefined} locksAt
+ * @param {import('../match/match-countdown.service.js').MatchCountdownDto|null|undefined} matchCountdown
+ * @param {import('../match/match.service.js').EnrichedMatch} match
  * @returns {string}
  */
-function renderPredictionFormCountdownHtml(locksAt) {
-  if (!locksAt) {
+function renderPredictionFormCountdownHtml(matchCountdown, match) {
+  if (!matchCountdown) {
     return '';
   }
 
-  return renderPredictionWindowCountdown({ targetDate: locksAt });
+  return renderMatchCountdownFromDto(matchCountdown, {
+    id: `ptw-prediction-form-countdown-${match.id}`,
+    status: String(match.status ?? ''),
+    predictionStatus: String(match.predictionStatus ?? ''),
+    predictionOverride: match.predictionOverride ?? undefined,
+  });
 }
 
 /**
@@ -240,7 +246,7 @@ export function renderPredictionForm(options) {
     existingPrediction = null,
     isEdit = false,
     requireWinnerSelectionForDrawPrediction = false,
-    predictionLocksAt = null,
+    matchCountdown = null,
     tournamentBannerUrl = null,
   } = options;
 
@@ -263,7 +269,7 @@ export function renderPredictionForm(options) {
           <p class="ptw-prediction-form__subtitle">Make your prediction before the window closes</p>
         </div>
         <div class="ptw-prediction-form__header-meta">
-          ${renderPredictionFormCountdownHtml(predictionLocksAt)}
+          ${renderPredictionFormCountdownHtml(matchCountdown, match)}
           <div class="ptw-prediction-form__timezone" title="${escapeHtml(appSettings.timezoneLabel)}">
             <span class="ptw-prediction-form__timezone-badge">
               <i class="bi bi-globe2" aria-hidden="true"></i>

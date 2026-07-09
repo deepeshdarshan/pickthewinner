@@ -9,7 +9,6 @@ import { USER_ROLES } from '../users/user.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { getActiveTournament, listTournamentsForContestant } from '../tournament/tournament.service.js';
 import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
-import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { PlatformSettingsService } from '../settings/settings.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
 import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
@@ -17,7 +16,6 @@ import { getPredictionSummary } from '../prediction/prediction-submission.servic
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
-import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
 
 /**
  * @typedef {Object} ContestantActivityItem
@@ -66,7 +64,7 @@ import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
  * @property {import('../tournament/tournament.service.js').Tournament[]} tournaments
  * @property {Array<import('../tournament/tournament.service.js').Tournament & { stats: TournamentCardStats }>} tournamentCards
  * @property {import('../match/match.service.js').EnrichedMatch|null} featuredMatch
- * @property {{ targetDate: string, label: string }|null} featuredMatchCountdown
+ * @property {import('../match/match-countdown.service.js').MatchCountdownDto|null} featuredMatchCountdown
  * @property {Record<string, unknown>|null} featuredMatchPrediction
  * @property {import('../match/match.service.js').EnrichedMatch|null} featuredLiveMatch
  * @property {Record<string, unknown>|null} featuredLiveMatchPrediction
@@ -223,9 +221,7 @@ export const ContestantDashboardService = {
     });
 
     const recentActivity = buildRecentActivity(allMatches, user?.uid ?? null);
-    const featuredMatchCountdown = featuredMatch
-      ? await buildFeaturedMatchCountdown(featuredMatch)
-      : null;
+    const featuredMatchCountdown = featuredMatch?.matchCountdown ?? null;
 
     return {
       displayName: escapeHtml(displayName),
@@ -324,43 +320,6 @@ function buildActiveTournamentHeroDto(activeTournament, tournamentCards) {
   };
 }
 
-/**
- * @param {import('../match/match.service.js').EnrichedMatch} match
- * @returns {Promise<{ targetDate: string, label: string }|null>}
- */
-async function buildFeaturedMatchCountdown(match) {
-  if (isPredictionWindowLocked(match)) {
-    return null;
-  }
-
-  const kickoff = toDate(match.kickoffUtc);
-  if (!kickoff || !match.tournamentId) {
-    return null;
-  }
-
-  try {
-    await TournamentConfigurationService.load(match.tournamentId);
-    const openHours = TournamentConfigurationService.getPredictionOpenHoursBeforeKickoff();
-    const lockMinutes = TournamentConfigurationService.getPredictionLockMinutes();
-    const { opensAt, locksAt } = MatchDomain.calculatePredictionWindow(kickoff, openHours, lockMinutes);
-
-    if (match.status === MATCH_STATUS.PREDICTION_OPEN || match.predictionStatus === 'Open') {
-      return { targetDate: locksAt.toISOString(), label: 'Closes in' };
-    }
-
-    return { targetDate: opensAt.toISOString(), label: 'Prediction opens in' };
-  } catch {
-    return null;
-  }
-}
-
-/**
- * @param {import('../match/match.service.js').EnrichedMatch} match
- * @returns {boolean}
- */
-function isPredictionWindowLocked(match) {
-  return match.predictionStatus === 'Locked' || match.status === MATCH_STATUS.PREDICTION_LOCKED;
-}
 
 /**
  * @param {unknown} value
