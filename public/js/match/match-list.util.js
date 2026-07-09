@@ -58,6 +58,39 @@ export function filterUpcomingMatches(matches, now = new Date()) {
  * @param {Date} [now]
  * @returns {EnrichedMatch[]}
  */
+/**
+ * @param {EnrichedMatch[]} matches
+ * @param {string} tournamentId
+ * @param {Date} [now]
+ * @returns {{ totalMatches: number, upcomingMatches: number, liveMatches: number }}
+ */
+export function countTournamentMatchStats(matches, tournamentId, now = new Date()) {
+  const tournamentMatches = matches.filter((match) => match.tournamentId === tournamentId);
+
+  return {
+    totalMatches: tournamentMatches.length,
+    upcomingMatches: filterUpcomingMatches(tournamentMatches, now).length,
+    liveMatches: filterLiveMatches(tournamentMatches, now).length,
+  };
+}
+
+/**
+ * @param {EnrichedMatch[]} matches
+ * @param {Date} [now]
+ * @returns {Record<string, { totalMatches: number, upcomingMatches: number, liveMatches: number }>}
+ */
+export function buildTournamentMatchStatsMap(matches, now = new Date()) {
+  const tournamentIds = [...new Set(matches.map((match) => match.tournamentId).filter(Boolean))];
+  /** @type {Record<string, { totalMatches: number, upcomingMatches: number, liveMatches: number }>} */
+  const statsByTournamentId = {};
+
+  for (const tournamentId of tournamentIds) {
+    statsByTournamentId[tournamentId] = countTournamentMatchStats(matches, tournamentId, now);
+  }
+
+  return statsByTournamentId;
+}
+
 export function filterLiveMatches(matches, now = new Date()) {
   return matches.filter((match) => {
     if (match.result?.published) {

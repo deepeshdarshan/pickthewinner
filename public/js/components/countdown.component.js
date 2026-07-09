@@ -34,7 +34,7 @@ export function renderCountdown(options) {
   const { targetDate, label = 'Time remaining', id = `ptw-countdown-${Date.now()}` } = options;
 
   return `
-    <div class="ptw-countdown" id="${id}" data-target="${targetDate}" role="timer" aria-live="polite">
+    <div class="ptw-countdown" id="${escapeHtml(id)}" data-target="${escapeHtml(targetDate)}" role="timer" aria-live="polite">
       <span class="ptw-countdown__label">${label}</span>
       <div class="ptw-countdown__display">
         <span class="ptw-countdown__value" data-ptw-countdown-value>--:--:--</span>

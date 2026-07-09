@@ -51,7 +51,7 @@ export function renderTeamListPage(teams) {
       actionHtml: createButton,
     })
     : `
-      <div class="table-responsive">
+      <div class="d-none d-lg-block table-responsive">
         <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Teams">
           <thead>
             <tr>
@@ -67,6 +67,9 @@ export function renderTeamListPage(teams) {
           </tbody>
         </table>
       </div>
+      <div class="d-lg-none ptw-admin-card-list" aria-label="Team cards">
+        ${teams.map((team) => renderTeamCard(team)).join('')}
+      </div>
     `;
 
   return `
@@ -80,6 +83,39 @@ export function renderTeamListPage(teams) {
         <div class="card-body">${body}</div>
       </div>
     </div>
+  `;
+}
+
+/**
+ * @param {Team} team
+ * @returns {string}
+ */
+export function renderTeamCard(team) {
+  const editUrl = `${TEAM_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(team.id)}`;
+  const flag = renderTeamFlagHtml(team.flagUrl);
+
+  return `
+    <article class="card ptw-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          ${flag}
+          <div class="min-w-0 flex-grow-1">
+            <h3 class="h6 mb-0">${escapeHtml(team.name)}</h3>
+            ${team.shortName ? `<p class="ptw-admin-card__meta mb-0">${escapeHtml(team.shortName)}</p>` : ''}
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mb-3 ptw-admin-card__meta">
+          <span><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>${escapeHtml(team.country)}</span>
+          <span><i class="bi bi-trophy me-1" aria-hidden="true"></i>${escapeHtml(team.sport)}</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <span class="badge ${team.active ? 'bg-success' : 'bg-secondary'}">${team.active ? 'Active' : 'Inactive'}</span>
+          <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>
+            <i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit
+          </a>
+        </div>
+      </div>
+    </article>
   `;
 }
 

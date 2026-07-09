@@ -13,7 +13,19 @@ import { USER_ROLES, USER_STATUS } from '../user.constants.js';
  */
 
 /**
- * Renders a table of users for desktop view.
+ * @param {string} uid
+ * @param {string} name
+ * @returns {string}
+ */
+function renderUserProfileLink(uid, name) {
+  return `
+    <a href="/admin/users/${escapeHtml(uid)}" class="ptw-profile-link fw-semibold text-white text-decoration-none" data-route>
+      ${escapeHtml(name)}
+    </a>
+  `;
+}
+
+/**
  * @param {UserProfile[]} users
  * @param {Object} [options]
  * @param {(uid: string) => void} [options.onLockClick]
@@ -55,7 +67,7 @@ export function renderUserTable(users, options = {}) {
               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%232D3A52%22/%3E%3Ctext x=%2216%22 y=%2220%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-size=%2214%22%3E${escapeHtml((user.name || 'U')[0].toUpperCase())}%3C/text%3E%3C/svg%3E'"
             />
             <div class="ms-2">
-              <div class="fw-semibold text-white" style="font-size: 0.875rem;">${escapeHtml(user.name || 'Unknown')}</div>
+              <div style="font-size: 0.875rem;">${renderUserProfileLink(user.uid, user.name || 'Unknown')}</div>
               <small style="color: #94A3B8; font-size: 0.75rem;">${escapeHtml(user.email || '')}</small>
             </div>
           </div>
@@ -157,7 +169,7 @@ export function renderUserCards(users) {
               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%232D3A52%22/%3E%3Ctext x=%2220%22 y=%2225%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-size=%2216%22%3E${escapeHtml((user.name || 'U')[0].toUpperCase())}%3C/text%3E%3C/svg%3E'"
             />
             <div class="ms-2 flex-grow-1">
-              <h3 class="h6 mb-1 text-white" style="font-size: 0.875rem;">${escapeHtml(user.name || 'Unknown')}</h3>
+              <h3 class="h6 mb-1" style="font-size: 0.875rem;">${renderUserProfileLink(user.uid, user.name || 'Unknown')}</h3>
               <p class="mb-1 text-white-50" style="font-size: 0.75rem;">${escapeHtml(user.email || '')}</p>
               <div class="d-flex gap-1">
                 <span class="badge ${roleBadgeClass}" style="font-size: 0.7rem;">${escapeHtml(UserAdminDomain.formatUserRole(user.role))}</span>

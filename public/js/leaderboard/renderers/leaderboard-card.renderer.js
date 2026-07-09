@@ -12,16 +12,19 @@ import {
 /**
  * Renders leaderboard as card list for mobile.
  * @param {Array<import('../leaderboard.service.js').LeaderboardEntry>} entries
+ * @param {{ linkProfiles?: boolean }} [options]
  * @returns {string}
  */
-export function renderLeaderboardCards(entries) {
+export function renderLeaderboardCards(entries, options = {}) {
+  const { linkProfiles = false } = options;
+
   if (!entries || entries.length === 0) {
     return '<p class="text-center text-muted">No leaderboard data available</p>';
   }
 
   return `
     <div class="ptw-leaderboard-cards">
-      ${entries.map((entry) => renderLeaderboardCard(entry)).join('')}
+      ${entries.map((entry) => renderLeaderboardCard(entry, { linkProfiles })).join('')}
     </div>
   `;
 }
@@ -29,10 +32,18 @@ export function renderLeaderboardCards(entries) {
 /**
  * Renders a single leaderboard card.
  * @param {import('../leaderboard.service.js').LeaderboardEntry} entry
+ * @param {{ linkProfiles?: boolean }} options
  * @returns {string}
  */
-function renderLeaderboardCard(entry) {
+function renderLeaderboardCard(entry, options = {}) {
+  const { linkProfiles = false } = options;
   const rankBadgeClass = getRankBadgeClass(entry.rank);
+  const nameHtml = linkProfiles
+    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-leaderboard-card__name mb-0 d-inline-block" data-route>
+        ${escapeHtml(entry.displayName)}
+        <i class="bi bi-box-arrow-up-right ms-1 small" aria-hidden="true"></i>
+      </a>`
+    : `<h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>`;
   return `
     <div class="card ptw-card ptw-leaderboard-card mb-3" data-user-id="${escapeHtml(entry.userId)}">
       <div class="card-body">
@@ -40,7 +51,7 @@ function renderLeaderboardCard(entry) {
           <span class="badge ptw-leaderboard-card__rank ${rankBadgeClass}">${entry.rank}</span>
           ${renderAvatar(entry.photoURL, entry.displayName)}
           <div class="ms-3 flex-grow-1 min-w-0">
-            <h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>
+            ${nameHtml}
             ${entry.country ? `<small class="ptw-leaderboard-card__country">${escapeHtml(entry.country)}</small>` : ''}
           </div>
           ${renderMovementIndicator(entry.movement)}

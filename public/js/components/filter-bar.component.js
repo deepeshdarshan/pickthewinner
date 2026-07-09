@@ -10,7 +10,7 @@
  */
 
 /**
- * Renders a sticky filter bar card with flex layout fields.
+ * Renders a filter bar card with flex layout fields.
  * @param {FilterBarOptions} options
  * @returns {string}
  */

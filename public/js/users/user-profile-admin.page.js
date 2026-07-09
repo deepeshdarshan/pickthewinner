@@ -16,6 +16,7 @@ import {
   renderLockUserModal,
   renderUnlockUserModal,
 } from './renderers/user-admin.renderer.js';
+import { renderContactActionButtons } from '../components/contact-action-buttons.component.js';
 
 /** @typedef {import('./user.service.js').UserProfile} UserProfile */
 
@@ -152,9 +153,15 @@ function renderProfilePage(outlet, user) {
               ${user.phone ? `
               <div class="mb-3">
                 <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">Phone</label>
-                <p class="text-white mb-0" style="font-size: 0.8125rem;">${escapeHtml(user.phone)}</p>
+                <p class="text-white mb-2" style="font-size: 0.8125rem;">${escapeHtml(user.phone)}</p>
+                ${renderContactActionButtons({ phone: user.phone })}
               </div>
-              ` : ''}
+              ` : `
+              <div class="mb-3">
+                <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">Phone</label>
+                ${renderContactActionButtons({ phone: '' })}
+              </div>
+              `}
               
               <div class="mb-3">
                 <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">User ID</label>

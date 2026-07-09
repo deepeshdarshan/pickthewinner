@@ -192,7 +192,7 @@ export function renderPredictionFilters(options) {
     }),
   ].join('');
 
-  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-match-filters' });
+  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-admin-predictions__filters ptw-filter-bar--scrollable' });
 }
 
 /**
@@ -272,7 +272,7 @@ export function renderPredictionTable(predictions, options = {}) {
       </table>
     </div>
 
-    <div class="d-lg-none" aria-label="Prediction cards">
+    <div class="d-lg-none px-3 py-2 ptw-admin-card-list ptw-prediction-card-list" aria-label="Prediction cards">
       ${renderPredictionCardList(predictions)}
     </div>
 

@@ -50,7 +50,7 @@ export function renderMatchStageListPage(stages) {
       actionHtml: createButton,
     })
     : `
-      <div class="table-responsive">
+      <div class="d-none d-lg-block table-responsive">
         <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Match Stages">
           <thead>
             <tr>
@@ -63,6 +63,9 @@ export function renderMatchStageListPage(stages) {
           </thead>
           <tbody>${stages.map((stage) => renderStageRow(stage)).join('')}</tbody>
         </table>
+      </div>
+      <div class="d-lg-none ptw-admin-card-list" aria-label="Match stage cards">
+        ${stages.map((stage) => renderMatchStageCard(stage)).join('')}
       </div>
     `;
 
@@ -77,6 +80,37 @@ export function renderMatchStageListPage(stages) {
         <div class="card-body">${body}</div>
       </div>
     </div>
+  `;
+}
+
+/**
+ * @param {MatchStage} stage
+ * @returns {string}
+ */
+export function renderMatchStageCard(stage) {
+  const editUrl = `${MATCH_STAGE_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(stage.id)}`;
+
+  return `
+    <article class="card ptw-card">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-2 mb-2">
+          <i class="bi bi-diagram-3 text-primary" aria-hidden="true"></i>
+          <div class="min-w-0 flex-grow-1">
+            <h3 class="h6 mb-0">${escapeHtml(stage.label)}</h3>
+            <p class="ptw-admin-card__meta mb-0"><code>${escapeHtml(stage.value)}</code></p>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mb-3 ptw-admin-card__meta">
+          <span><i class="bi bi-sort-numeric-down me-1" aria-hidden="true"></i>Order ${escapeHtml(String(stage.sortOrder))}</span>
+          ${stage.active
+    ? '<span class="badge bg-success-subtle text-success-emphasis border">Active</span>'
+    : '<span class="badge bg-secondary-subtle text-secondary-emphasis border">Inactive</span>'}
+        </div>
+        <a class="btn btn-sm btn-outline-light w-100" href="${editUrl}" data-route>
+          <i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit
+        </a>
+      </div>
+    </article>
   `;
 }
 

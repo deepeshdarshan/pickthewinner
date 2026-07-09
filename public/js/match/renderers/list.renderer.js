@@ -8,9 +8,13 @@ import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.comp
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderAdminListTabs } from '../../components/admin-list-tabs.component.js';
 import { renderCountdown } from '../../components/countdown.component.js';
-import { renderTeamsMatchupHtml } from '../../master-data/teams/team-flag.util.js';
+import {
+  renderTeamStackHtml,
+  renderTeamsMatchupHtml,
+} from '../../master-data/teams/team-flag.util.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderPagination } from '../../components/pagination.component.js';
+import { MatchDomain } from '../../domain/match.domain.js';
 import {
   MATCH_MESSAGES,
   MATCH_ROUTES,
@@ -18,6 +22,7 @@ import {
   MATCH_STATUS_LABELS,
 } from '../match.constants.js';
 import { renderMatchStatusBadge } from './status-badge.renderer.js';
+import { renderMatchScoringPointsHtml } from './match-scoring-points.renderer.js';
 import { renderFilterBar, renderFilterField } from '../../components/filter-bar.component.js';
 
 /**
@@ -111,7 +116,7 @@ export function renderMatchListTabContent(matches, options = {}) {
           <tbody>${matches.map((match) => renderMatchRow(match, { listRoute, allowDelete })).join('')}</tbody>
         </table>
       </div>
-      <div class="d-lg-none ptw-match-cards">
+      <div class="d-lg-none ptw-admin-card-list ptw-admin-match-card-list" aria-label="Match cards">
         ${matches.map((match) => renderMatchCard(match, { listRoute, allowDelete })).join('')}
       </div>
       ${pagination ? `<div class="mt-3" id="${escapeHtml(paginationId)}">${pagination}</div>` : ''}
@@ -375,38 +380,89 @@ function renderMatchRow(match, options = {}) {
 function renderMatchCard(match, options = {}) {
   const listRoute = options.listRoute ?? MATCH_ROUTES.ADMIN_LIST;
   const editUrl = `${listRoute}?id=${encodeURIComponent(match.id)}`;
-  const kickoffIso = toIso(match.kickoffUtc);
+  const kickoff = toDate(match.kickoffUtc);
+  const kickoffIso = kickoff ? kickoff.toISOString() : '';
+  const showPredictionOpen = shouldShowPredictionOpenBadge(match, kickoff);
+  const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
 
   return `
-    <article class="card ptw-card ptw-match-card mb-3" data-match-id="${escapeHtml(match.id)}">
+    <article class="card ptw-card ptw-admin-match-card" data-match-id="${escapeHtml(match.id)}">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div>${renderTeamsCell(match)}</div>
-          ${renderMatchStatusBadge(match.status)}
+        ${showPredictionOpen ? `
+          <div class="ptw-admin-match-card__header">
+            <div class="ptw-admin-match-card__status">
+              ${renderMatchStatusBadge(MATCH_STATUS.PREDICTION_OPEN)}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="ptw-admin-match-card__matchup">
+          <div class="ptw-admin-match-card__team">
+            ${renderTeamStackHtml(match.homeTeam, {
+    fallback: 'TBD',
+    headingTag: 'div',
+    className: 'ptw-team-flag ptw-team-flag--stacked ptw-admin-match-card__flag',
+  })}
+          </div>
+          <div class="ptw-admin-match-card__vs" aria-hidden="true">vs</div>
+          <div class="ptw-admin-match-card__team">
+            ${renderTeamStackHtml(match.awayTeam, {
+    fallback: 'TBD',
+    headingTag: 'div',
+    className: 'ptw-team-flag ptw-team-flag--stacked ptw-admin-match-card__flag',
+  })}
+          </div>
         </div>
-        <div class="small ptw-text-muted mb-2">
-          <div>${escapeHtml(match.tournamentName ?? '')}</div>
-          <div>${escapeHtml(formatKickoff(match))}</div>
-        </div>
-        <div class="small mb-2">Points: ${renderPointsConfigurationBadge(match)}</div>
-        ${kickoffIso ? renderCountdown({ targetDate: kickoffIso, label: 'Kickoff in', id: `ptw-countdown-${match.id}` }) : ''}
-        <div class="mt-2 small">Prediction: ${escapeHtml(match.predictionStatus ?? '—')}</div>
-        <div class="d-flex gap-2 mt-3 flex-wrap">
-          <a class="btn btn-sm btn-outline-light" href="${editUrl}" data-route>Manage</a>
+
+        <hr class="ptw-admin-match-card__divider">
+
+        <div class="ptw-admin-match-card__tournament">${escapeHtml(match.tournamentName ?? '')}</div>
+        <div class="ptw-admin-match-card__points">${renderPointsConfigurationBadge(match)}</div>
+        <div class="ptw-admin-match-card__date">${escapeHtml(formatKickoff(match))}</div>
+
+        ${showCountdown && kickoffIso ? `
+          <div class="ptw-admin-match-card__countdown">
+            ${renderCountdown({
+    targetDate: kickoffIso,
+    label: 'Kickoff in',
+    id: `ptw-countdown-${match.id}`,
+  })}
+          </div>
+        ` : ''}
+
+        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig, { compact: true, variant: 'dashboard' })}
+
+        <div class="ptw-admin-match-card__actions">
+          <a class="btn btn-outline-light w-100" href="${editUrl}" data-route>
+            <i class="bi bi-gear-wide-connected me-2" aria-hidden="true"></i>Manage
+          </a>
           ${options.allowDelete ? `
             <button
               type="button"
-              class="btn btn-sm btn-outline-danger"
+              class="btn btn-outline-danger w-100"
               data-ptw-match-delete
               data-match-id="${escapeHtml(match.id)}"
             >
-              Delete
+              <i class="bi bi-trash me-2" aria-hidden="true"></i>Delete
             </button>
           ` : ''}
         </div>
       </div>
     </article>
   `;
+}
+
+/**
+ * @param {EnrichedMatch} match
+ * @param {Date|null} kickoff
+ * @returns {boolean}
+ */
+function shouldShowPredictionOpenBadge(match, kickoff) {
+  if (!kickoff || new Date() >= kickoff) {
+    return false;
+  }
+
+  return match.status === MATCH_STATUS.PREDICTION_OPEN || match.predictionStatus === 'Open';
 }
 
 /**

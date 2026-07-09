@@ -6,11 +6,19 @@
 import { escapeHtml } from '../../utils/html.util.js';
 
 /**
+ * @typedef {Object} LeaderboardTableOptions
+ * @property {boolean} [linkProfiles]
+ */
+
+/**
  * Renders a leaderboard table for desktop.
  * @param {Array<import('../leaderboard.service.js').LeaderboardEntry>} entries
+ * @param {LeaderboardTableOptions} [options]
  * @returns {string}
  */
-export function renderLeaderboardTable(entries) {
+export function renderLeaderboardTable(entries, options = {}) {
+  const { linkProfiles = false } = options;
+
   if (!entries || entries.length === 0) {
     return '<p class="text-center text-muted">No leaderboard data available</p>';
   }
@@ -39,7 +47,7 @@ export function renderLeaderboardTable(entries) {
           </tr>
         </thead>
         <tbody>
-          ${entries.map((entry) => renderLeaderboardRow(entry)).join('')}
+          ${entries.map((entry) => renderLeaderboardRow(entry, { linkProfiles })).join('')}
         </tbody>
       </table>
     </div>
@@ -49,10 +57,19 @@ export function renderLeaderboardTable(entries) {
 /**
  * Renders a single leaderboard table row.
  * @param {import('../leaderboard.service.js').LeaderboardEntry} entry
+ * @param {LeaderboardTableOptions} options
  * @returns {string}
  */
-function renderLeaderboardRow(entry) {
+function renderLeaderboardRow(entry, options = {}) {
+  const { linkProfiles = false } = options;
   const rankBadgeClass = getRankBadgeClass(entry.rank);
+  const nameHtml = linkProfiles
+    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link fw-semibold text-truncate d-block" data-route>
+        ${escapeHtml(entry.displayName)}
+        <i class="bi bi-box-arrow-up-right ms-1 small" aria-hidden="true"></i>
+      </a>`
+    : `<span class="fw-semibold text-truncate d-block">${escapeHtml(entry.displayName)}</span>`;
+
   return `
     <tr data-user-id="${escapeHtml(entry.userId)}">
       <td class="ptw-leaderboard-table__rank">
@@ -62,7 +79,7 @@ function renderLeaderboardRow(entry) {
         <div class="d-flex align-items-center gap-2 min-w-0">
           ${renderAvatar(entry.photoURL, entry.displayName)}
           <div class="min-w-0">
-            <span class="fw-semibold text-truncate d-block">${escapeHtml(entry.displayName)}</span>
+            ${nameHtml}
             ${entry.country ? `<small class="text-muted text-truncate d-block">${escapeHtml(entry.country)}</small>` : ''}
           </div>
         </div>
@@ -135,4 +152,3 @@ function renderLeaderboardTableHeader(line1, line2 = '') {
 
   return `<span class="ptw-leaderboard-table__th-label">${escapeHtml(line1)}<br>${escapeHtml(line2)}</span>`;
 }
-

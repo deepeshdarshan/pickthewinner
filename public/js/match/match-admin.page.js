@@ -50,6 +50,7 @@ import {
   renderMatchNotFound,
   renderInheritedConfigPanel,
 } from './match.renderer.js';
+import { initializeCountdowns } from '../components/countdown.component.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -145,6 +146,8 @@ async function renderListView(outlet, options = {}) {
         filterIdPrefix: 'ptw-match-filter',
         paginationId: 'ptw-match-pagination',
       });
+
+      initializeCountdowns(pane);
     };
 
     const paintArchivedPane = () => {
@@ -181,6 +184,8 @@ async function renderListView(outlet, options = {}) {
         paginationId: 'ptw-match-archived-pagination',
         allowDelete: true,
       });
+
+      initializeCountdowns(pane);
     };
 
     const paintShell = () => {

@@ -69,7 +69,11 @@ export function renderMatchCard(options) {
           ${statusBadge}
           ${customPointsBadge}
         </div>
-        ${showCountdown ? renderCountdown({ targetDate: kickoff.toISOString(), label: 'Time remaining' }) : ''}
+        ${showCountdown ? renderCountdown({
+    targetDate: kickoff.toISOString(),
+    label: 'Time remaining',
+    id: `ptw-countdown-${match.id}`,
+  }) : ''}
       </div>
       <div class="card-body">
         <div class="row align-items-center g-3">

@@ -11,6 +11,11 @@ import { escapeHtml } from '../../utils/html.util.js';
 import { TOURNAMENT_MESSAGES, TOURNAMENT_ROUTES } from '../tournament.constants.js';
 import { renderStatusBadge, renderVisibilityBadge, renderActiveBadge } from './status-badge.renderer.js';
 import { renderArchivedTournamentTableBody } from './archived-list.renderer.js';
+import { renderDashboardStyleTournamentCard } from './tournament-card.renderer.js';
+
+/**
+ * @typedef {import('./tournament-card.renderer.js').TournamentMatchStats} TournamentMatchStats
+ */
 
 /**
  * @typedef {import('../tournament.service.js').Tournament} Tournament
@@ -36,10 +41,11 @@ export function renderTournamentListLoading() {
 
 /**
  * @param {Tournament[]} tournaments
- * @param {{ createButton?: string }} [options]
+ * @param {{ createButton?: string, matchStatsByTournamentId?: Record<string, TournamentMatchStats> }} [options]
  * @returns {string}
  */
 export function renderTournamentTableBody(tournaments, options = {}) {
+  const { matchStatsByTournamentId = {} } = options;
   const createButton = options.createButton ?? `
     <a class="btn btn-ptw-primary" href="${TOURNAMENT_ROUTES.ADMIN_LIST}?action=create" data-route>
       <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Create Tournament
@@ -56,9 +62,12 @@ export function renderTournamentTableBody(tournaments, options = {}) {
   }
 
   const tableRows = tournaments.map((tournament) => renderTournamentRow(tournament)).join('');
+  const cardList = tournaments
+    .map((tournament) => renderTournamentCard(tournament, matchStatsByTournamentId[tournament.id]))
+    .join('');
 
   return `
-    <div class="table-responsive">
+    <div class="d-none d-lg-block table-responsive">
       <table class="table table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Tournaments">
         <thead>
           <tr>
@@ -74,24 +83,52 @@ export function renderTournamentTableBody(tournaments, options = {}) {
         </tbody>
       </table>
     </div>
+    <div class="d-lg-none ptw-admin-card-list ptw-admin-tournament-card-list" aria-label="Tournament cards">
+      ${cardList}
+    </div>
   `;
+}
+
+/**
+ * @param {Tournament} tournament
+ * @param {TournamentMatchStats} [stats]
+ * @returns {string}
+ */
+export function renderTournamentCard(tournament, stats) {
+  const editUrl = `${TOURNAMENT_ROUTES.ADMIN_LIST}?id=${encodeURIComponent(tournament.id)}`;
+
+  return renderDashboardStyleTournamentCard(tournament, {
+    label: tournament.active ? 'Active Tournament' : 'Tournament',
+    stats: stats ?? { totalMatches: 0, upcomingMatches: 0, liveMatches: 0 },
+    actionsHtml: `
+      <a
+        class="btn btn-ptw-primary ptw-active-tournament-hero__cta w-100"
+        href="${editUrl}"
+        data-route
+        aria-label="Manage ${escapeHtml(tournament.name)}"
+      >
+        <i class="bi bi-gear me-2" aria-hidden="true"></i>Manage Tournament
+      </a>
+    `,
+  });
 }
 
 /**
  * @param {Tournament[]} activeTournaments
  * @param {Tournament[]} archivedTournaments
- * @param {{ activeTabId?: string }} [options]
+ * @param {{ activeTabId?: string, matchStatsByTournamentId?: Record<string, TournamentMatchStats> }} [options]
  * @returns {string}
  */
 export function renderTournamentListPageWithTabs(activeTournaments, archivedTournaments, options = {}) {
+  const { matchStatsByTournamentId = {} } = options;
   const createButton = `
     <a class="btn btn-ptw-primary" href="${TOURNAMENT_ROUTES.ADMIN_LIST}?action=create" data-route>
       <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Create Tournament
     </a>
   `;
 
-  const activeBody = renderTournamentTableBody(activeTournaments, { createButton });
-  const archivedBody = renderArchivedTournamentTableBody(archivedTournaments);
+  const activeBody = renderTournamentTableBody(activeTournaments, { createButton, matchStatsByTournamentId });
+  const archivedBody = renderArchivedTournamentTableBody(archivedTournaments, { matchStatsByTournamentId });
 
   const tabs = renderAdminListTabs({
     groupId: 'ptw-tournament-list-tabs',

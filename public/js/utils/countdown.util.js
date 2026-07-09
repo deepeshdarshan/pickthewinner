@@ -96,6 +96,19 @@ export function formatPredictionWindowCountdown(parts) {
  * @returns {() => void} Cleanup function to stop the countdown.
  */
 export function startCountdown(target, onTick, intervalMs = 1000) {
+  /** @type {number|undefined} */
+  let timerId;
+
+  /**
+   * @returns {void}
+   */
+  const stop = () => {
+    if (timerId !== undefined) {
+      window.clearInterval(timerId);
+      timerId = undefined;
+    }
+  };
+
   /**
    * @returns {void}
    */
@@ -109,14 +122,7 @@ export function startCountdown(target, onTick, intervalMs = 1000) {
   };
 
   tick();
-  const timerId = window.setInterval(tick, intervalMs);
-
-  /**
-   * @returns {void}
-   */
-  const stop = () => {
-    window.clearInterval(timerId);
-  };
+  timerId = window.setInterval(tick, intervalMs);
 
   return stop;
 }

@@ -13,6 +13,8 @@ import { Permissions } from '../authorization/permission.constants.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
 import { TournamentConfigurationService } from './configuration/TournamentConfigurationService.js';
 import { matchRepository } from '../match/match.repository.js';
+import { listMatchesForAdmin } from '../match/match.service.js';
+import { buildTournamentMatchStatsMap } from '../match/match-list.util.js';
 import { TOURNAMENT_MESSAGES, TOURNAMENT_ROUTES } from './tournament.constants.js';
 import {
   archiveTournament,
@@ -100,12 +102,17 @@ async function renderListView(outlet, options = {}) {
   showLoadingOverlay(TOURNAMENT_MESSAGES.LOADING);
 
   try {
-    const [activeTournaments, archivedTournaments] = await Promise.all([
+    const [activeTournaments, archivedTournaments, allMatches] = await Promise.all([
       listTournamentsForAdmin(),
       listTournamentsForAdmin({ archivedOnly: true }),
+      listMatchesForAdmin(),
     ]);
+    const matchStatsByTournamentId = buildTournamentMatchStatsMap(allMatches);
 
-    outlet.innerHTML = renderTournamentListPageWithTabs(activeTournaments, archivedTournaments, { activeTabId });
+    outlet.innerHTML = renderTournamentListPageWithTabs(activeTournaments, archivedTournaments, {
+      activeTabId,
+      matchStatsByTournamentId,
+    });
     bindArchivedActions(outlet, () => renderListView(outlet, { activeTabId: 'archived' }));
 
     if (activeTabId === 'archived') {

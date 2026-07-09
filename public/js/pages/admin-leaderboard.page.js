@@ -8,6 +8,7 @@ import { ADMIN_PAGE_SHELL_CLASSES } from '../components/admin-page-shell.compone
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
 import { renderLeaderboardTable } from '../leaderboard/renderers/leaderboard-table.renderer.js';
+import { renderLeaderboardCards } from '../leaderboard/renderers/leaderboard-card.renderer.js';
 import { renderTournamentStats } from '../leaderboard/renderers/tournament-stats.renderer.js';
 import { renderLeaderboardFilters, initializeFilters } from '../leaderboard/components/leaderboard-filters.component.js';
 import { leaderboardService } from '../leaderboard/leaderboard.service.js';
@@ -324,7 +325,14 @@ function updateLeaderboardContent(outlet, entries) {
     return;
   }
 
-  contentContainer.innerHTML = renderLeaderboardTable(entries);
+  contentContainer.innerHTML = `
+    <div class="d-none d-lg-block">
+      ${renderLeaderboardTable(entries, { linkProfiles: true })}
+    </div>
+    <div class="d-lg-none">
+      ${renderLeaderboardCards(entries, { linkProfiles: true })}
+    </div>
+  `;
 }
 
 /**

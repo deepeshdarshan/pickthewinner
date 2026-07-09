@@ -1870,10 +1870,22 @@
   border-top: 1px solid var(--ptw-border-color);
 }
 
+.ptw-predictions-page .ptw-match-cards {
+  gap: var(--ptw-space-4);
+}
+
+.ptw-predictions-page .ptw-match-card {
+  border: 1px solid color-mix(in srgb, var(--ptw-color-text-muted) 28%, var(--ptw-color-border));
+}
+
 .ptw-match-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ptw-space-2);
+}
+
+.ptw-match-cards--single-col {
+  grid-template-columns: 1fr;
 }
 
 @media (min-width: 768px) {
@@ -1881,12 +1893,20 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--ptw-space-3);
   }
+
+  .ptw-predictions-page .ptw-match-cards {
+    gap: var(--ptw-space-5);
+  }
 }
 
 @media (min-width: 1200px) {
   .ptw-match-cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--ptw-space-4);
+  }
+
+  .ptw-predictions-page .ptw-match-cards {
+    gap: var(--ptw-space-6);
   }
 }
 
@@ -2860,6 +2880,40 @@
   transition: width var(--ptw-transition-base);
 }
 
+.ptw-active-tournament-hero__logo-wrap--placeholder {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.35rem;
+}
+
+.ptw-active-tournament-hero .ptw-stat-tile {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ptw-tournament-hero-card.ptw-active-tournament-hero {
+  min-height: auto;
+}
+
+.ptw-tournament-hero-card .ptw-active-tournament-hero__body {
+  min-height: auto;
+}
+
+.ptw-tournament-hero-card .ptw-active-tournament-hero__content {
+  max-width: none;
+  width: 100%;
+}
+
+.ptw-tournament-hero-card .ptw-active-tournament-hero__cta {
+  align-self: stretch;
+  width: 100%;
+}
+
+.ptw-tournament-hero-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-2);
+}
+
 .ptw-active-tournament-hero__cta {
   align-self: flex-start;
   min-width: 11rem;
@@ -2887,6 +2941,22 @@
   height: 2.75rem;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.ptw-dashboard-tournament-card__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ptw-color-bg-tertiary);
+  border: 1px solid var(--ptw-color-border);
+  border-radius: var(--ptw-radius-md);
+  color: var(--ptw-color-text-muted);
+  font-size: 1.125rem;
+}
+
+.ptw-dashboard-tournament-card__meta {
+  font-size: var(--ptw-font-size-sm);
+  color: var(--ptw-color-text-muted);
 }
 
 .ptw-dashboard-tournament-card__name {
@@ -3535,6 +3605,236 @@
   }
 }
 
+@media (max-width: 991.98px) {
+  .ptw-filter-bar--scrollable .ptw-filter-bar__fields {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: var(--ptw-space-2);
+  }
+
+  .ptw-filter-bar--scrollable .ptw-filter-bar__field {
+    flex: 0 0 auto;
+    min-width: 9rem;
+  }
+}
+
+/* Admin prediction cards — mobile */
+.ptw-prediction-card-list {
+  gap: var(--ptw-space-4);
+}
+
+.ptw-prediction-card {
+  background-color: var(--ptw-color-bg-tertiary);
+  border: 1px solid color-mix(in srgb, #ffffff 35%, var(--ptw-color-border));
+  transition: border-color var(--ptw-transition-fast), box-shadow var(--ptw-transition-fast);
+}
+
+.ptw-prediction-card:hover,
+.ptw-prediction-card:focus-visible {
+  border-color: var(--ptw-color-primary);
+  box-shadow: var(--ptw-shadow-sm);
+  outline: none;
+}
+
+.ptw-prediction-card__label {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  margin-bottom: 0.125rem;
+}
+
+.ptw-prediction-card__contestant {
+  color: var(--ptw-color-text-primary);
+}
+
+.ptw-prediction-card__value {
+  color: var(--ptw-color-text-primary);
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-prediction-card__score-field + .ptw-prediction-card__score-field {
+  margin-top: calc(-1 * var(--ptw-space-1));
+}
+
+.ptw-prediction-card__value--score > .d-flex {
+  flex-wrap: wrap;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-prediction-card__points {
+  color: var(--ptw-color-accent-gold);
+}
+
+/* Admin mobile card lists */
+.ptw-admin-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-admin-card-list .card {
+  background-color: var(--ptw-color-bg-tertiary);
+  border: 1px solid var(--ptw-border-color);
+}
+
+.ptw-admin-tournament-card-list {
+  gap: var(--ptw-space-3);
+}
+
+.ptw-admin-tournament-card-list .ptw-tournament-hero-card {
+  margin-bottom: 0;
+}
+
+.ptw-admin-match-card-list {
+  gap: var(--ptw-space-3);
+}
+
+.ptw-admin-match-card {
+  margin-bottom: 0;
+}
+
+.ptw-admin-match-card .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-3);
+  padding: var(--ptw-space-3);
+}
+
+.ptw-admin-match-card__header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-height: 0;
+}
+
+.ptw-admin-match-card__header:empty {
+  display: none;
+}
+
+.ptw-admin-match-card__status .badge {
+  font-size: var(--ptw-font-size-xs);
+}
+
+.ptw-admin-match-card__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ptw-space-3);
+  text-align: center;
+}
+
+.ptw-admin-match-card__team {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ptw-admin-match-card__team .ptw-admin-match-card__flag {
+  margin-bottom: var(--ptw-space-2);
+}
+
+.ptw-admin-match-card__team .fi.ptw-admin-match-card__flag {
+  width: 2.5rem;
+  height: 1.875rem;
+  line-height: 1.875rem;
+  background-size: cover;
+}
+
+.ptw-admin-match-card__team > div:last-child {
+  font-weight: var(--ptw-font-weight-semibold);
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.ptw-admin-match-card__vs {
+  flex: 0 0 auto;
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  text-transform: lowercase;
+}
+
+.ptw-admin-match-card__divider {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--ptw-color-border);
+  opacity: 1;
+}
+
+.ptw-admin-match-card__tournament {
+  text-align: center;
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-text-primary);
+  line-height: 1.3;
+}
+
+.ptw-admin-match-card__points {
+  display: flex;
+  justify-content: center;
+  margin-top: calc(-1 * var(--ptw-space-1));
+}
+
+.ptw-admin-match-card__points .badge {
+  font-size: var(--ptw-font-size-xs);
+}
+
+.ptw-admin-match-card__date {
+  text-align: center;
+  font-weight: var(--ptw-font-weight-normal);
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-admin-match-card__countdown {
+  width: 100%;
+}
+
+.ptw-admin-match-card__countdown .ptw-countdown {
+  margin-top: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.ptw-admin-match-card .ptw-match-scoring-points--dashboard {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ptw-admin-match-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-2);
+  margin-top: auto;
+}
+
+.ptw-admin-match-card__actions .btn {
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
+.ptw-admin-card-list .ptw-admin-card__meta {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-sm);
+}
+
+.ptw-profile-link {
+  color: var(--ptw-color-text-primary);
+  text-decoration: none;
+}
+
+.ptw-profile-link:hover {
+  color: var(--ptw-color-primary);
+  text-decoration: underline;
+}
+
+.ptw-contact-actions .btn {
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
 /* Compact stat tiles (inline metrics) */
 .ptw-stat-tile {
   background-color: var(--ptw-color-bg-tertiary);
@@ -3669,7 +3969,8 @@
    Prediction History
    -------------------------------------------------------------------------- */
 
-.ptw-prediction-history__filters {
+.ptw-prediction-history__filters,
+.ptw-admin-predictions__filters {
   position: static;
 }
 

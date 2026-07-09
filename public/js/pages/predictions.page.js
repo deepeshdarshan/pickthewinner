@@ -273,7 +273,7 @@ function renderPredictionsPage(matches, predictionsMap) {
   const { grouped, orderedRounds } = groupMatchesByRoundLabel(matches);
 
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-predictions-page">
       ${renderContestantPageHeader({
         title: 'My Predictions',
         subtitle: 'View and manage your active match predictions',
