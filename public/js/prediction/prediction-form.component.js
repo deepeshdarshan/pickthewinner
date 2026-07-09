@@ -56,6 +56,22 @@ export function renderPredictionForm(options) {
 
         ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
 
+        ${requireWinnerSelectionForDrawPrediction ? `
+          <div class="ptw-prediction-form__draw-notice" role="note">
+            <i class="bi bi-exclamation-triangle-fill ptw-prediction-form__draw-notice-icon" aria-hidden="true"></i>
+            <div class="ptw-prediction-form__draw-notice-content">
+              <p class="ptw-prediction-form__draw-notice-title">Important: equal-score predictions</p>
+              <p class="mb-2">
+                If you predict <strong>equal scores</strong>, you must select which team will win after
+                <strong>normal and extra time</strong>.
+              </p>
+              <p class="ptw-prediction-form__draw-notice-highlight mb-0">
+                Do not enter penalty shootout scores.
+              </p>
+            </div>
+          </div>
+        ` : ''}
+
         <!-- Prediction Form -->
         <form id="prediction-form" data-match-id="${escapeHtml(match.id)}">
           <div class="row g-3 mb-4">
@@ -126,16 +142,14 @@ export function renderPredictionForm(options) {
           </div>
         </form>
 
-        <!-- Info -->
-        <div class="mt-3 pt-3 border-top">
-          <small class="ptw-text-muted">
-            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-            ${requireWinnerSelectionForDrawPrediction 
-              ? 'If you predict equal scores, you must select which team will win after normal and extra time. Do not enter penalty shootout scores.'
-              : 'Enter the final score you predict for this match. Draws are valid predictions.'
-            }
-          </small>
-        </div>
+        ${!requireWinnerSelectionForDrawPrediction ? `
+          <div class="mt-3 pt-3 border-top">
+            <small class="ptw-text-muted">
+              <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+              Enter the final score you predict for this match. Draws are valid predictions.
+            </small>
+          </div>
+        ` : ''}
       </div>
     </div>
   `;

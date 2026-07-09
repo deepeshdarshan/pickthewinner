@@ -4,7 +4,12 @@
  */
 
 import { appSettings } from '../config/app.config.js';
-import { TERMS_INTRO, TERMS_SECTIONS } from '../legal/terms-and-conditions.constants.js';
+import {
+  TERMS_INTRO,
+  TERMS_SECTIONS,
+  TERMS_SUMMARY_HEADING,
+  TERMS_SUMMARY_POINTS,
+} from '../legal/terms-and-conditions.constants.js';
 import { showModal } from './modal-wrapper.component.js';
 import { escapeHtml } from '../utils/html.util.js';
 
@@ -12,10 +17,26 @@ import { escapeHtml } from '../utils/html.util.js';
 const MODAL_ID = 'ptw-terms-modal';
 
 /**
- * Renders the terms modal body HTML.
+ * Renders the terms summary view HTML.
  * @returns {string}
  */
-function renderTermsBodyHtml() {
+function renderTermsSummaryHtml() {
+  const bulletsHtml = TERMS_SUMMARY_POINTS.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+
+  return `
+    <div class="ptw-terms-modal__body">
+      <h3 class="ptw-terms-modal__summary-heading">${escapeHtml(TERMS_SUMMARY_HEADING)}</h3>
+      <ul class="ptw-terms-modal__summary-list">${bulletsHtml}</ul>
+      <a href="#" class="ptw-terms-link" data-ptw-action="show-full-terms" role="button">Read Full Terms &amp; Conditions</a>
+    </div>
+  `;
+}
+
+/**
+ * Renders the full terms modal body HTML.
+ * @returns {string}
+ */
+function renderFullTermsHtml() {
   const sectionsHtml = TERMS_SECTIONS.map((section) => {
     const paragraphsHtml = (section.paragraphs ?? [])
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
@@ -53,6 +74,7 @@ function renderTermsBodyHtml() {
   }).join('');
 
   return `
+    <a href="#" class="ptw-terms-link ptw-terms-modal__nav-link" data-ptw-action="show-terms-summary" role="button">← Back to summary</a>
     <div class="ptw-terms-modal__body">
       <p class="ptw-terms-modal__intro">${escapeHtml(TERMS_INTRO)}</p>
       ${sectionsHtml}
@@ -61,15 +83,75 @@ function renderTermsBodyHtml() {
 }
 
 /**
+ * @param {HTMLElement} modalEl
+ * @param {string} html
+ * @returns {void}
+ */
+function setModalBodyHtml(modalEl, html) {
+  const bodyEl = modalEl.querySelector('.modal-body');
+
+  if (!bodyEl) {
+    return;
+  }
+
+  bodyEl.innerHTML = html;
+  bodyEl.scrollTop = 0;
+}
+
+/**
+ * @param {HTMLElement} modalEl
+ * @returns {void}
+ */
+function bindTermsModalEvents(modalEl) {
+  if (modalEl.dataset.ptwTermsBound === 'true') {
+    return;
+  }
+
+  modalEl.addEventListener('click', (event) => {
+    const target = event.target;
+
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const showFullTrigger = target.closest('[data-ptw-action="show-full-terms"]');
+
+    if (showFullTrigger) {
+      event.preventDefault();
+      setModalBodyHtml(modalEl, renderFullTermsHtml());
+      return;
+    }
+
+    const showSummaryTrigger = target.closest('[data-ptw-action="show-terms-summary"]');
+
+    if (showSummaryTrigger) {
+      event.preventDefault();
+      setModalBodyHtml(modalEl, renderTermsSummaryHtml());
+    }
+  });
+
+  modalEl.dataset.ptwTermsBound = 'true';
+}
+
+/**
  * Opens the Terms & Conditions modal.
  * @returns {import('bootstrap').Modal}
  */
 export function showTermsAndConditionsModal() {
-  return showModal({
+  const modal = showModal({
     id: MODAL_ID,
     title: 'PickTheWinner – Terms & Conditions',
-    bodyHtml: renderTermsBodyHtml(),
+    bodyHtml: renderTermsSummaryHtml(),
     footerHtml: '<button type="button" class="btn btn-ptw-primary" data-bs-dismiss="modal">Close</button>',
     sizeClass: 'modal-dialog-scrollable modal-fullscreen-sm-down modal-lg modal-dialog-centered',
   });
+
+  const modalEl = document.getElementById(MODAL_ID);
+
+  if (modalEl) {
+    setModalBodyHtml(modalEl, renderTermsSummaryHtml());
+    bindTermsModalEvents(modalEl);
+  }
+
+  return modal;
 }

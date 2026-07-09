@@ -7,6 +7,20 @@
 export const TERMS_INTRO =
   'Welcome to PickTheWinner! By registering and participating in the prediction contest, you agree to the following Terms & Conditions.';
 
+/** @type {string} */
+export const TERMS_SUMMARY_HEADING = 'Before you continue...';
+
+/** @type {ReadonlyArray<string>} */
+export const TERMS_SUMMARY_POINTS = Object.freeze([
+  'You must be an eligible participant. Ernakulam Jilla Yuvavedi Executive Committee members cannot participate.',
+  'Predictions open 12 hours before kickoff and close 15 minutes before kickoff (IST).',
+  'Predictions cannot be edited after the deadline.',
+  'Match points vary and are displayed before each prediction.',
+  'Any form of cheating or malpractice will result in immediate disqualification.',
+  'Keep your phone number up to date to remain eligible for prizes.',
+  'Organizers\' decisions regarding scoring and winners are final.',
+]);
+
 /**
  * @typedef {Object} TermsSection
  * @property {number} number

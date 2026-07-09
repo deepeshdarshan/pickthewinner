@@ -925,6 +925,34 @@
 }
 
 /* Terms & Conditions modal */
+.ptw-terms-modal__summary-heading {
+  font-size: var(--ptw-font-size-base);
+  font-weight: var(--ptw-font-weight-semibold);
+  color: var(--ptw-color-text-primary);
+  margin-bottom: var(--ptw-space-3);
+}
+
+.ptw-terms-modal__summary-list {
+  color: var(--ptw-color-text-secondary);
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.6;
+  margin-bottom: var(--ptw-space-4);
+  padding-left: var(--ptw-space-4);
+}
+
+.ptw-terms-modal__summary-list li {
+  margin-bottom: var(--ptw-space-2);
+}
+
+.ptw-terms-modal__summary-list li:last-child {
+  margin-bottom: 0;
+}
+
+.ptw-terms-modal__nav-link {
+  display: inline-block;
+  margin-bottom: var(--ptw-space-3);
+}
+
 .ptw-terms-modal__body {
   line-height: 1.6;
 }
@@ -2016,6 +2044,55 @@
 }
 
 /* Prediction Form */
+.ptw-prediction-form__draw-notice {
+  display: flex;
+  gap: var(--ptw-space-3);
+  align-items: flex-start;
+  margin-bottom: var(--ptw-space-4);
+  padding: var(--ptw-space-4);
+  background-color: color-mix(in srgb, var(--ptw-color-warning) 14%, var(--ptw-color-bg-tertiary));
+  border: 1px solid color-mix(in srgb, var(--ptw-color-warning) 45%, var(--ptw-color-border));
+  border-left: 4px solid var(--ptw-color-warning);
+  border-radius: var(--ptw-radius-md);
+  color: var(--ptw-color-text-primary);
+}
+
+.ptw-prediction-form__draw-notice-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  color: var(--ptw-color-warning);
+  margin-top: 0.1rem;
+}
+
+.ptw-prediction-form__draw-notice-title {
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  color: var(--ptw-color-warning);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--ptw-space-2);
+}
+
+.ptw-prediction-form__draw-notice-content {
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.55;
+}
+
+.ptw-prediction-form__draw-notice-content strong {
+  color: var(--ptw-color-text-primary);
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
+.ptw-prediction-form__draw-notice-highlight {
+  display: inline-block;
+  padding: var(--ptw-space-1) var(--ptw-space-2);
+  background-color: color-mix(in srgb, var(--ptw-color-danger) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ptw-color-danger) 40%, transparent);
+  border-radius: var(--ptw-radius-sm);
+  color: var(--ptw-color-text-primary);
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
 #prediction-form input[type="number"] {
   font-size: 1.5rem;
   font-weight: var(--ptw-font-weight-bold);
