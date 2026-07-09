@@ -13,6 +13,7 @@ import { showErrorToast, showSuccessToast } from '../utils/toast.util.js';
 import { getPostLoginDestination } from '../users/user.navigation.js';
 import { USER_ROUTES } from '../users/user.constants.js';
 import { renderAppLogo } from '../shared/logo/logo.component.js';
+import { showTermsAndConditionsModal } from '../components/terms-and-conditions-modal.component.js';
 import { Logger } from '../utils/logger.util.js';
 import { escapeHtml } from '../utils/html.util.js';
 
@@ -23,8 +24,14 @@ const FEATURE_BADGES = Object.freeze([
   { icon: 'bi-pencil-square', label: 'Edit picks until lock time' },
 ]);
 
-/** @type {ReadonlyArray<{ icon: string, title: string, description: string }>} */
+/** @type {ReadonlyArray<{ icon: string, title: string, description: string, hasTermsLink?: boolean }>} */
 const APP_STEPS = Object.freeze([
+  {
+    icon: 'bi-file-text',
+    title: 'Read the Terms & Conditions',
+    description: 'Review the contest rules, eligibility, and fair play policy before participating.',
+    hasTermsLink: true,
+  },
   {
     icon: 'bi-google',
     title: 'Sign in with Google',
@@ -113,7 +120,7 @@ function renderLandingMarkup() {
                   Continue with Google
                 </button>
                 <p class="ptw-landing-hero__secondary-links">
-                  <a href="#" class="ptw-link" aria-disabled="true">Terms of Service</a>
+                  <a href="#" id="ptw-landing-terms-link" class="ptw-link" data-ptw-action="show-terms" role="button">Terms &amp; Conditions</a>
                   <span class="ptw-landing-hero__link-sep" aria-hidden="true">·</span>
                   <a href="/login?mode=admin" data-route class="ptw-link">Administrator sign in</a>
                 </p>
@@ -138,7 +145,12 @@ function renderLandingMarkup() {
                       </div>
                       <div class="ptw-landing-step__content">
                         <p class="ptw-landing-step__title">${escapeHtml(step.title)}</p>
-                        <p class="ptw-landing-step__description">${escapeHtml(step.description)}</p>
+                        <p class="ptw-landing-step__description">
+                          ${escapeHtml(step.description)}
+                          ${step.hasTermsLink ? `
+                            <a href="#" class="ptw-terms-link" data-ptw-action="show-terms" role="button">View Terms &amp; Conditions</a>
+                          ` : ''}
+                        </p>
                       </div>
                       <i class="bi bi-chevron-right ptw-landing-step__chevron" aria-hidden="true"></i>
                     </li>
@@ -162,6 +174,23 @@ function bindLandingEvents(outlet) {
 
   googleBtn?.addEventListener('click', () => {
     void handleGoogleLogin();
+  });
+
+  outlet.addEventListener('click', (event) => {
+    const target = event.target;
+
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const termsTrigger = target.closest('[data-ptw-action="show-terms"]');
+
+    if (!termsTrigger) {
+      return;
+    }
+
+    event.preventDefault();
+    showTermsAndConditionsModal();
   });
 }
 

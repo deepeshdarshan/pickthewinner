@@ -37,12 +37,14 @@ export const firebaseConfig = {
  *   toastDurationMs: number,
  *   pageTransitionMs: number,
  *   assets: { logo: string, favicon: string },
+ *   supportContactPhone: string,
  *   environment: typeof environment
  * }>}
  */
 export const appSettings = Object.freeze({
   appName: 'PickTheWinner',
   appTagline: 'Powered by Ernakulam Jilla Yuvavedi',
+  supportContactPhone: '+91 XXXXX XXXXX',
   version: '1.0.0',
   defaultRoute: '/',
   timezone: 'Asia/Kolkata',
