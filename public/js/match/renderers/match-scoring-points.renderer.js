@@ -12,6 +12,7 @@ import { escapeHtml } from '../../utils/html.util.js';
 /**
  * @typedef {Object} MatchScoringPointsOptions
  * @property {boolean} [compact]
+ * @property {'default'|'dashboard'} [variant]
  */
 
 /**
@@ -38,10 +39,28 @@ export function renderMatchScoringPointsHtml(effectiveScoringConfig, options = {
     return '';
   }
 
-  const { compact = false } = options;
+  const { compact = false, variant = 'default' } = options;
   const matchScorePoints = effectiveScoringConfig.correctMatchScorePoints;
   const penaltyPoints = effectiveScoringConfig.correctPenaltyWinnerPoints;
   const showPenalty = effectiveScoringConfig.showPenaltyWinnerPoints;
+
+  if (compact && variant === 'dashboard') {
+    const parts = [
+      `<span class="ptw-match-scoring-points__pill">Exact Score (90' + ET) [${escapeHtml(String(matchScorePoints))} pts]</span>`,
+    ];
+
+    if (showPenalty) {
+      parts.push(
+        `<span class="ptw-match-scoring-points__pill">Penalty Winner (if applicable) [${escapeHtml(String(penaltyPoints))} pts]</span>`,
+      );
+    }
+
+    return `
+      <div class="ptw-match-scoring-points ptw-match-scoring-points--dashboard d-flex flex-wrap justify-content-center gap-2">
+        ${parts.join('')}
+      </div>
+    `;
+  }
 
   if (compact) {
     const parts = [

@@ -4,6 +4,7 @@
  */
 
 import { appSettings } from '../config/app.config.js';
+import { renderPredictionWindowCountdown } from '../components/countdown.component.js';
 import { escapeHtml } from '../utils/html.util.js';
 import {
   getTeamFlagUrl,
@@ -14,7 +15,6 @@ import {
 import { renderCustomScoringSourceBadge } from '../match/renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from '../match/match.constants.js';
 import { formatDateTime, toDate } from '../utils/date.util.js';
-import { startCountdown } from '../utils/countdown.util.js';
 
 /**
  * @typedef {Object} PredictionFormOptions
@@ -126,40 +126,16 @@ function renderPredictionFormCountdownHtml(locksAt) {
     return '';
   }
 
-  return `
-    <div
-      class="ptw-countdown ptw-prediction-form__countdown"
-      data-target="${escapeHtml(locksAt)}"
-      data-ptw-countdown-format="prediction-window"
-      role="timer"
-      aria-live="polite"
-    >
-      <span class="ptw-prediction-form__countdown-label">
-        <i class="bi bi-clock" aria-hidden="true"></i>
-        Prediction window closes in
-      </span>
-      <span class="ptw-prediction-form__countdown-value" data-ptw-countdown-value>--h --m --s</span>
-    </div>
-  `;
+  return renderPredictionWindowCountdown({ targetDate: locksAt });
 }
 
 /**
- * Formats countdown parts for the prediction window display.
- * @param {import('../utils/countdown.util.js').CountdownParts} parts
+ * Resolves the prediction form hero background (tournament banner, then default stadium hero).
+ * @param {string|null|undefined} tournamentBannerUrl
  * @returns {string}
  */
-function formatPredictionWindowCountdown(parts) {
-  const pad = (value) => String(value).padStart(2, '0');
-
-  if (parts.expired) {
-    return 'Closed';
-  }
-
-  if (parts.days > 0) {
-    return `${parts.days}d ${pad(parts.hours)}h ${pad(parts.minutes)}m ${pad(parts.seconds)}s`;
-  }
-
-  return `${pad(parts.hours)}h ${pad(parts.minutes)}m ${pad(parts.seconds)}s`;
+function resolvePredictionFormBannerUrl(tournamentBannerUrl) {
+  return tournamentBannerUrl || appSettings.assets.dashboardHeroBanner;
 }
 
 /**
@@ -171,15 +147,11 @@ function renderPredictionFormMatchHeroHtml(match, tournamentBannerUrl) {
   const kickoff = toDate(match.kickoffUtc);
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
   const venue = String(match.venue ?? match.stadium ?? '').trim();
-  const bannerStyle = tournamentBannerUrl
-    ? `--ptw-prediction-form-hero-banner: url('${escapeHtml(tournamentBannerUrl)}');`
-    : '';
-  const heroClass = tournamentBannerUrl
-    ? 'ptw-prediction-form__match-hero ptw-prediction-form__match-hero--has-banner'
-    : 'ptw-prediction-form__match-hero';
+  const resolvedBannerUrl = resolvePredictionFormBannerUrl(tournamentBannerUrl);
+  const bannerStyle = `--ptw-prediction-form-hero-banner: url('${escapeHtml(resolvedBannerUrl)}');`;
 
   return `
-    <section class="${heroClass}" style="${bannerStyle}" aria-label="Match details">
+    <section class="ptw-prediction-form__match-hero ptw-prediction-form__match-hero--has-banner" style="${bannerStyle}" aria-label="Match details">
       <div class="ptw-prediction-form__match-hero-overlay">
         <div class="ptw-prediction-form__match-hero-grid">
           ${renderPredictionFormTeamHtml(match.homeTeam, 'Home')}
@@ -390,39 +362,6 @@ export function renderPredictionForm(options) {
       ` : ''}
     </div>
   `;
-}
-
-/**
- * Initializes countdown timers inside the prediction form.
- * @param {HTMLElement} root
- * @returns {Array<() => void>}
- */
-export function initializePredictionFormCountdowns(root) {
-  const countdowns = root.querySelectorAll('.ptw-prediction-form__countdown[data-target]');
-  const cleanupFunctions = [];
-
-  countdowns.forEach((countdownContainer) => {
-    const targetDate = countdownContainer.getAttribute('data-target');
-    const valueElement = countdownContainer.querySelector('[data-ptw-countdown-value]');
-
-    if (!targetDate || !valueElement) {
-      return;
-    }
-
-    const cleanup = startCountdown(targetDate, (parts) => {
-      valueElement.textContent = formatPredictionWindowCountdown(parts);
-
-      if (parts.expired) {
-        valueElement.classList.add('is-expired');
-      } else {
-        valueElement.classList.remove('is-expired');
-      }
-    });
-
-    cleanupFunctions.push(cleanup);
-  });
-
-  return cleanupFunctions;
 }
 
 /**

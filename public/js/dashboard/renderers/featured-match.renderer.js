@@ -3,7 +3,7 @@
  * @module dashboard/renderers/featured-match.renderer
  */
 
-import { renderCountdown } from '../../components/countdown.component.js';
+import { renderPredictionWindowCountdown } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import {
   renderCustomScoringSourceBadge,
@@ -48,8 +48,8 @@ export function renderFeaturedMatchSection(data) {
     return `
       <section class="card ptw-card ptw-featured-match ptw-upcoming-match h-100" aria-labelledby="ptw-featured-match-heading">
         <div class="card-body ptw-placeholder-card">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0" id="ptw-featured-match-heading">Upcoming Match</h2>
+          <div class="ptw-dashboard-section-header mb-3">
+            <h2 class="ptw-dashboard-section-header__title mb-0" id="ptw-featured-match-heading">Upcoming Match</h2>
           </div>
           <p class="ptw-text-muted mb-0">No upcoming matches scheduled right now.</p>
         </div>
@@ -101,60 +101,66 @@ function renderMatchSpotlightCard(options) {
   const kickoff = toDate(match.kickoffUtc);
   const homeName = match.homeTeam?.name ?? 'Home';
   const awayName = match.awayTeam?.name ?? 'Away';
-  const flagClass = showLiveIndicator
-    ? 'ptw-team-flag ptw-team-flag--stacked ptw-team-flag--lg'
-    : 'ptw-team-flag ptw-team-flag--stacked';
+  const flagClass = 'ptw-team-flag ptw-team-flag--stacked ptw-team-flag--dashboard';
   const homeFlag = renderTeamFlagHtml(getTeamFlagUrl(match.homeTeam), { marginClass: 'me-0', className: flagClass });
   const awayFlag = renderTeamFlagHtml(getTeamFlagUrl(match.awayTeam), { marginClass: 'me-0', className: flagClass });
 
   const headerRight = showLiveIndicator
     ? '<span class="ptw-live-indicator" aria-hidden="true"><span class="ptw-live-indicator__dot"></span> LIVE NOW</span>'
     : (countdown
-      ? renderCountdown({
+      ? renderPredictionWindowCountdown({
         targetDate: countdown.targetDate,
-        label: 'CLOSES IN',
         id: `ptw-featured-countdown-${match.id}`,
       })
       : '');
 
   const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
-  const scoringPointsHtml = renderMatchScoringPointsHtml(match.effectiveScoringConfig, { compact: true });
+  const scoringPointsHtml = renderMatchScoringPointsHtml(match.effectiveScoringConfig, {
+    compact: true,
+    variant: 'dashboard',
+  });
 
   const metaHtml = kickoff
-    ? `<div class="ptw-featured-match__meta text-center">
-        <small class="ptw-text-muted">
-          <i class="bi bi-clock me-1" aria-hidden="true"></i>
+    ? `<div class="ptw-featured-match__meta">
+        <span class="ptw-featured-match__meta-item">
+          <i class="bi bi-calendar3" aria-hidden="true"></i>
           ${escapeHtml(showLiveIndicator ? `Started ${formatDateTime(kickoff)}` : formatDateTime(kickoff))}
-        </small>
+        </span>
+        ${match.stage ? `
+          <span class="ptw-featured-match__meta-item">
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            ${escapeHtml(match.stage)}
+          </span>
+        ` : ''}
       </div>`
     : '';
 
   return `
     <section class="card ptw-card ${sectionClass} h-100" aria-labelledby="${headingId}">
       <div class="card-body d-flex flex-column">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
           <div class="d-flex align-items-center flex-wrap gap-2">
-            <h2 class="h5 mb-0" id="${headingId}">${escapeHtml(heading)}</h2>
+            <h2 class="ptw-dashboard-section-header__title mb-0" id="${headingId}">${escapeHtml(heading)}</h2>
             ${customPointsBadge}
           </div>
           ${headerRight}
         </div>
 
-        <div class="ptw-featured-match__teams d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
+        <div class="ptw-featured-match__teams d-flex align-items-center justify-content-center gap-4 flex-wrap mb-3">
           <div class="ptw-featured-match__team text-center">
             ${homeFlag}
-            <div class="fw-semibold mt-2">${escapeHtml(homeName)}</div>
+            <div class="ptw-featured-match__team-name mt-3">${escapeHtml(homeName)}</div>
           </div>
-          <div class="ptw-featured-match__vs ptw-text-muted fw-bold">VS</div>
+          <div class="ptw-featured-match__vs">VS</div>
           <div class="ptw-featured-match__team text-center">
             ${awayFlag}
-            <div class="fw-semibold mt-2">${escapeHtml(awayName)}</div>
+            <div class="ptw-featured-match__team-name mt-3">${escapeHtml(awayName)}</div>
           </div>
         </div>
 
         ${metaHtml}
 
-        ${scoringPointsHtml ? `<div class="ptw-featured-match__scoring text-center mb-2">${scoringPointsHtml}</div>` : ''}
+        ${scoringPointsHtml ? `<div class="ptw-featured-match__scoring mb-3">${scoringPointsHtml}</div>` : ''}
 
         ${prediction && !showLiveIndicator ? renderPredictionSummary(prediction) : ''}
 
@@ -177,10 +183,12 @@ function renderPredictionSummary(prediction) {
   const awayScore = prediction.awayScore ?? '-';
 
   return `
-    <div class="ptw-featured-match__prediction mt-3 mb-2">
-      <p class="ptw-text-muted small text-center mb-1">Your Prediction</p>
-      <div class="ptw-featured-match__score text-center">
-        ${escapeHtml(String(homeScore))} - ${escapeHtml(String(awayScore))}
+    <div class="ptw-featured-match__prediction">
+      <p class="ptw-featured-match__prediction-label mb-2">Your Prediction</p>
+      <div class="ptw-featured-match__score-box">
+        <span class="ptw-featured-match__score">${escapeHtml(String(homeScore))}</span>
+        <span class="ptw-featured-match__score-sep">-</span>
+        <span class="ptw-featured-match__score">${escapeHtml(String(awayScore))}</span>
       </div>
     </div>
   `;
@@ -216,7 +224,7 @@ function getPredictionStatus(match, prediction) {
 function renderUpcomingActionButtons(match, prediction, predictionStatus) {
   if (match.result?.published) {
     return `
-      <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-sm btn-outline-primary" data-route>
+      <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
         View Details
       </a>
     `;
@@ -224,23 +232,23 @@ function renderUpcomingActionButtons(match, prediction, predictionStatus) {
 
   if (predictionStatus === 'locked') {
     return `
-      <button type="button" class="btn btn-sm btn-secondary" disabled>
-        <i class="bi bi-lock me-1" aria-hidden="true"></i>Prediction Locked
+      <button type="button" class="btn btn-secondary ptw-featured-match__action-btn" disabled>
+        <i class="bi bi-lock me-2" aria-hidden="true"></i>Prediction Locked
       </button>
     `;
   }
 
   if (prediction && predictionStatus === 'submitted') {
     return `
-      <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-sm btn-ptw-primary" data-route>
-        <i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit Prediction
+      <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
+        <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
       </a>
     `;
   }
 
   return `
-    <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-sm btn-ptw-primary" data-route>
-      <i class="bi bi-bullseye me-1" aria-hidden="true"></i>Predict Match
+    <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
+      <i class="bi bi-bullseye me-2" aria-hidden="true"></i>Predict Match
     </a>
   `;
 }

@@ -3,15 +3,35 @@
  * @module dashboard/renderers/contestant-dashboard.renderer
  */
 
+import { appSettings } from '../../config/app.config.js';
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-shell.component.js';
-import { renderContestantPageHeader } from '../../components/page-header.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { renderSkeletonCardGrid } from '../../components/skeleton.component.js';
+import { escapeHtml } from '../../utils/html.util.js';
 import { renderActiveTournamentHero } from './active-tournament.renderer.js';
 import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
 import { renderTournamentGridSection } from './tournament-grid.renderer.js';
 import { renderQuickStatsSection } from './quick-stats.renderer.js';
 import { renderRecentActivitySection } from './recent-activity.renderer.js';
+import { renderDashboardInfoCardsSection } from './info-cards.renderer.js';
+
+/**
+ * @param {import('../ContestantDashboardService.js').ContestantDashboardDto} data
+ * @returns {string}
+ */
+function renderDashboardWelcomeHeader(data) {
+  return `
+    <header class="ptw-dashboard-welcome-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+      <h1 class="ptw-dashboard-welcome-header__title mb-0">
+        Welcome back, ${data.displayName}! <span aria-hidden="true">👋</span>
+      </h1>
+      <div class="ptw-dashboard-timezone-badge" title="${escapeHtml(appSettings.timezoneLabel)}">
+        <i class="bi bi-clock" aria-hidden="true"></i>
+        <span>All times in Indian Standard Time (IST)</span>
+      </div>
+    </header>
+  `;
+}
 
 /**
  * @returns {string}
@@ -19,14 +39,14 @@ import { renderRecentActivitySection } from './recent-activity.renderer.js';
 export function renderContestantDashboardLoading() {
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
-      ${renderContestantPageHeader({
-    title: 'Dashboard',
-    subtitle: 'Loading your tournaments and matches…',
-  })}
+      <header class="ptw-dashboard-welcome-header mb-4">
+        <h1 class="ptw-dashboard-welcome-header__title mb-0">Dashboard</h1>
+        <p class="ptw-text-muted mb-0 mt-2">Loading your tournaments and matches…</p>
+      </header>
       <div class="mb-4">
-        <div class="card ptw-card ptw-skeleton-card" style="height: 180px;"></div>
+        <div class="card ptw-card ptw-skeleton-card" style="height: 200px;"></div>
       </div>
-      ${renderSkeletonCardGrid(3)}
+      ${renderSkeletonCardGrid(2)}
     </div>
   `;
 }
@@ -46,35 +66,30 @@ export function renderContestantDashboard(data) {
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
-      ${renderContestantPageHeader({
-    title: 'Dashboard',
-    subtitle: data.welcomeMessage,
-  })}
+      ${renderDashboardWelcomeHeader(data)}
 
       ${renderActiveTournamentHero(data)}
 
-      ${renderTournamentGridSection(data)}
-
-      <div class="ptw-dashboard-matches mb-4">
+      <div class="ptw-dashboard-main-grid mb-4">
         <div class="row g-3">
-          ${hasLiveMatch ? `
-            <div class="col-12 col-lg-6">
-              ${liveMatchHtml}
-            </div>
-            <div class="col-12 col-lg-6">
+          <div class="col-12 col-lg-5">
+            ${renderTournamentGridSection(data)}
+          </div>
+          <div class="col-12 col-lg-7">
+            <div class="ptw-dashboard-matches d-flex flex-column gap-3 h-100">
+              ${hasLiveMatch ? liveMatchHtml : ''}
               ${upcomingMatchHtml}
             </div>
-          ` : `
-            <div class="col-12">
-              ${upcomingMatchHtml}
-            </div>
-          `}
+          </div>
         </div>
       </div>
 
-      ${renderQuickStatsSection(data)}
+      ${renderDashboardInfoCardsSection()}
 
-      ${renderRecentActivitySection(data)}
+      <div class="ptw-dashboard-secondary-sections">
+        ${renderQuickStatsSection(data)}
+        ${renderRecentActivitySection(data)}
+      </div>
     </div>
   `;
 }
@@ -86,10 +101,7 @@ export function renderContestantDashboard(data) {
 function renderEmptyContestantDashboard(data) {
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
-      ${renderContestantPageHeader({
-    title: 'Dashboard',
-    subtitle: data.welcomeMessage,
-  })}
+      ${renderDashboardWelcomeHeader(data)}
       <div class="card ptw-card">
         <div class="card-body">
           ${renderEmptyState({

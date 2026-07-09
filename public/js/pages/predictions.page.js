@@ -4,6 +4,7 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
+import { appSettings } from '../config/app.config.js';
 import { renderContestantPageHeader } from '../components/page-header.component.js';
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
@@ -16,7 +17,6 @@ import { initializeCountdowns } from '../components/countdown.component.js';
 import {
   renderPredictionForm,
   attachPredictionFormHandlers,
-  initializePredictionFormCountdowns,
 } from '../prediction/prediction-form.component.js';
 import { MatchDomain } from '../domain/match.domain.js';
 import { toDate } from '../utils/date.util.js';
@@ -230,7 +230,7 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     const predictionLocksAt = kickoff
       ? MatchDomain.calculatePredictionLock(kickoff, lockMinutes).toISOString()
       : null;
-    const tournamentBannerUrl = tournament?.banner || tournament?.logo || null;
+    const tournamentBannerUrl = tournament?.banner || appSettings.assets.dashboardHeroBanner;
 
     outlet.innerHTML = `
       <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
@@ -248,7 +248,7 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
       </div>
     `;
 
-    initializePredictionFormCountdowns(outlet);
+    initializeCountdowns(outlet);
     attachFormHandlers(outlet);
   } catch (error) {
     Logger.error('[PredictionsPage] Failed to load form:', error);

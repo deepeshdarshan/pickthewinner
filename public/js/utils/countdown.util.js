@@ -50,6 +50,45 @@ export function formatCountdown(parts) {
 }
 
 /**
+ * Formats countdown parts as verbose dashboard labels (e.g. "07 HRS : 26 MINS : 38 SECS").
+ * @param {CountdownParts} parts
+ * @returns {string}
+ */
+export function formatCountdownVerbose(parts) {
+  const pad = (value) => String(value).padStart(2, '0');
+  const segments = [];
+
+  if (parts.days > 0) {
+    segments.push(`${pad(parts.days)} DAYS`);
+  }
+
+  segments.push(`${pad(parts.hours)} HRS`);
+  segments.push(`${pad(parts.minutes)} MINS`);
+  segments.push(`${pad(parts.seconds)} SECS`);
+
+  return segments.join(' : ');
+}
+
+/**
+ * Formats countdown parts for the prediction window display (e.g. "07h 26m 38s").
+ * @param {CountdownParts} parts
+ * @returns {string}
+ */
+export function formatPredictionWindowCountdown(parts) {
+  const pad = (value) => String(value).padStart(2, '0');
+
+  if (parts.expired) {
+    return 'Closed';
+  }
+
+  if (parts.days > 0) {
+    return `${parts.days}d ${pad(parts.hours)}h ${pad(parts.minutes)}m ${pad(parts.seconds)}s`;
+  }
+
+  return `${pad(parts.hours)}h ${pad(parts.minutes)}m ${pad(parts.seconds)}s`;
+}
+
+/**
  * Starts an interval countdown that invokes a callback on each tick.
  * @param {Date|string|number} target
  * @param {(parts: CountdownParts) => void} onTick
