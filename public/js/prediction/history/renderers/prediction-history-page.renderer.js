@@ -14,6 +14,7 @@ import {
   PREDICTION_HISTORY_PAGE_SIZE_OPTIONS,
   PREDICTION_HISTORY_MESSAGES,
   PREDICTION_HISTORY_ROUTES,
+  PREDICTION_HISTORY_SCOPE,
 } from '../prediction-history.constants.js';
 import { buildHistoryQueryString } from '../prediction-history.validator.js';
 import { renderSummaryCards, renderHistorySidebar } from './prediction-history-statistics.renderer.js';
@@ -50,13 +51,18 @@ export function renderHistoryLoadingState() {
 export function renderHistoryPage(data, params) {
   const hasAnyPredictions = data.allItems.length > 0;
   const hasFilteredResults = data.pageItems.length > 0;
+  const isArchivedScope = params.scope === PREDICTION_HISTORY_SCOPE.ARCHIVED;
+  const emptyScopeMessage = isArchivedScope
+    ? PREDICTION_HISTORY_MESSAGES.NO_PREDICTIONS_ARCHIVED
+    : PREDICTION_HISTORY_MESSAGES.NO_PREDICTIONS_ACTIVE;
+
   const listContent = hasFilteredResults
     ? renderHistoryListContent(data.pageItems, params.view)
     : renderEmptyState({
       title: hasAnyPredictions ? 'No Matching Predictions' : 'No Predictions Yet',
       message: hasAnyPredictions
         ? PREDICTION_HISTORY_MESSAGES.NO_FILTER_MATCHES
-        : PREDICTION_HISTORY_MESSAGES.NO_PREDICTIONS,
+        : emptyScopeMessage,
       icon: hasAnyPredictions ? 'bi-funnel' : 'bi-bullseye',
     });
 
@@ -73,6 +79,8 @@ export function renderHistoryPage(data, params) {
         title: 'Prediction History',
         subtitle: 'Review your predictions and track your performance',
       })}
+
+      ${renderHistoryScopeTabs(params.scope, data.scopeCounts)}
 
       <section class="mb-4" aria-label="Summary statistics">
         ${renderSummaryCards(data.overallStats)}
@@ -110,6 +118,50 @@ export function renderHistoryPage(data, params) {
         </div>
       </div>
     </div>
+  `;
+}
+
+/**
+ * @param {string} activeScope
+ * @param {{ active: number, archived: number }} scopeCounts
+ * @returns {string}
+ */
+export function renderHistoryScopeTabs(activeScope, scopeCounts) {
+  const tabs = [
+    {
+      id: PREDICTION_HISTORY_SCOPE.ACTIVE,
+      label: 'Active Tournaments',
+      count: scopeCounts.active,
+    },
+    {
+      id: PREDICTION_HISTORY_SCOPE.ARCHIVED,
+      label: 'Archived Tournaments',
+      count: scopeCounts.archived,
+    },
+  ];
+
+  const buttons = tabs.map((tab) => {
+    const isActive = tab.id === activeScope;
+
+    return `
+      <li class="nav-item" role="presentation">
+        <button
+          type="button"
+          class="nav-link${isActive ? ' active' : ''}"
+          data-ph-scope="${tab.id}"
+          role="tab"
+          aria-selected="${isActive ? 'true' : 'false'}"
+        >
+          ${escapeHtml(tab.label)} (${tab.count})
+        </button>
+      </li>
+    `;
+  }).join('');
+
+  return `
+    <ul class="nav nav-tabs ptw-admin-list-tabs__nav ptw-prediction-history__scope-tabs mb-4" role="tablist" aria-label="Tournament scope">
+      ${buttons}
+    </ul>
   `;
 }
 

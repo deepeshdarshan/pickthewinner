@@ -1,11 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionHistoryDomain, resolvePrimaryResultBadge, resolveResultBadges } from '../public/js/domain/prediction-history.domain.js';
+import { PredictionHistoryDomain, resolvePrimaryResultBadge, resolveResultBadges, isArchivedHistoryItem, filterHistoryItemsByScope, partitionHistoryItems } from '../public/js/domain/prediction-history.domain.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
   PREDICTION_HISTORY_MATCH_STATUS,
   PREDICTION_HISTORY_SORT_FIELD,
+  PREDICTION_HISTORY_SCOPE,
   PREDICTION_LIFECYCLE_STEP,
 } from '../public/js/prediction/history/prediction-history.constants.js';
 import { MATCH_STATUS, WINNER_RESOLUTION } from '../public/js/domain/match.domain.js';
@@ -247,5 +248,39 @@ describe('PredictionHistoryDomain', () => {
       correct: false,
       label: 'Exact Score',
     });
+  });
+
+  it('partitions history items by tournament and match archive state', () => {
+    const activeItem = {
+      id: 'active-1',
+      tournament: { status: 'live' },
+      match: { status: MATCH_STATUS.RESULT_PUBLISHED },
+    };
+    const archivedTournamentItem = {
+      id: 'archived-tournament',
+      tournament: { status: 'archived' },
+      match: { status: MATCH_STATUS.RESULT_PUBLISHED },
+    };
+    const archivedMatchItem = {
+      id: 'archived-match',
+      tournament: { status: 'live' },
+      match: { status: MATCH_STATUS.ARCHIVED },
+    };
+
+    assert.equal(isArchivedHistoryItem(activeItem), false);
+    assert.equal(isArchivedHistoryItem(archivedTournamentItem), true);
+    assert.equal(isArchivedHistoryItem(archivedMatchItem), true);
+
+    const items = [activeItem, archivedTournamentItem, archivedMatchItem];
+    const { active, archived } = partitionHistoryItems(items);
+    assert.deepEqual(active.map((item) => item.id), ['active-1']);
+    assert.deepEqual(archived.map((item) => item.id), ['archived-tournament', 'archived-match']);
+
+    const activeOnly = filterHistoryItemsByScope(items, PREDICTION_HISTORY_SCOPE.ACTIVE);
+    assert.equal(activeOnly.length, 1);
+    assert.equal(activeOnly[0].id, 'active-1');
+
+    const archivedOnly = filterHistoryItemsByScope(items, PREDICTION_HISTORY_SCOPE.ARCHIVED);
+    assert.equal(archivedOnly.length, 2);
   });
 });

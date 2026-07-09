@@ -10,6 +10,7 @@ import {
   PREDICTION_HISTORY_VIEW,
   PREDICTION_HISTORY_DEFAULT_PAGE_SIZE,
   PREDICTION_HISTORY_MESSAGES,
+  PREDICTION_HISTORY_SCOPE,
 } from '../public/js/prediction/history/prediction-history.constants.js';
 
 describe('prediction-history.validator', () => {
@@ -18,11 +19,12 @@ describe('prediction-history.validator', () => {
     assert.equal(params.view, PREDICTION_HISTORY_VIEW.TIMELINE);
     assert.equal(params.page, 1);
     assert.equal(params.pageSize, PREDICTION_HISTORY_DEFAULT_PAGE_SIZE);
+    assert.equal(params.scope, PREDICTION_HISTORY_SCOPE.ACTIVE);
   });
 
   it('parses custom query params', () => {
     const params = parseHistoryQueryParams(new URLSearchParams(
-      'view=card&tournament=t1&result=winner_correct&page=2&size=25&sort=points&id=p1',
+      'view=card&tournament=t1&result=winner_correct&page=2&size=25&sort=points&id=p1&scope=archived',
     ));
     assert.equal(params.view, 'card');
     assert.equal(params.tournamentId, 't1');
@@ -30,6 +32,7 @@ describe('prediction-history.validator', () => {
     assert.equal(params.page, 2);
     assert.equal(params.pageSize, 25);
     assert.equal(params.predictionId, 'p1');
+    assert.equal(params.scope, PREDICTION_HISTORY_SCOPE.ARCHIVED);
   });
 
   it('validates user access', () => {
@@ -55,6 +58,16 @@ describe('prediction-history.validator', () => {
     assert.match(query, /tournament=t1/);
     assert.match(query, /page=3/);
     assert.match(query, /size=50/);
+    assert.doesNotMatch(query, /scope=/);
+  });
+
+  it('builds query strings with archived scope', () => {
+    const query = buildHistoryQueryString({
+      scope: PREDICTION_HISTORY_SCOPE.ARCHIVED,
+      page: 2,
+    });
+    assert.match(query, /scope=archived/);
+    assert.match(query, /page=2/);
   });
 });
 

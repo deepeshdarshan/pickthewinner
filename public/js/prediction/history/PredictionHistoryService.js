@@ -41,6 +41,7 @@ import { Logger } from '../../utils/logger.util.js';
  * @property {number} currentPage
  * @property {number} totalRecords
  * @property {number} pageSize
+ * @property {{ active: number, archived: number }} scopeCounts
  */
 
 /**
@@ -87,8 +88,10 @@ export class PredictionHistoryService {
 
     const rawPredictions = await predictionHistoryRepository.listByUser(userId);
     const enrichedItems = filterHistoryItems(await this.enrichPredictions(rawPredictions));
+    const { active, archived } = PredictionHistoryDomain.partitionHistoryItems(enrichedItems);
+    const scopedItems = PredictionHistoryDomain.filterHistoryItemsByScope(enrichedItems, queryParams.scope);
 
-    const filtered = PredictionHistoryDomain.filterHistoryItems(enrichedItems, {
+    const filtered = PredictionHistoryDomain.filterHistoryItems(scopedItems, {
       tournamentId: queryParams.tournamentId,
       stage: queryParams.stage,
       matchStatus: queryParams.matchStatus,
@@ -110,22 +113,26 @@ export class PredictionHistoryService {
     );
 
     const tournamentSummaries = await this.buildTournamentSummaries(
-      enrichedItems,
+      scopedItems,
       userId,
     );
 
     return {
-      allItems: enrichedItems,
+      allItems: scopedItems,
       pageItems: pagination.pageItems,
-      overallStats: PredictionHistoryDomain.calculateOverallStatistics(enrichedItems),
+      overallStats: PredictionHistoryDomain.calculateOverallStatistics(scopedItems),
       tournamentSummaries,
-      stageStats: PredictionHistoryDomain.calculateStageStatistics(enrichedItems),
-      tournaments: extractTournamentOptions(enrichedItems),
-      stages: extractStageOptions(enrichedItems),
+      stageStats: PredictionHistoryDomain.calculateStageStatistics(scopedItems),
+      tournaments: extractTournamentOptions(scopedItems),
+      stages: extractStageOptions(scopedItems),
       totalPages: pagination.totalPages,
       currentPage: pagination.currentPage,
       totalRecords: pagination.totalRecords,
       pageSize: queryParams.pageSize,
+      scopeCounts: {
+        active: active.length,
+        archived: archived.length,
+      },
     };
   }
 

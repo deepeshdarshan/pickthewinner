@@ -124,6 +124,21 @@ function attachHistoryHandlers(outlet, currentParams) {
     });
   }
 
+  outlet.querySelectorAll('[data-ph-scope]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const scope = button.getAttribute('data-ph-scope');
+      if (!scope || scope === currentParams.scope) {
+        return;
+      }
+      navigateWithFilters(outlet, currentParams, {
+        ...readFiltersFromDom(outlet, currentParams),
+        scope,
+        tournamentId: '',
+        page: 1,
+      });
+    });
+  });
+
   outlet.querySelectorAll('[data-ph-view]').forEach((button) => {
     button.addEventListener('click', () => {
       const view = button.getAttribute('data-ph-view');

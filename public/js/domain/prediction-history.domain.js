@@ -4,6 +4,7 @@
  */
 
 import { MATCH_STATUS } from './match.domain.js';
+import { TournamentDomain } from './tournament.domain.js';
 import {
   resolvePrimaryResultBadge as resolveManagementPrimaryResultBadge,
   resolveResultBadges as resolveManagementResultBadges,
@@ -16,6 +17,7 @@ import {
   PREDICTION_HISTORY_SORT_FIELD,
   PREDICTION_HISTORY_DEFAULT_PAGE_SIZE,
   PREDICTION_HISTORY_HIGH_POINTS_THRESHOLD,
+  PREDICTION_HISTORY_SCOPE,
   PREDICTION_LIFECYCLE_STEP,
   PREDICTION_LIFECYCLE_LABELS,
 } from '../prediction/history/prediction-history.constants.js';
@@ -81,6 +83,31 @@ import {
  */
 
 export const PredictionHistoryDomain = {
+  /**
+   * @param {HistoryItem} item
+   * @returns {boolean}
+   */
+  isArchivedHistoryItem(item) {
+    return isArchivedHistoryItem(item);
+  },
+
+  /**
+   * @param {HistoryItem[]} items
+   * @param {string} scope
+   * @returns {HistoryItem[]}
+   */
+  filterHistoryItemsByScope(items, scope) {
+    return filterHistoryItemsByScope(items, scope);
+  },
+
+  /**
+   * @param {HistoryItem[]} items
+   * @returns {{ active: HistoryItem[], archived: HistoryItem[] }}
+   */
+  partitionHistoryItems(items) {
+    return partitionHistoryItems(items);
+  },
+
   /**
    * @param {HistoryItem[]} items
    * @param {HistoryFilterState} filters
@@ -368,6 +395,51 @@ export const PredictionHistoryDomain = {
     return resolvePrimaryResultBadge(item);
   },
 };
+
+/**
+ * @param {HistoryItem} item
+ * @returns {boolean}
+ */
+export function isArchivedHistoryItem(item) {
+  const tournament = /** @type {Record<string, unknown>} */ (item.tournament ?? {});
+  const matchStatus = String(item.match?.status ?? '');
+
+  return TournamentDomain.isTournamentArchived(tournament)
+    || matchStatus === MATCH_STATUS.ARCHIVED;
+}
+
+/**
+ * @param {HistoryItem[]} items
+ * @param {string} scope
+ * @returns {HistoryItem[]}
+ */
+export function filterHistoryItemsByScope(items, scope) {
+  const wantArchived = scope === PREDICTION_HISTORY_SCOPE.ARCHIVED;
+
+  return items.filter((item) => {
+    const archived = isArchivedHistoryItem(item);
+    return wantArchived ? archived : !archived;
+  });
+}
+
+/**
+ * @param {HistoryItem[]} items
+ * @returns {{ active: HistoryItem[], archived: HistoryItem[] }}
+ */
+export function partitionHistoryItems(items) {
+  const active = [];
+  const archived = [];
+
+  for (const item of items) {
+    if (isArchivedHistoryItem(item)) {
+      archived.push(item);
+    } else {
+      active.push(item);
+    }
+  }
+
+  return { active, archived };
+}
 
 /**
  * @param {HistoryItem} item

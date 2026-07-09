@@ -9,6 +9,7 @@ import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
   PREDICTION_HISTORY_MATCH_STATUS,
+  PREDICTION_HISTORY_SCOPE,
   PREDICTION_HISTORY_DEFAULT_PAGE_SIZE,
   PREDICTION_HISTORY_PAGE_SIZE_OPTIONS,
 } from './prediction-history.constants.js';
@@ -27,6 +28,7 @@ import {
  * @property {number} page
  * @property {number} pageSize
  * @property {string} predictionId
+ * @property {string} scope
  */
 
 /**
@@ -66,6 +68,10 @@ export function parseHistoryQueryParams(params) {
 
   const search = String(params.get('search') ?? '').trim().slice(0, 200);
 
+  const scope = Object.values(PREDICTION_HISTORY_SCOPE).includes(/** @type {string} */ (params.get('scope')))
+    ? String(params.get('scope'))
+    : PREDICTION_HISTORY_SCOPE.ACTIVE;
+
   return {
     view,
     tournamentId: String(params.get('tournament') ?? '').trim(),
@@ -79,6 +85,7 @@ export function parseHistoryQueryParams(params) {
     page,
     pageSize,
     predictionId: String(params.get('id') ?? '').trim(),
+    scope,
   };
 }
 
@@ -149,6 +156,10 @@ export function buildHistoryQueryString(params) {
 
   if (params.view && params.view !== PREDICTION_HISTORY_VIEW.TIMELINE) {
     searchParams.set('view', params.view);
+  }
+
+  if (params.scope && params.scope !== PREDICTION_HISTORY_SCOPE.ACTIVE) {
+    searchParams.set('scope', params.scope);
   }
 
   if (params.tournamentId) {

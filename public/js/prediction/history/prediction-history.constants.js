@@ -44,6 +44,12 @@ export const PREDICTION_HISTORY_MATCH_STATUS = Object.freeze({
   LOCKED: 'locked',
 });
 
+/** @enum {string} */
+export const PREDICTION_HISTORY_SCOPE = Object.freeze({
+  ACTIVE: 'active',
+  ARCHIVED: 'archived',
+});
+
 /** @type {Readonly<number>} */
 export const PREDICTION_HISTORY_DEFAULT_PAGE_SIZE = 10;
 
@@ -69,6 +75,8 @@ export const PREDICTION_HISTORY_MESSAGES = Object.freeze({
   FIRESTORE_UNAVAILABLE: 'Unable to reach the database. Please try again later.',
   UNEXPECTED_ERROR: 'Something went wrong. Please try again.',
   NO_PREDICTIONS: 'You have not submitted any predictions yet.',
+  NO_PREDICTIONS_ACTIVE: 'No predictions in active tournaments yet.',
+  NO_PREDICTIONS_ARCHIVED: 'No archived prediction history yet.',
   NO_FILTER_MATCHES: 'No predictions match your current filters.',
   EMPTY_SEARCH: 'Try adjusting your search or filters.',
 });
