@@ -13,7 +13,13 @@ import { getMatchById, listMatchesForContestant } from '../match/match.service.j
 import { getTournamentById } from '../tournament/tournament.service.js';
 import { renderMatchCard } from '../match/match-card.component.js';
 import { initializeCountdowns } from '../components/countdown.component.js';
-import { renderPredictionForm, attachPredictionFormHandlers } from '../prediction/prediction-form.component.js';
+import {
+  renderPredictionForm,
+  attachPredictionFormHandlers,
+  initializePredictionFormCountdowns,
+} from '../prediction/prediction-form.component.js';
+import { MatchDomain } from '../domain/match.domain.js';
+import { toDate } from '../utils/date.util.js';
 import {
   submitPrediction,
   updatePrediction,
@@ -218,16 +224,31 @@ async function renderPredictionFormView(outlet, matchId, isEdit) {
     // Load tournament configuration
     await TournamentConfigurationService.load(match.tournamentId);
     const requireWinnerSelectionForDrawPrediction = TournamentConfigurationService.requireWinnerSelectionForDrawPrediction();
+    const tournament = tournamentCache.get(match.tournamentId);
+    const kickoff = toDate(match.kickoffUtc);
+    const lockMinutes = TournamentConfigurationService.getPredictionLockMinutes();
+    const predictionLocksAt = kickoff
+      ? MatchDomain.calculatePredictionLock(kickoff, lockMinutes).toISOString()
+      : null;
+    const tournamentBannerUrl = tournament?.banner || tournament?.logo || null;
 
     outlet.innerHTML = `
       <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
         <button class="btn btn-outline-light mb-3" onclick="history.back()">
           <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to Predictions
         </button>
-        ${renderPredictionForm({ match, existingPrediction, isEdit, requireWinnerSelectionForDrawPrediction })}
+        ${renderPredictionForm({
+          match,
+          existingPrediction,
+          isEdit,
+          requireWinnerSelectionForDrawPrediction,
+          predictionLocksAt,
+          tournamentBannerUrl,
+        })}
       </div>
     `;
 
+    initializePredictionFormCountdowns(outlet);
     attachFormHandlers(outlet);
   } catch (error) {
     Logger.error('[PredictionsPage] Failed to load form:', error);
@@ -343,6 +364,7 @@ function attachFormHandlers(outlet) {
     () => {
       window.history.back();
     },
+    isEditing,
   );
 }
 
