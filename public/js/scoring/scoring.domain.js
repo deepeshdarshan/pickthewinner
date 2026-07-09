@@ -3,8 +3,16 @@
  * @module scoring/scoring.domain
  */
 
-import { WINNER_RESOLUTION } from '../domain/match.domain.js';
+import { MatchDomain, WINNER_RESOLUTION } from '../domain/match.domain.js';
 import { PENALTY_WINNER } from '../domain/prediction.domain.js';
+
+/**
+ * @typedef {Object} EffectiveScoringConfig
+ * @property {number} correctMatchScorePoints
+ * @property {number} correctPenaltyWinnerPoints
+ * @property {'match'|'tournament'} source
+ * @property {boolean} showPenaltyWinnerPoints
+ */
 
 /**
  * @typedef {Object} ScoringBreakdownItem
@@ -26,6 +34,54 @@ export const ScoringDomain = {
    */
   isPenaltyWinnerScoringApplicable(result) {
     return String(result?.winnerResolution) === WINNER_RESOLUTION.PENALTIES;
+  },
+
+  /**
+   * Resolves effective scoring configuration for a match (match override or tournament default).
+   * @param {Record<string, unknown>} match
+   * @param {Record<string, unknown>|null|undefined} tournamentScoringConfiguration
+   * @param {boolean} [requireWinnerSelectionForDrawPrediction]
+   * @returns {EffectiveScoringConfig|null}
+   */
+  resolveEffectiveScoringConfig(
+    match,
+    tournamentScoringConfiguration,
+    requireWinnerSelectionForDrawPrediction = false,
+  ) {
+    const custom = /** @type {Record<string, unknown>|null|undefined} */ (match?.customScoringConfig);
+    const hasCustomPoints = Boolean(
+      custom?.useCustomPoints
+      && MatchDomain.isValidCustomScoringPoints(custom.correctMatchScorePoints)
+      && MatchDomain.isValidCustomScoringPoints(custom.correctPenaltyWinnerPoints),
+    );
+    const showPenaltyWinnerPoints = Boolean(requireWinnerSelectionForDrawPrediction);
+
+    if (hasCustomPoints) {
+      return {
+        correctMatchScorePoints: Number(custom.correctMatchScorePoints),
+        correctPenaltyWinnerPoints: Number(custom.correctPenaltyWinnerPoints),
+        source: 'match',
+        showPenaltyWinnerPoints,
+      };
+    }
+
+    const scoring = tournamentScoringConfiguration && typeof tournamentScoringConfiguration === 'object'
+      ? tournamentScoringConfiguration
+      : {};
+    const matchScorePoints = Number(scoring.correctMatchScorePoints);
+    const penaltyWinnerPoints = Number(scoring.correctPenaltyWinnerPoints);
+
+    if (!MatchDomain.isValidCustomScoringPoints(matchScorePoints)
+      || !MatchDomain.isValidCustomScoringPoints(penaltyWinnerPoints)) {
+      return null;
+    }
+
+    return {
+      correctMatchScorePoints: matchScorePoints,
+      correctPenaltyWinnerPoints: penaltyWinnerPoints,
+      source: 'tournament',
+      showPenaltyWinnerPoints,
+    };
   },
 
   /**

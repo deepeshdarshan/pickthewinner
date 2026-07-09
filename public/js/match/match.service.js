@@ -28,6 +28,7 @@ import { applyLifecycleAction, getMatchWithEffectiveStatus } from './match-statu
 import { MATCH_EVENTS, emitMatchEvent } from './match.events.js';
 import { listPredictionsByMatch } from '../prediction/prediction.repository.js';
 import { writeAuditLog } from '../audit/audit.service.js';
+import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -74,6 +75,7 @@ import { Logger } from '../utils/logger.util.js';
  *   homeTeam?: import('../master-data/teams/team.service.js').Team,
  *   awayTeam?: import('../master-data/teams/team.service.js').Team,
  *   predictionStatus?: string,
+ *   effectiveScoringConfig?: import('../scoring/scoring.domain.js').EffectiveScoringConfig|null,
  * }} EnrichedMatch
  */
 
@@ -212,6 +214,11 @@ export async function enrichMatch(match) {
     homeTeam: teams.get(match.homeTeamId),
     awayTeam: teams.get(match.awayTeamId),
     predictionStatus,
+    effectiveScoringConfig: ScoringDomain.resolveEffectiveScoringConfig(
+      match,
+      tournament?.configuration?.scoringConfiguration,
+      tournament?.configuration?.requireWinnerSelectionForDrawPrediction,
+    ),
   };
 }
 

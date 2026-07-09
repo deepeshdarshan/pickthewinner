@@ -116,4 +116,88 @@ describe('ScoringDomain', () => {
     );
     assert.equal(ScoringDomain.isPenaltyWinnerScoringApplicable({}), false);
   });
+
+  describe('resolveEffectiveScoringConfig', () => {
+    const tournamentScoring = {
+      correctMatchScorePoints: 10,
+      correctPenaltyWinnerPoints: 5,
+    };
+
+    it('returns tournament defaults when match has no custom override', () => {
+      const config = ScoringDomain.resolveEffectiveScoringConfig(
+        { customScoringConfig: null },
+        tournamentScoring,
+        true,
+      );
+
+      assert.deepEqual(config, {
+        correctMatchScorePoints: 10,
+        correctPenaltyWinnerPoints: 5,
+        source: 'tournament',
+        showPenaltyWinnerPoints: true,
+      });
+    });
+
+    it('returns match override when useCustomPoints is valid', () => {
+      const config = ScoringDomain.resolveEffectiveScoringConfig(
+        {
+          customScoringConfig: {
+            useCustomPoints: true,
+            correctMatchScorePoints: 20,
+            correctPenaltyWinnerPoints: 8,
+          },
+        },
+        tournamentScoring,
+        false,
+      );
+
+      assert.deepEqual(config, {
+        correctMatchScorePoints: 20,
+        correctPenaltyWinnerPoints: 8,
+        source: 'match',
+        showPenaltyWinnerPoints: false,
+      });
+    });
+
+    it('falls back to tournament when custom override values are invalid', () => {
+      const config = ScoringDomain.resolveEffectiveScoringConfig(
+        {
+          customScoringConfig: {
+            useCustomPoints: true,
+            correctMatchScorePoints: 101,
+            correctPenaltyWinnerPoints: 5,
+          },
+        },
+        tournamentScoring,
+        true,
+      );
+
+      assert.deepEqual(config, {
+        correctMatchScorePoints: 10,
+        correctPenaltyWinnerPoints: 5,
+        source: 'tournament',
+        showPenaltyWinnerPoints: true,
+      });
+    });
+
+    it('returns null when tournament scoring configuration is incomplete', () => {
+      const config = ScoringDomain.resolveEffectiveScoringConfig(
+        { customScoringConfig: null },
+        { correctMatchScorePoints: 10 },
+        true,
+      );
+
+      assert.equal(config, null);
+    });
+
+    it('hides penalty row flag when tournament does not require winner selection', () => {
+      const config = ScoringDomain.resolveEffectiveScoringConfig(
+        { customScoringConfig: null },
+        tournamentScoring,
+        false,
+      );
+
+      assert.equal(config?.showPenaltyWinnerPoints, false);
+    });
+  });
 });

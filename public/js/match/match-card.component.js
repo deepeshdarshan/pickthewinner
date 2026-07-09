@@ -17,6 +17,10 @@ import { PredictionDomain } from '../domain/prediction.domain.js';
 import { PredictionManagementDomain } from '../domain/prediction-management.domain.js';
 import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { renderResultBadge } from '../prediction/admin/renderers/prediction-status-badge.renderer.js';
+import {
+  renderCustomScoringSourceBadge,
+  renderMatchScoringPointsHtml,
+} from './renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 
 /**
@@ -50,7 +54,7 @@ export function renderMatchCard(options) {
 
   const predictionStatus = getPredictionStatus(match, prediction);
   const statusBadge = renderPredictionStatusBadge(predictionStatus);
-  const customPointsBadge = renderCustomPointsBadge(match);
+  const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
   const showCountdown = MatchDomain.shouldShowKickoffCountdown(match, kickoff);
 
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
@@ -99,6 +103,8 @@ export function renderMatchCard(options) {
         <div class="mt-3 text-center">
           ${kickoff ? `<div class="ptw-text-muted mb-1"><i class="bi bi-clock me-1" aria-hidden="true"></i>${escapeHtml(formatDateTime(kickoff))}</div>` : ''}
         </div>
+
+        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
 
         ${showResult && match.result?.published ? renderOfficialResultDisplay(match) : ''}
         
@@ -381,11 +387,12 @@ export function renderCompactMatchCard(match, prediction = null) {
             <div class="d-flex align-items-center gap-2">
               ${stageLabel ? `<span class="badge bg-secondary">${escapeHtml(stageLabel)}</span>` : ''}
               ${renderPredictionStatusBadge(predictionStatus)}
-              ${renderCustomPointsBadge(match)}
+              ${renderCustomScoringSourceBadge(match.effectiveScoringConfig)}
             </div>
             <div class="mt-1">
               ${renderTeamsMatchupHtml(match.homeTeam, match.awayTeam, { homeFallback: 'TBD', awayFallback: 'TBD', strong: true })}
             </div>
+            ${renderMatchScoringPointsHtml(match.effectiveScoringConfig, { compact: true })}
             ${kickoff ? `<small class="ptw-text-muted">${escapeHtml(formatDateTime(kickoff))}</small>` : ''}
           </div>
           <div>
@@ -412,16 +419,4 @@ function resolveTournamentName(match) {
     ?? tournament.title
     ?? '',
   ).trim();
-}
-
-/**
- * @param {import('./match.service.js').EnrichedMatch} match
- * @returns {string}
- */
-function renderCustomPointsBadge(match) {
-  if (!match.customScoringConfig?.useCustomPoints) {
-    return '';
-  }
-
-  return '<span class="badge bg-warning text-dark"><i class="bi bi-stars me-1" aria-hidden="true"></i>Bonus Points</span>';
 }

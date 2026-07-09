@@ -1727,6 +1727,45 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
+.ptw-match-scoring-points__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-match-scoring-points__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ptw-space-3);
+}
+
+.ptw-match-scoring-points__label {
+  color: var(--ptw-text-muted);
+  font-size: 0.875rem;
+}
+
+.ptw-match-scoring-points__value {
+  font-weight: 600;
+  color: var(--ptw-primary);
+  white-space: nowrap;
+}
+
+.ptw-match-scoring-points--compact {
+  margin-top: var(--ptw-space-1);
+}
+
+.ptw-match-scoring-points__compact-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ptw-prediction-history-card .ptw-match-scoring-points {
+  margin-top: var(--ptw-space-3);
+  padding-top: var(--ptw-space-3);
+  border-top: 1px solid var(--ptw-border-color);
+}
+
 .ptw-match-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

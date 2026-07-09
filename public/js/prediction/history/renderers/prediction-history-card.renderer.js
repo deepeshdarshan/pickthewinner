@@ -15,6 +15,7 @@ import {
 } from '../../admin/renderers/prediction-display.renderer.js';
 import { renderComparisonBadges } from './prediction-comparison.renderer.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
+import { renderMatchScoringPointsHtml } from '../../../match/renderers/match-scoring-points.renderer.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
@@ -64,6 +65,8 @@ export function renderHistoryCard(item) {
             <p class="mb-0 small fw-semibold mt-1">${escapeHtml(String(match.awayTeam?.name ?? 'Away'))}</p>
           </div>
         </div>
+
+        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
 
         <div class="row g-3">
           <div class="col-md-6">

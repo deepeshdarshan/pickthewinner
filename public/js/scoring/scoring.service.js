@@ -42,23 +42,21 @@ export const ScoringEngine = {
 
     await TournamentConfigurationService.load(match.tournamentId);
 
-    const hasCustomPoints = Boolean(
-      match.customScoringConfig?.useCustomPoints
-      && Number.isInteger(Number(match.customScoringConfig?.correctMatchScorePoints))
-      && Number.isInteger(Number(match.customScoringConfig?.correctPenaltyWinnerPoints)),
+    const effectiveConfig = ScoringDomain.resolveEffectiveScoringConfig(
+      match,
+      TournamentConfigurationService.getScoringConfiguration(),
+      TournamentConfigurationService.requireWinnerSelectionForDrawPrediction(),
     );
-    const matchScorePoints = Number(match.customScoringConfig?.correctMatchScorePoints);
-    const penaltyWinnerPoints = Number(match.customScoringConfig?.correctPenaltyWinnerPoints);
+
+    if (!effectiveConfig) {
+      throw new Error('Scoring configuration is incomplete');
+    }
 
     const scoringConfig = {
-      correctMatchScorePoints: hasCustomPoints
-        ? matchScorePoints
-        : TournamentConfigurationService.getCorrectMatchScorePoints(),
-      correctPenaltyWinnerPoints: hasCustomPoints
-        ? penaltyWinnerPoints
-        : TournamentConfigurationService.getCorrectPenaltyWinnerPoints(),
+      correctMatchScorePoints: effectiveConfig.correctMatchScorePoints,
+      correctPenaltyWinnerPoints: effectiveConfig.correctPenaltyWinnerPoints,
     };
-    const scoringConfigSource = hasCustomPoints ? 'match' : 'tournament';
+    const scoringConfigSource = effectiveConfig.source;
 
     const predictions = await listPredictionsByMatch(matchId);
     const leaderboard = new Map();
