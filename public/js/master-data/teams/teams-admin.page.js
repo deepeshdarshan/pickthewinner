@@ -162,27 +162,30 @@ function bindTeamForm(outlet, team) {
   const deleteButton = outlet.querySelector('[data-ptw-team-delete]');
 
   if (deleteButton instanceof HTMLButtonElement && team) {
-    deleteButton.addEventListener('click', () => {
-      showConfirmationModal({
+    deleteButton.addEventListener('click', async () => {
+      const confirmed = await showConfirmationModal({
         title: 'Delete Team',
         message: TEAM_MESSAGES.CONFIRM_DELETE,
         confirmLabel: 'Delete',
-        confirmVariant: 'danger',
-        onConfirm: async () => {
-          showLoadingOverlay(TEAM_MESSAGES.DELETING);
-
-          try {
-            await deleteTeam(team.id);
-            showSuccessToast(TEAM_MESSAGES.DELETED);
-            window.history.pushState({}, '', '/admin/teams');
-            await renderListView(outlet);
-          } catch (error) {
-            showErrorToast(getTeamErrorMessage(error));
-          } finally {
-            hideLoadingOverlay();
-          }
-        },
+        confirmClass: 'btn-danger',
       });
+
+      if (!confirmed) {
+        return;
+      }
+
+      showLoadingOverlay(TEAM_MESSAGES.DELETING);
+
+      try {
+        await deleteTeam(team.id);
+        showSuccessToast(TEAM_MESSAGES.DELETED);
+        window.history.pushState({}, '', '/admin/teams');
+        await renderListView(outlet);
+      } catch (error) {
+        showErrorToast(getTeamErrorMessage(error));
+      } finally {
+        hideLoadingOverlay();
+      }
     });
   }
 }
