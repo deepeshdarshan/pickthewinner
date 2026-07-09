@@ -1799,24 +1799,32 @@
   display: flex;
   flex-direction: column;
   gap: var(--ptw-space-2);
+  align-items: center;
+}
+
+.ptw-match-scoring-points:not(.ptw-match-scoring-points--compact) {
+  text-align: center;
 }
 
 .ptw-match-scoring-points__row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--ptw-space-3);
+  width: 100%;
 }
 
 .ptw-match-scoring-points__label {
   color: var(--ptw-text-muted);
   font-size: 0.875rem;
+  text-align: center;
 }
 
 .ptw-match-scoring-points__value {
   font-weight: 600;
   color: var(--ptw-primary);
   white-space: nowrap;
+  text-align: center;
 }
 
 .ptw-match-scoring-points--compact {
@@ -2309,6 +2317,10 @@
   font-size: var(--ptw-font-size-sm);
   font-weight: var(--ptw-font-weight-bold);
   letter-spacing: 0.04em;
+}
+
+.ptw-featured-match__scoring .ptw-match-scoring-points--compact {
+  justify-content: center;
 }
 
 .ptw-featured-match__score {

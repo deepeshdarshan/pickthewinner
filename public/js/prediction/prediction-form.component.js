@@ -5,6 +5,10 @@
 
 import { escapeHtml } from '../utils/html.util.js';
 import { renderTeamInlineHtml, renderTeamStackHtml } from '../master-data/teams/team-flag.util.js';
+import {
+  renderCustomScoringSourceBadge,
+  renderMatchScoringPointsHtml,
+} from '../match/renderers/match-scoring-points.renderer.js';
 
 /**
  * @typedef {Object} PredictionFormOptions
@@ -30,8 +34,9 @@ export function renderPredictionForm(options) {
 
   return `
     <div class="card ptw-card">
-      <div class="card-header">
+      <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h5 class="mb-0">${isEdit ? 'Edit' : 'Make'} Prediction</h5>
+        ${renderCustomScoringSourceBadge(match.effectiveScoringConfig)}
       </div>
       <div class="card-body">
         <!-- Match Info -->
@@ -48,6 +53,8 @@ export function renderPredictionForm(options) {
             </div>
           </div>
         </div>
+
+        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
 
         <!-- Prediction Form -->
         <form id="prediction-form" data-match-id="${escapeHtml(match.id)}">

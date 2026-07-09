@@ -5,6 +5,10 @@
 
 import { renderCountdown } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
+import {
+  renderCustomScoringSourceBadge,
+  renderMatchScoringPointsHtml,
+} from '../../match/renderers/match-scoring-points.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 
@@ -113,6 +117,9 @@ function renderMatchSpotlightCard(options) {
       })
       : '');
 
+  const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
+  const scoringPointsHtml = renderMatchScoringPointsHtml(match.effectiveScoringConfig, { compact: true });
+
   const metaHtml = kickoff
     ? `<div class="ptw-featured-match__meta text-center">
         <small class="ptw-text-muted">
@@ -126,7 +133,10 @@ function renderMatchSpotlightCard(options) {
     <section class="card ptw-card ${sectionClass} h-100" aria-labelledby="${headingId}">
       <div class="card-body d-flex flex-column">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-          <h2 class="h5 mb-0" id="${headingId}">${escapeHtml(heading)}</h2>
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <h2 class="h5 mb-0" id="${headingId}">${escapeHtml(heading)}</h2>
+            ${customPointsBadge}
+          </div>
           ${headerRight}
         </div>
 
@@ -143,6 +153,8 @@ function renderMatchSpotlightCard(options) {
         </div>
 
         ${metaHtml}
+
+        ${scoringPointsHtml ? `<div class="ptw-featured-match__scoring text-center mb-2">${scoringPointsHtml}</div>` : ''}
 
         ${prediction && !showLiveIndicator ? renderPredictionSummary(prediction) : ''}
 
