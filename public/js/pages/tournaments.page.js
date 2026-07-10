@@ -147,7 +147,7 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${live.map((data) => `
-              <div class="col-12 col-lg-6">
+              <div class="col-12">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,
@@ -169,7 +169,7 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${upcoming.map((data) => `
-              <div class="col-12 col-lg-6">
+              <div class="col-12">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,
@@ -191,7 +191,7 @@ function renderTournamentsPage(tournamentData) {
           </h3>
           <div class="row g-3">
             ${completed.map((data) => `
-              <div class="col-12 col-lg-6">
+              <div class="col-12">
                 ${renderTournamentCard({
                   tournament: data.tournament,
                   totalMatches: data.totalMatches,

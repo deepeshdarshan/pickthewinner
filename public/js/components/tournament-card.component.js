@@ -3,10 +3,20 @@
  * @module components/tournament-card.component
  */
 
+import { appSettings } from '../config/app.config.js';
 import { renderStatusBadge } from './status-badge.component.js';
 import { renderSeeAllUpcomingMatchesLink } from '../match/renderers/upcoming-matches-cta.renderer.js';
 import { escapeHtml } from '../utils/html.util.js';
-import { formatDateTime, formatDate } from '../utils/date.util.js';
+import { formatDate } from '../utils/date.util.js';
+
+/** @type {Readonly<Record<string, { label: string, variant: 'success'|'warning'|'danger'|'info'|'muted', icon: string }>>} */
+const STATUS_CONFIG = Object.freeze({
+  draft: { label: 'Draft', variant: 'muted', icon: 'bi-pencil' },
+  published: { label: 'Upcoming', variant: 'warning', icon: 'bi-calendar-event' },
+  live: { label: 'Live', variant: 'success', icon: 'bi-broadcast' },
+  completed: { label: 'Completed', variant: 'muted', icon: 'bi-check-circle' },
+  archived: { label: 'Archived', variant: 'muted', icon: 'bi-archive' },
+});
 
 /**
  * @typedef {Object} TournamentCardOptions
@@ -33,98 +43,134 @@ export function renderTournamentCard(options) {
     upcomingMatchCount = 0,
   } = options;
 
-  const statusBadge = renderTournamentStatusBadge(tournament.status);
+  const statusConfig = STATUS_CONFIG[tournament.status] ?? STATUS_CONFIG.published;
   const progressPercentage = totalMatches > 0 ? Math.round((submittedPredictions / totalMatches) * 100) : 0;
+  const heroBackground = tournament.banner || appSettings.assets.dashboardHeroBanner;
   const seeAllUpcomingHtml = renderSeeAllUpcomingMatchesLink(upcomingMatchCount, {
-    className: 'btn btn-ptw-secondary ptw-tournament-card__action-btn',
+    className: 'btn btn-ptw-secondary ptw-tournament-list-card__action-btn',
   });
-  const viewTournamentButtonClass = seeAllUpcomingHtml
-    ? 'btn btn-ptw-primary ptw-tournament-card__action-btn'
-    : 'btn btn-ptw-primary w-100';
 
   return `
-    <div class="card ptw-card ptw-tournament-card h-100">
-      ${tournament.banner ? `
-        <div class="card-img-top ptw-tournament-banner" style="background-image: url('${escapeHtml(tournament.banner)}'); height: 150px; background-size: cover; background-position: center;"></div>
-      ` : ''}
-      <div class="card-body">
-        <div class="d-flex align-items-start mb-3">
-          ${tournament.logo ? `
-            <img src="${escapeHtml(tournament.logo)}" alt="${escapeHtml(tournament.name)}" class="ptw-tournament-logo me-3" style="width: 48px; height: 48px; object-fit: contain;">
-          ` : ''}
-          <div class="flex-grow-1">
-            <h5 class="card-title mb-1">${escapeHtml(tournament.name)}</h5>
-            ${tournament.season ? `<p class="text-muted small mb-0">${escapeHtml(tournament.season)}</p>` : ''}
+    <article
+      class="ptw-active-tournament-hero ptw-tournament-hero-card ptw-tournament-list-card h-100"
+      style="--ptw-hero-bg: url('${escapeHtml(heroBackground)}');"
+    >
+      <div class="ptw-active-tournament-hero__overlay"></div>
+      <div class="ptw-active-tournament-hero__body">
+        <div class="ptw-active-tournament-hero__content ptw-tournament-list-card__content">
+          <div class="ptw-tournament-list-card__header">
+            ${renderTournamentLogo(tournament)}
+            <div class="ptw-tournament-list-card__header-text">
+              <h3 class="ptw-tournament-list-card__name">${escapeHtml(tournament.name)}</h3>
+              ${tournament.season ? `<p class="ptw-tournament-list-card__season">${escapeHtml(tournament.season)}</p>` : ''}
+              <div class="ptw-tournament-list-card__meta">
+                ${renderStatusBadge({
+    label: statusConfig.label,
+    variant: statusConfig.variant,
+    icon: statusConfig.icon,
+  })}
+              </div>
+              ${tournament.description ? `
+                <p class="ptw-tournament-list-card__description">${escapeHtml(tournament.description)}</p>
+              ` : ''}
+              ${renderTournamentDuration(tournament)}
+            </div>
+          </div>
+
+          <div class="ptw-tournament-list-card__footer">
+            ${renderTournamentStats({
+    showProgress,
+    totalMatches,
+    submittedPredictions,
+    progressPercentage,
+  })}
+
+            <div class="ptw-tournament-list-card__actions">
+              <a
+                href="/tournaments?id=${encodeURIComponent(tournament.id)}"
+                class="btn btn-ptw-primary ptw-tournament-list-card__action-btn"
+                data-route
+              >
+                <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>${escapeHtml(actionLabel)}
+              </a>
+              ${seeAllUpcomingHtml}
+            </div>
           </div>
         </div>
-
-        ${statusBadge}
-
-        ${tournament.description ? `
-          <p class="card-text ptw-text-muted small mt-2">${escapeHtml(tournament.description)}</p>
-        ` : ''}
-
-        <!-- Tournament Info -->
-        <div class="mt-3">
-          ${renderTournamentDuration(tournament)}
-          
-          ${showProgress && totalMatches > 0 ? `
-            <div class="mt-2">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="ptw-text-muted">Prediction Progress</small>
-                <small class="text-primary fw-bold">${submittedPredictions} / ${totalMatches}</small>
-              </div>
-              <div class="progress" style="height: 6px;">
-                <div class="progress-bar bg-primary" role="progressbar" 
-                     style="width: ${progressPercentage}%;" 
-                     aria-valuenow="${progressPercentage}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100"></div>
-              </div>
-            </div>
-          ` : totalMatches > 0 ? `
-            <div class="mt-2 d-flex justify-content-between align-items-center">
-              <small class="ptw-text-muted">Total Matches</small>
-              <small class="fw-bold">${totalMatches}</small>
-            </div>
-          ` : ''}
-        </div>
       </div>
-      <div class="card-footer bg-transparent border-top-0 pt-0">
-        <div class="ptw-tournament-card__actions${seeAllUpcomingHtml ? '' : ' ptw-tournament-card__actions--single'}">
-          <a href="/tournaments?id=${encodeURIComponent(tournament.id)}" 
-             class="${viewTournamentButtonClass}" 
-             data-route>
-            <i class="bi bi-arrow-right-circle me-2" aria-hidden="true"></i>${escapeHtml(actionLabel)}
-          </a>
-          ${seeAllUpcomingHtml}
-        </div>
+    </article>
+  `;
+}
+
+/**
+ * @param {import('../tournament/tournament.service.js').Tournament} tournament
+ * @returns {string}
+ */
+function renderTournamentLogo(tournament) {
+  if (tournament.logo) {
+    return `
+      <div class="ptw-active-tournament-hero__logo-wrap">
+        <img
+          src="${escapeHtml(tournament.logo)}"
+          alt=""
+          class="ptw-active-tournament-hero__logo"
+        >
       </div>
+    `;
+  }
+
+  return `
+    <div class="ptw-active-tournament-hero__logo-wrap ptw-active-tournament-hero__logo-wrap--placeholder" aria-hidden="true">
+      <i class="bi bi-trophy"></i>
     </div>
   `;
 }
 
 /**
- * Renders tournament status badge.
- * @param {string} status
+ * @param {{
+ *   showProgress: boolean,
+ *   totalMatches: number,
+ *   submittedPredictions: number,
+ *   progressPercentage: number,
+ * }} options
  * @returns {string}
  */
-function renderTournamentStatusBadge(status) {
-  const statusConfig = {
-    draft: { label: 'Draft', variant: 'secondary', icon: 'bi-pencil' },
-    published: { label: 'Upcoming', variant: 'warning', icon: 'bi-calendar-event' },
-    live: { label: 'Live', variant: 'success', icon: 'bi-broadcast' },
-    completed: { label: 'Completed', variant: 'secondary', icon: 'bi-check-circle' },
-    archived: { label: 'Archived', variant: 'dark', icon: 'bi-archive' },
-  };
+function renderTournamentStats(options) {
+  const { showProgress, totalMatches, submittedPredictions, progressPercentage } = options;
 
-  const config = statusConfig[status] || statusConfig.draft;
+  if (showProgress && totalMatches > 0) {
+    return `
+      <div class="ptw-tournament-list-card__stats ptw-active-tournament-hero__progress">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="ptw-active-tournament-hero__progress-label">Prediction Progress</span>
+          <span class="ptw-active-tournament-hero__progress-value">${submittedPredictions} / ${totalMatches}</span>
+        </div>
+        <div
+          class="ptw-active-tournament-hero__progress-bar"
+          role="progressbar"
+          aria-valuenow="${progressPercentage}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-label="Prediction progress ${submittedPredictions} of ${totalMatches}"
+        >
+          <span class="ptw-active-tournament-hero__progress-fill" style="width: ${progressPercentage}%;"></span>
+        </div>
+      </div>
+    `;
+  }
 
-  return renderStatusBadge({
-    label: config.label,
-    variant: config.variant,
-    icon: config.icon,
-  });
+  if (totalMatches > 0) {
+    return `
+      <div class="ptw-tournament-list-card__stats">
+        <div class="ptw-stat-tile text-center">
+          <div class="ptw-stat-tile__value">${totalMatches}</div>
+          <div class="ptw-stat-tile__label">Matches</div>
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
 }
 
 /**
@@ -150,13 +196,11 @@ function renderTournamentDuration(tournament) {
   }
 
   return `
-    <div class="d-flex justify-content-between align-items-center">
-      <small class="ptw-text-muted">
-        <i class="bi bi-calendar-range me-1" aria-hidden="true"></i>
-        ${start ? escapeHtml(formatDate(start)) : 'TBD'}
-        ${end ? ` - ${escapeHtml(formatDate(end))}` : ''}
-      </small>
-    </div>
+    <p class="ptw-tournament-list-card__duration mb-0 mt-2">
+      <i class="bi bi-calendar-range me-1" aria-hidden="true"></i>
+      ${start ? escapeHtml(formatDate(start)) : 'TBD'}
+      ${end ? ` - ${escapeHtml(formatDate(end))}` : ''}
+    </p>
   `;
 }
 
@@ -166,6 +210,8 @@ function renderTournamentDuration(tournament) {
  * @returns {string}
  */
 export function renderCompactTournamentCard(tournament) {
+  const statusConfig = STATUS_CONFIG[tournament.status] ?? STATUS_CONFIG.draft;
+
   return `
     <div class="card ptw-card mb-2">
       <div class="card-body py-2">
@@ -176,7 +222,11 @@ export function renderCompactTournamentCard(tournament) {
                 <img src="${escapeHtml(tournament.logo)}" alt="${escapeHtml(tournament.name)}" style="width: 24px; height: 24px; object-fit: contain;">
               ` : ''}
               <strong>${escapeHtml(tournament.name)}</strong>
-              ${renderTournamentStatusBadge(tournament.status)}
+              ${renderStatusBadge({
+    label: statusConfig.label,
+    variant: statusConfig.variant,
+    icon: statusConfig.icon,
+  })}
             </div>
             ${tournament.season ? `<small class="ptw-text-muted ms-4">${escapeHtml(tournament.season)}</small>` : ''}
           </div>
@@ -190,4 +240,3 @@ export function renderCompactTournamentCard(tournament) {
     </div>
   `;
 }
-

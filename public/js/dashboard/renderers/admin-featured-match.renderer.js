@@ -11,6 +11,7 @@ import {
 } from '../../match/renderers/match-scoring-points.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
+import { renderFeaturedMatchBgIcons } from './featured-match.renderer.js';
 
 /**
  * @param {import('../AdminDashboardService.js').AdminDashboardDto} data
@@ -44,6 +45,7 @@ export function renderAdminFeaturedMatchSection(data) {
   if (!match) {
     return `
       <section class="card ptw-card ptw-featured-match ptw-upcoming-match h-100" aria-labelledby="ptw-admin-featured-match-heading">
+        ${renderFeaturedMatchBgIcons('empty')}
         <div class="card-body ptw-placeholder-card">
           <div class="ptw-dashboard-section-header mb-3">
             <h2 class="ptw-dashboard-section-header__title mb-0" id="ptw-admin-featured-match-heading">Upcoming Match</h2>
@@ -122,8 +124,11 @@ function renderAdminMatchSpotlightCard(options) {
 
   const manageUrl = `${data.matchesPath}?id=${encodeURIComponent(match.id)}`;
 
+  const bgVariant = showLiveIndicator ? 'live' : 'upcoming';
+
   return `
     <section class="card ptw-card ${sectionClass} h-100" aria-labelledby="${headingId}">
+      ${renderFeaturedMatchBgIcons(bgVariant)}
       <div class="card-body d-flex flex-column">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
           <div class="d-flex align-items-center flex-wrap gap-2">

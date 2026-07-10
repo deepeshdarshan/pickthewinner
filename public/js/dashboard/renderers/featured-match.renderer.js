@@ -16,6 +16,41 @@ import {
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 
+/** @type {Readonly<Record<string, ReadonlyArray<{ icon: string, modifier: string }>>>} */
+const FEATURED_MATCH_BG_ICONS = Object.freeze({
+  live: [
+    { icon: 'bi-broadcast-pin', modifier: '--primary' },
+    { icon: 'bi-stopwatch', modifier: '--secondary' },
+    { icon: 'bi-flag-fill', modifier: '--tertiary' },
+  ],
+  upcoming: [
+    { icon: 'bi-dribbble', modifier: '--primary' },
+    { icon: 'bi-bullseye', modifier: '--secondary' },
+    { icon: 'bi-trophy', modifier: '--tertiary' },
+  ],
+  empty: [
+    { icon: 'bi-dribbble', modifier: '--primary' },
+    { icon: 'bi-clock', modifier: '--secondary' },
+    { icon: 'bi-bullseye', modifier: '--tertiary' },
+  ],
+});
+
+/**
+ * @param {'live'|'upcoming'|'empty'} variant
+ * @returns {string}
+ */
+export function renderFeaturedMatchBgIcons(variant) {
+  const icons = FEATURED_MATCH_BG_ICONS[variant] ?? FEATURED_MATCH_BG_ICONS.upcoming;
+
+  return `
+    <div class="ptw-featured-match__bg-icons" aria-hidden="true">
+      ${icons.map(({ icon, modifier }) => `
+        <i class="bi ${icon} ptw-featured-match__bg-icon ptw-featured-match__bg-icon${modifier}"></i>
+      `).join('')}
+    </div>
+  `;
+}
+
 /**
  * @param {import('../ContestantDashboardService.js').ContestantDashboardDto} data
  * @returns {string}
@@ -51,6 +86,7 @@ export function renderFeaturedMatchSection(data) {
   if (!match) {
     return `
       <section class="card ptw-card ptw-featured-match ptw-upcoming-match h-100" aria-labelledby="ptw-featured-match-heading">
+        ${renderFeaturedMatchBgIcons('empty')}
         <div class="card-body ptw-placeholder-card">
           <div class="ptw-dashboard-section-header mb-3">
             <h2 class="ptw-dashboard-section-header__title mb-0" id="ptw-featured-match-heading">Upcoming Match</h2>
@@ -142,8 +178,11 @@ function renderMatchSpotlightCard(options) {
       </div>`
     : '';
 
+  const bgVariant = showLiveIndicator ? 'live' : 'upcoming';
+
   return `
     <section class="card ptw-card ${sectionClass} h-100" aria-labelledby="${headingId}">
+      ${renderFeaturedMatchBgIcons(bgVariant)}
       <div class="card-body d-flex flex-column">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
           <div class="d-flex align-items-center flex-wrap gap-2">

@@ -14,6 +14,7 @@ import {
  * @typedef {Object} ContactActionButtonsOptions
  * @property {string} [phone]
  * @property {string} [emptyMessage]
+ * @property {boolean} [whatsappFirst]
  */
 
 /**
@@ -22,7 +23,7 @@ import {
  * @returns {string}
  */
 export function renderContactActionButtons(options = {}) {
-  const { phone = '', emptyMessage = 'No phone number on file' } = options;
+  const { phone = '', emptyMessage = 'No phone number on file', whatsappFirst = false } = options;
 
   if (!hasCallablePhone(phone)) {
     return `
@@ -35,22 +36,29 @@ export function renderContactActionButtons(options = {}) {
   const telHref = formatPhoneForTel(phone);
   const whatsappHref = formatPhoneForWhatsApp(phone);
 
+  const callButton = `
+    <a
+      href="${escapeHtml(telHref ?? '')}"
+      class="btn btn-ptw-primary flex-fill"
+    >
+      <i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>Call
+    </a>
+  `;
+
+  const whatsappButton = `
+    <a
+      href="${escapeHtml(whatsappHref ?? '')}"
+      class="btn btn-success flex-fill"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <i class="bi bi-whatsapp me-2" aria-hidden="true"></i>WhatsApp
+    </a>
+  `;
+
   return `
-    <div class="d-flex flex-column flex-sm-row gap-2 ptw-contact-actions" role="group" aria-label="Contact actions">
-      <a
-        href="${escapeHtml(telHref ?? '')}"
-        class="btn btn-ptw-primary flex-fill"
-      >
-        <i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>Call
-      </a>
-      <a
-        href="${escapeHtml(whatsappHref ?? '')}"
-        class="btn btn-success flex-fill"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <i class="bi bi-whatsapp me-2" aria-hidden="true"></i>WhatsApp
-      </a>
+    <div class="d-flex flex-row gap-2 ptw-contact-actions" role="group" aria-label="Contact actions">
+      ${whatsappFirst ? `${whatsappButton}${callButton}` : `${callButton}${whatsappButton}`}
     </div>
   `;
 }

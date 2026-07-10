@@ -4,6 +4,7 @@
  */
 
 import { appSettings } from '../../config/app.config.js';
+import { renderContactActionButtons } from '../../components/contact-action-buttons.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 
 /**
@@ -31,8 +32,6 @@ function renderInfoCard(options) {
  * @returns {string}
  */
 export function renderDashboardInfoCardsSection() {
-  const phone = escapeHtml(appSettings.supportContactPhone);
-
   return `
     <section class="ptw-dashboard-info-cards mt-4 mb-4" aria-label="Platform information">
       <div class="row g-3">
@@ -59,7 +58,14 @@ export function renderDashboardInfoCardsSection() {
     iconClass: 'ptw-dashboard-info-card__icon--purple',
     title: 'Need Help?',
     body: 'Facing any issues? We\'re here to help.',
-    footerHtml: `<a class="ptw-dashboard-info-card__link" href="tel:${phone.replace(/\s/g, '')}">${phone}</a>`,
+    footerHtml: `
+      <div class="ptw-dashboard-info-card__footer mt-3">
+        ${renderContactActionButtons({
+    phone: appSettings.supportContactPhone,
+    whatsappFirst: true,
+  })}
+      </div>
+    `,
   })}
       </div>
     </section>
