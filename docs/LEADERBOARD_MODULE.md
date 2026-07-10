@@ -133,12 +133,19 @@ The module reads from:
 
 ## Leaderboard Visibility
 
-Controlled by platform settings: `settings/general.leaderboardVisible` (managed at `/admin/settings`)
+Controlled by platform settings on **Administration → General Settings** (`/admin/settings`):
 
-- **`true`**: Leaderboard visible to all contestants
-- **`false`**: Leaderboard hidden (only admins can view)
+| Setting | Field | Behavior |
+|---------|-------|----------|
+| Show Leaderboard to Contestants | `settings/general.leaderboardVisible` | When `false`, contestants cannot access the leaderboard |
+| Visible Leaderboard Positions | `settings/general.contestantLeaderboardLimit` | When enabled, contestants only see the top N ranks (1–10, default 10) |
 
-The `leaderboard.guard.js` enforces this at the route level.
+- **`leaderboardVisible: true`**: Leaderboard visible to contestants (subject to Top-N limit)
+- **`leaderboardVisible: false`**: Leaderboard hidden (only admins can view)
+
+Administrators always see the full leaderboard regardless of `contestantLeaderboardLimit`.
+
+The `leaderboard.guard.js` enforces visibility at the route level. `LeaderboardService` applies the Top-N limit on contestant-facing pages.
 
 ## Responsive Design
 
@@ -156,7 +163,7 @@ The `leaderboard.guard.js` enforces this at the route level.
 ## Caching Strategy
 
 - **Cache Duration**: 5 minutes
-- **Cache Key**: `{tournamentId}:{currentUserId}`
+- **Cache Key**: `{tournamentId}:full`
 - **Manual Refresh**: Available via "Refresh" button
 - **Cache Invalidation**: On scoring completion events (future enhancement)
 

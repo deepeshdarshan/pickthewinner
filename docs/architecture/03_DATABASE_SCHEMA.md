@@ -131,10 +131,11 @@ The `scoringConfiguration` object may be extended with additional integer fields
 | Field | Type | Description |
 |-------|------|-------------|
 | `leaderboardVisible` | Boolean | Whether contestants may view the tournament leaderboard (default `false`) |
+| `contestantLeaderboardLimit` | Integer | Number of top-ranked contestants visible to contestants when the leaderboard is enabled (1–10, default `10`) |
 | `updatedAt` | Timestamp | Last update time |
 | `updatedBy` | String | UID of the administrator who last updated settings |
 
-`PlatformSettingsService` is the only approved read path for `leaderboardVisible` at runtime.
+`PlatformSettingsService` is the only approved read path for `leaderboardVisible` and `contestantLeaderboardLimit` at runtime.
 
 ## Teams Collection
 

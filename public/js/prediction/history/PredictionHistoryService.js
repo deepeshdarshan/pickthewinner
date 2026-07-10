@@ -245,6 +245,7 @@ export class PredictionHistoryService {
     const summaries = PredictionHistoryDomain.groupByTournament(items);
     await PlatformSettingsService.load();
     const leaderboardEnabled = PlatformSettingsService.isLeaderboardVisible();
+    const maxVisibleRank = PlatformSettingsService.getContestantLeaderboardLimit();
 
     return Promise.all(summaries.map(async (summary) => {
       if (!leaderboardEnabled) {
@@ -252,7 +253,9 @@ export class PredictionHistoryService {
       }
 
       try {
-        const stats = await leaderboardService.getContestantStatistics(summary.tournamentId, userId);
+        const stats = await leaderboardService.getContestantStatistics(summary.tournamentId, userId, {
+          maxVisibleRank,
+        });
         return {
           ...summary,
           rank: stats.currentRank > 0 ? stats.currentRank : null,

@@ -13,6 +13,7 @@ import { renderContestantStats } from '../leaderboard/renderers/contestant-stats
 import { renderTournamentStats } from '../leaderboard/renderers/tournament-stats.renderer.js';
 import { renderLeaderboardFilters, initializeFilters } from '../leaderboard/components/leaderboard-filters.component.js';
 import { leaderboardService } from '../leaderboard/leaderboard.service.js';
+import { PlatformSettingsService } from '../settings/settings.service.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { getActiveTournament } from '../tournament/tournament.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
@@ -28,6 +29,8 @@ let allEntries = [];
 let currentTournamentId = null;
 let currentUserId = null;
 let canLinkContestantProfiles = false;
+/** @type {number|null} */
+let maxVisibleRank = null;
 
 /**
  * Renders the leaderboard page.
@@ -64,10 +67,20 @@ async function initLeaderboardPage(outlet) {
     // Load tournament configuration
     await TournamentConfigurationService.load(tournament.id);
 
+    await AuthorizationService.resolve();
+    const isAdmin = AuthorizationService.hasRole(Roles.ADMIN);
+    await PlatformSettingsService.load();
+    maxVisibleRank = isAdmin ? null : PlatformSettingsService.getContestantLeaderboardLimit();
+    canLinkContestantProfiles = isAdmin;
+
+    const leaderboardOptions = maxVisibleRank === null ? {} : { maxVisibleRank };
+
     // Fetch leaderboard data
     const entries = await leaderboardService.getTournamentLeaderboard(
       tournament.id,
       currentUserId,
+      true,
+      leaderboardOptions,
     );
 
     if (entries.length === 0) {
@@ -84,13 +97,11 @@ async function initLeaderboardPage(outlet) {
     );
 
     let contestantStats = null;
-    await AuthorizationService.resolve();
-    const isAdmin = AuthorizationService.hasRole(Roles.ADMIN);
-    canLinkContestantProfiles = isAdmin;
     if (currentUserId && !isAdmin) {
       contestantStats = await leaderboardService.getContestantStatistics(
         tournament.id,
         currentUserId,
+        leaderboardOptions,
       );
     }
 
@@ -115,6 +126,8 @@ async function initLeaderboardPage(outlet) {
 function renderLeaderboardView(entries, tournamentStats, contestantStats) {
   const isMobile = window.innerWidth < 768;
   const linkOptions = { linkProfiles: canLinkContestantProfiles };
+  const showMyPosition = !!currentUserId
+    && (maxVisibleRank === null || entries.some((entry) => entry.userId === currentUserId));
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
@@ -133,7 +146,8 @@ function renderLeaderboardView(entries, tournamentStats, contestantStats) {
         ${renderLeaderboardFilters({
           currentFilter,
           searchTerm: currentSearchTerm,
-          showMyPosition: !!currentUserId,
+          showMyPosition,
+          maxVisibleRank,
         })}
       </div>
 
@@ -191,9 +205,11 @@ async function handleRefresh(outlet) {
 
   try {
     showLoadingOverlay(LEADERBOARD_MESSAGES.LOADING);
+    const leaderboardOptions = maxVisibleRank === null ? {} : { maxVisibleRank };
     const entries = await leaderboardService.refreshLeaderboard(
       currentTournamentId,
       currentUserId,
+      leaderboardOptions,
     );
     allEntries = entries;
     updateLeaderboardContent(outlet, entries);

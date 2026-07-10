@@ -15,9 +15,19 @@ import {
  * @param {string} options.currentFilter
  * @param {string} options.searchTerm
  * @param {boolean} options.showMyPosition
+ * @param {number|null} [options.maxVisibleRank]
  * @returns {string}
  */
-export function renderLeaderboardFilters({ currentFilter = 'all', searchTerm = '', showMyPosition = true }) {
+export function renderLeaderboardFilters({
+  currentFilter = 'all',
+  searchTerm = '',
+  showMyPosition = true,
+  maxVisibleRank = null,
+}) {
+  const showTop10 = maxVisibleRank === null || maxVisibleRank > 10;
+  const showTop25 = maxVisibleRank === null || maxVisibleRank > 25;
+  const showTop50 = maxVisibleRank === null || maxVisibleRank > 50;
+
   return `
     <div class="card ptw-card mb-3">
       <div class="card-body">
@@ -45,15 +55,21 @@ export function renderLeaderboardFilters({ currentFilter = 'all', searchTerm = '
               <option value="${LEADERBOARD_FILTER_TYPES.ALL}" ${currentFilter === LEADERBOARD_FILTER_TYPES.ALL ? 'selected' : ''}>
                 ${LEADERBOARD_MESSAGES.FILTER_ALL}
               </option>
-              <option value="${LEADERBOARD_FILTER_TYPES.TOP_10}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_10 ? 'selected' : ''}>
-                ${LEADERBOARD_MESSAGES.FILTER_TOP_10}
-              </option>
-              <option value="${LEADERBOARD_FILTER_TYPES.TOP_25}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_25 ? 'selected' : ''}>
-                ${LEADERBOARD_MESSAGES.FILTER_TOP_25}
-              </option>
-              <option value="${LEADERBOARD_FILTER_TYPES.TOP_50}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_50 ? 'selected' : ''}>
-                ${LEADERBOARD_MESSAGES.FILTER_TOP_50}
-              </option>
+              ${showTop10 ? `
+                <option value="${LEADERBOARD_FILTER_TYPES.TOP_10}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_10 ? 'selected' : ''}>
+                  ${LEADERBOARD_MESSAGES.FILTER_TOP_10}
+                </option>
+              ` : ''}
+              ${showTop25 ? `
+                <option value="${LEADERBOARD_FILTER_TYPES.TOP_25}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_25 ? 'selected' : ''}>
+                  ${LEADERBOARD_MESSAGES.FILTER_TOP_25}
+                </option>
+              ` : ''}
+              ${showTop50 ? `
+                <option value="${LEADERBOARD_FILTER_TYPES.TOP_50}" ${currentFilter === LEADERBOARD_FILTER_TYPES.TOP_50 ? 'selected' : ''}>
+                  ${LEADERBOARD_MESSAGES.FILTER_TOP_50}
+                </option>
+              ` : ''}
               ${showMyPosition ? `
                 <option value="${LEADERBOARD_FILTER_TYPES.MY_POSITION}" ${currentFilter === LEADERBOARD_FILTER_TYPES.MY_POSITION ? 'selected' : ''}>
                   ${LEADERBOARD_MESSAGES.FILTER_MY_POSITION}

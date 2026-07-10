@@ -72,15 +72,22 @@ class LeaderboardService {
    * @param {string} tournamentId
    * @param {string|null} currentUserId
    * @param {boolean} useCache
+   * @param {{ maxVisibleRank?: number|null }} [options]
    * @returns {Promise<LeaderboardEntry[]>}
    */
-  async getTournamentLeaderboard(tournamentId, currentUserId = null, useCache = true) {
-    try {
-      const cacheKey = `${tournamentId}:${currentUserId}`;
+  async getTournamentLeaderboard(tournamentId, currentUserId = null, useCache = true, options = {}) {
+    const { maxVisibleRank = null } = options;
 
-      if (useCache && this.isCacheValid() && this.cache.has(cacheKey)) {
+    try {
+      const fullCacheKey = `${tournamentId}:full`;
+
+      if (useCache && this.isCacheValid() && this.cache.has(fullCacheKey)) {
         Logger.info('[LeaderboardService] Returning cached leaderboard');
-        return this.cache.get(cacheKey);
+        return this._finalizeLeaderboardEntries(
+          this.cache.get(fullCacheKey),
+          currentUserId,
+          maxVisibleRank,
+        );
       }
 
       Logger.info('[LeaderboardService] Fetching leaderboard for tournament:', tournamentId);
@@ -150,13 +157,13 @@ class LeaderboardService {
         movement: LeaderboardDomain.calculateMovement(entry.rank, entry.previousRank),
       }));
 
-      // Cache the result
-      this.cache.set(cacheKey, entriesWithMovement);
+      // Cache the full result
+      this.cache.set(fullCacheKey, entriesWithMovement);
       this.cacheTimestamp = Date.now();
 
       emitLeaderboardEvent(LEADERBOARD_EVENTS.LOADED, { tournamentId, entries: entriesWithMovement });
 
-      return entriesWithMovement;
+      return this._finalizeLeaderboardEntries(entriesWithMovement, currentUserId, maxVisibleRank);
     } catch (error) {
       Logger.error('[LeaderboardService] getTournamentLeaderboard failed:', error);
       emitLeaderboardEvent(LEADERBOARD_EVENTS.ERROR, { error });
@@ -168,11 +175,16 @@ class LeaderboardService {
    * Gets statistics for a specific contestant in a tournament.
    * @param {string} tournamentId
    * @param {string} userId
+   * @param {{ maxVisibleRank?: number|null }} [options]
    * @returns {Promise<ContestantStatistics>}
    */
-  async getContestantStatistics(tournamentId, userId) {
+  async getContestantStatistics(tournamentId, userId, options = {}) {
+    const { maxVisibleRank = null } = options;
+
     try {
-      const leaderboard = await this.getTournamentLeaderboard(tournamentId, userId);
+      const leaderboard = await this.getTournamentLeaderboard(tournamentId, userId, true, {
+        maxVisibleRank: null,
+      });
       const userEntry = leaderboard.find((entry) => entry.userId === userId);
 
       if (!userEntry) {
@@ -191,9 +203,12 @@ class LeaderboardService {
         };
       }
 
+      const rankVisible = maxVisibleRank === null
+        || LeaderboardDomain.isRankVisibleToContestant(userEntry.rank, maxVisibleRank);
+
       return {
         userId: userEntry.userId,
-        currentRank: userEntry.rank,
+        currentRank: rankVisible ? userEntry.rank : 0,
         previousRank: userEntry.previousRank,
         totalPoints: userEntry.totalPoints,
         correctWinnerCount: userEntry.correctWinnerCount,
@@ -293,13 +308,33 @@ class LeaderboardService {
    * Refreshes the leaderboard cache.
    * @param {string} tournamentId
    * @param {string|null} currentUserId
+   * @param {{ maxVisibleRank?: number|null }} [options]
    * @returns {Promise<LeaderboardEntry[]>}
    */
-  async refreshLeaderboard(tournamentId, currentUserId = null) {
+  async refreshLeaderboard(tournamentId, currentUserId = null, options = {}) {
     this.clearCache();
-    const entries = await this.getTournamentLeaderboard(tournamentId, currentUserId, false);
+    const entries = await this.getTournamentLeaderboard(tournamentId, currentUserId, false, options);
     emitLeaderboardEvent(LEADERBOARD_EVENTS.REFRESHED, { tournamentId, entries });
     return entries;
+  }
+
+  /**
+   * @param {LeaderboardEntry[]} entries
+   * @param {string|null} currentUserId
+   * @param {number|null} maxVisibleRank
+   * @returns {LeaderboardEntry[]}
+   */
+  _finalizeLeaderboardEntries(entries, currentUserId, maxVisibleRank) {
+    const withCurrentUser = entries.map((entry) => ({
+      ...entry,
+      isCurrentUser: entry.userId === currentUserId,
+    }));
+
+    if (maxVisibleRank === null) {
+      return withCurrentUser;
+    }
+
+    return LeaderboardDomain.limitVisibleEntries(withCurrentUser, maxVisibleRank);
   }
 
   /**

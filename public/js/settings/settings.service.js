@@ -18,6 +18,9 @@ import {
   SETTINGS_COLLECTIONS,
   SETTINGS_DOCUMENTS,
   DEFAULT_PLATFORM_SETTINGS,
+  DEFAULT_CONTESTANT_LEADERBOARD_LIMIT,
+  CONTESTANT_LEADERBOARD_LIMIT_MIN,
+  CONTESTANT_LEADERBOARD_LIMIT_MAX,
   SETTINGS_MESSAGES,
 } from './settings.constants.js';
 import { SETTINGS_EVENTS, emitSettingsEvent } from './settings.events.js';
@@ -25,6 +28,7 @@ import { SETTINGS_EVENTS, emitSettingsEvent } from './settings.events.js';
 /**
  * @typedef {Object} PlatformSettings
  * @property {boolean} leaderboardVisible
+ * @property {number} contestantLeaderboardLimit
  */
 
 /** @type {PlatformSettings|null} */
@@ -46,6 +50,28 @@ function getGeneralSettingsDocRef() {
  */
 function resolveLeaderboardVisible(value) {
   return Boolean(value);
+}
+
+/**
+ * @param {unknown} value
+ * @returns {number}
+ */
+function resolveContestantLeaderboardLimit(value) {
+  const numeric = typeof value === 'number' ? value : Number(value);
+
+  if (!Number.isInteger(numeric)) {
+    return DEFAULT_CONTESTANT_LEADERBOARD_LIMIT;
+  }
+
+  if (numeric < CONTESTANT_LEADERBOARD_LIMIT_MIN) {
+    return CONTESTANT_LEADERBOARD_LIMIT_MIN;
+  }
+
+  if (numeric > CONTESTANT_LEADERBOARD_LIMIT_MAX) {
+    return CONTESTANT_LEADERBOARD_LIMIT_MAX;
+  }
+
+  return numeric;
 }
 
 /**
@@ -76,6 +102,9 @@ function normalizeSettings(data) {
     leaderboardVisible: resolveLeaderboardVisible(
       data?.leaderboardVisible ?? DEFAULT_PLATFORM_SETTINGS.leaderboardVisible,
     ),
+    contestantLeaderboardLimit: resolveContestantLeaderboardLimit(
+      data?.contestantLeaderboardLimit ?? DEFAULT_PLATFORM_SETTINGS.contestantLeaderboardLimit,
+    ),
   };
 }
 
@@ -87,6 +116,7 @@ async function persistSettings(settings) {
   await ensureFirestoreOnline();
   await setDoc(getGeneralSettingsDocRef(), {
     leaderboardVisible: settings.leaderboardVisible,
+    contestantLeaderboardLimit: settings.contestantLeaderboardLimit,
     updatedAt: serverTimestamp(),
     updatedBy: getCurrentUser()?.uid ?? null,
   }, { merge: true });
@@ -132,9 +162,9 @@ export const PlatformSettingsService = {
         return cachedSettings;
       }
 
-      const seededSettings = {
+      const seededSettings = normalizeSettings({
         leaderboardVisible: resolveLegacyLeaderboardVisible(),
-      };
+      });
 
       cachedSettings = seededSettings;
 
@@ -149,9 +179,9 @@ export const PlatformSettingsService = {
       return cachedSettings;
     } catch (error) {
       Logger.warn('[PlatformSettingsService] Failed to load settings, using legacy fallback:', error);
-      cachedSettings = {
+      cachedSettings = normalizeSettings({
         leaderboardVisible: resolveLegacyLeaderboardVisible(),
-      };
+      });
       return cachedSettings;
     }
   },
@@ -162,6 +192,14 @@ export const PlatformSettingsService = {
   isLeaderboardVisible() {
     const settings = cachedSettings ?? normalizeSettings(DEFAULT_PLATFORM_SETTINGS);
     return settings.leaderboardVisible;
+  },
+
+  /**
+   * @returns {number}
+   */
+  getContestantLeaderboardLimit() {
+    const settings = cachedSettings ?? normalizeSettings(DEFAULT_PLATFORM_SETTINGS);
+    return settings.contestantLeaderboardLimit;
   },
 
   /**
@@ -177,40 +215,54 @@ export const PlatformSettingsService = {
   },
 
   /**
-   * @param {boolean} value
+   * @param {{ leaderboardVisible?: boolean, contestantLeaderboardLimit?: number }} partial
    * @param {string} adminUid
    * @returns {Promise<PlatformSettings>}
    */
-  async updateLeaderboardVisibility(value, adminUid) {
+  async updateSettings(partial, adminUid) {
     if (!adminUid) {
       throw new Error(SETTINGS_MESSAGES.PERMISSION_DENIED);
     }
 
-    const nextValue = resolveLeaderboardVisible(value);
     const previous = cachedSettings ?? normalizeSettings(DEFAULT_PLATFORM_SETTINGS);
+    const nextSettings = {
+      leaderboardVisible: partial.leaderboardVisible !== undefined
+        ? resolveLeaderboardVisible(partial.leaderboardVisible)
+        : previous.leaderboardVisible,
+      contestantLeaderboardLimit: partial.contestantLeaderboardLimit !== undefined
+        ? resolveContestantLeaderboardLimit(partial.contestantLeaderboardLimit)
+        : previous.contestantLeaderboardLimit,
+    };
 
     try {
       await ensureFirestoreOnline();
       await updateDoc(getGeneralSettingsDocRef(), {
-        leaderboardVisible: nextValue,
+        leaderboardVisible: nextSettings.leaderboardVisible,
+        contestantLeaderboardLimit: nextSettings.contestantLeaderboardLimit,
         updatedAt: serverTimestamp(),
         updatedBy: adminUid,
       });
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error && error.code === 'not-found') {
-        await persistSettings({ leaderboardVisible: nextValue });
+        await persistSettings(nextSettings);
       } else {
         throw error;
       }
     }
 
-    cachedSettings = {
-      ...previous,
-      leaderboardVisible: nextValue,
-    };
+    cachedSettings = nextSettings;
 
     emitSettingsEvent(SETTINGS_EVENTS.SETTINGS_UPDATED, cachedSettings);
     return cachedSettings;
+  },
+
+  /**
+   * @param {boolean} value
+   * @param {string} adminUid
+   * @returns {Promise<PlatformSettings>}
+   */
+  async updateLeaderboardVisibility(value, adminUid) {
+    return this.updateSettings({ leaderboardVisible: value }, adminUid);
   },
 
   /**

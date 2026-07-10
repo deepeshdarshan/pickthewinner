@@ -26,6 +26,46 @@ describe('LeaderboardDomain', () => {
     });
   });
 
+  describe('resolveContestantLeaderboardLimit', () => {
+    it('should default invalid values to 10', () => {
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(undefined), 10);
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit('invalid'), 10);
+    });
+
+    it('should clamp values to 1 through 10', () => {
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(0), 1);
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(15), 10);
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(5), 5);
+    });
+  });
+
+  describe('limitVisibleEntries', () => {
+    it('should return only entries within the configured top-N limit', () => {
+      const entries = [
+        { rank: 1, displayName: 'Alice' },
+        { rank: 2, displayName: 'Bob' },
+        { rank: 6, displayName: 'Charlie' },
+      ];
+
+      const limited = LeaderboardDomain.limitVisibleEntries(entries, 5);
+
+      assert.equal(limited.length, 2);
+      assert.deepEqual(limited.map((entry) => entry.rank), [1, 2]);
+    });
+  });
+
+  describe('isRankVisibleToContestant', () => {
+    it('should allow ranks within the configured limit', () => {
+      assert.equal(LeaderboardDomain.isRankVisibleToContestant(3, 5), true);
+      assert.equal(LeaderboardDomain.isRankVisibleToContestant(5, 5), true);
+    });
+
+    it('should block ranks beyond the configured limit', () => {
+      assert.equal(LeaderboardDomain.isRankVisibleToContestant(6, 5), false);
+      assert.equal(LeaderboardDomain.isRankVisibleToContestant(0, 5), false);
+    });
+  });
+
   describe('rankEntries', () => {
     it('should rank entries by points descending', () => {
       const entries = [

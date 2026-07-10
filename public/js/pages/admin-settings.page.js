@@ -9,7 +9,10 @@ import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-ov
 import { showSuccessToast, showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { PlatformSettingsService } from '../settings/settings.service.js';
-import { SETTINGS_MESSAGES } from '../settings/settings.constants.js';
+import {
+  SETTINGS_MESSAGES,
+  CONTESTANT_LEADERBOARD_LIMIT_MAX,
+} from '../settings/settings.constants.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -30,7 +33,7 @@ async function initAdminSettingsPage(outlet) {
 
   try {
     const settings = await PlatformSettingsService.load();
-    outlet.innerHTML = renderAdminSettingsMarkup(settings.leaderboardVisible);
+    outlet.innerHTML = renderAdminSettingsMarkup(settings);
     bindAdminSettingsEvents(outlet);
   } catch (error) {
     Logger.error('[AdminSettingsPage] Failed to load:', error);
@@ -41,10 +44,17 @@ async function initAdminSettingsPage(outlet) {
 }
 
 /**
- * @param {boolean} leaderboardVisible
+ * @param {import('../settings/settings.service.js').PlatformSettings} settings
  * @returns {string}
  */
-function renderAdminSettingsMarkup(leaderboardVisible) {
+function renderAdminSettingsMarkup(settings) {
+  const { leaderboardVisible, contestantLeaderboardLimit } = settings;
+  const limitOptions = Array.from({ length: CONTESTANT_LEADERBOARD_LIMIT_MAX }, (_, index) => {
+    const value = index + 1;
+    const selected = value === contestantLeaderboardLimit ? ' selected' : '';
+    return `<option value="${value}"${selected}>Top ${value}</option>`;
+  }).join('');
+
   return `
     <div class="${ADMIN_PAGE_SHELL_CLASSES}">
       ${renderPageHeader({
@@ -71,9 +81,28 @@ function renderAdminSettingsMarkup(leaderboardVisible) {
                 Make Leaderboard Visible to Contestants
               </label>
             </div>
-            <p class="form-text ptw-text-muted mb-4">
+            <p class="form-text ptw-text-muted mb-3">
               When enabled, contestants can view the tournament leaderboard. When disabled, only administrators can access the leaderboard.
             </p>
+            <div
+              id="ptw-admin-settings-leaderboard-limit-field"
+              class="mb-4"
+              ${leaderboardVisible ? '' : 'hidden'}
+            >
+              <label class="form-label" for="ptw-admin-settings-contestantLeaderboardLimit">
+                Visible Leaderboard Positions
+              </label>
+              <select
+                class="form-select"
+                id="ptw-admin-settings-contestantLeaderboardLimit"
+                name="contestantLeaderboardLimit"
+              >
+                ${limitOptions}
+              </select>
+              <p class="form-text ptw-text-muted mb-0 mt-2">
+                Contestants will only see rankings within this range. Administrators always see the full leaderboard.
+              </p>
+            </div>
             <button type="submit" class="btn btn-ptw-primary">
               <i class="bi bi-save me-2" aria-hidden="true"></i>
               Save Settings
@@ -91,6 +120,14 @@ function renderAdminSettingsMarkup(leaderboardVisible) {
  */
 function bindAdminSettingsEvents(outlet) {
   const form = outlet.querySelector('#ptw-admin-settings-form');
+  const toggle = form?.querySelector('[name="leaderboardVisible"]');
+  const limitField = outlet.querySelector('#ptw-admin-settings-leaderboard-limit-field');
+
+  if (toggle instanceof HTMLInputElement && limitField instanceof HTMLElement) {
+    toggle.addEventListener('change', () => {
+      limitField.hidden = !toggle.checked;
+    });
+  }
 
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -111,12 +148,19 @@ async function handleSaveSettings(form) {
   }
 
   const toggle = form.querySelector('[name="leaderboardVisible"]');
+  const limitSelect = form.querySelector('[name="contestantLeaderboardLimit"]');
   const leaderboardVisible = toggle instanceof HTMLInputElement ? toggle.checked : false;
+  const contestantLeaderboardLimit = limitSelect instanceof HTMLSelectElement
+    ? Number(limitSelect.value)
+    : undefined;
 
   showLoadingOverlay(SETTINGS_MESSAGES.SAVING);
 
   try {
-    await PlatformSettingsService.updateLeaderboardVisibility(leaderboardVisible, authUser.uid);
+    await PlatformSettingsService.updateSettings({
+      leaderboardVisible,
+      contestantLeaderboardLimit,
+    }, authUser.uid);
     showSuccessToast(SETTINGS_MESSAGES.SAVED);
   } catch (error) {
     Logger.error('[AdminSettingsPage] Save failed:', error);

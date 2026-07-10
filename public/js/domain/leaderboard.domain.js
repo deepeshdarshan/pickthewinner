@@ -4,6 +4,10 @@
  */
 
 import { RANK_MOVEMENT } from '../leaderboard/leaderboard.constants.js';
+import {
+  CONTESTANT_LEADERBOARD_LIMIT_MAX,
+  DEFAULT_CONTESTANT_LEADERBOARD_LIMIT,
+} from '../settings/settings.constants.js';
 import { MatchDomain } from './match.domain.js';
 import { PredictionManagementDomain } from './prediction-management.domain.js';
 
@@ -15,6 +19,55 @@ export const LeaderboardDomain = {
    */
   canContestantViewLeaderboard(isAdmin, leaderboardVisible) {
     return isAdmin || leaderboardVisible === true;
+  },
+
+  /**
+   * Resolves contestant leaderboard visibility limit (1–10, default 10).
+   * @param {unknown} value
+   * @returns {number}
+   */
+  resolveContestantLeaderboardLimit(value) {
+    const numeric = typeof value === 'number' ? value : Number(value);
+
+    if (!Number.isInteger(numeric)) {
+      return DEFAULT_CONTESTANT_LEADERBOARD_LIMIT;
+    }
+
+    if (numeric < 1) {
+      return 1;
+    }
+
+    if (numeric > CONTESTANT_LEADERBOARD_LIMIT_MAX) {
+      return CONTESTANT_LEADERBOARD_LIMIT_MAX;
+    }
+
+    return numeric;
+  },
+
+  /**
+   * Returns entries visible to contestants within the configured top-N limit.
+   * @param {Array<Record<string, unknown>>} entries
+   * @param {unknown} limit
+   * @returns {Array<Record<string, unknown>>}
+   */
+  limitVisibleEntries(entries, limit) {
+    const resolvedLimit = LeaderboardDomain.resolveContestantLeaderboardLimit(limit);
+    return entries.filter((entry) => Number(entry.rank) <= resolvedLimit);
+  },
+
+  /**
+   * @param {unknown} rank
+   * @param {unknown} limit
+   * @returns {boolean}
+   */
+  isRankVisibleToContestant(rank, limit) {
+    const numericRank = typeof rank === 'number' ? rank : Number(rank);
+
+    if (!Number.isInteger(numericRank) || numericRank < 1) {
+      return false;
+    }
+
+    return numericRank <= LeaderboardDomain.resolveContestantLeaderboardLimit(limit);
   },
 
   /**
