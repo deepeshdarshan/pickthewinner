@@ -118,6 +118,22 @@ describe('PredictionManagementDomain', () => {
     assert.equal(sorted[1].contestant.displayName, 'Bob');
   });
 
+  it('sorts predictions by points descending', () => {
+    const enriched = [
+      { ...samplePredictions[0], calculatedPoints: 3 },
+      { ...samplePredictions[1], calculatedPoints: 10 },
+    ];
+
+    const sorted = PredictionManagementDomain.sortPredictions(
+      enriched,
+      PREDICTION_SORT_FIELD.POINTS,
+      'desc',
+    );
+
+    assert.equal(sorted[0].calculatedPoints, 10);
+    assert.equal(sorted[1].calculatedPoints, 3);
+  });
+
   it('paginates predictions', () => {
     const page = PredictionManagementDomain.paginatePredictions(samplePredictions, 1, 1);
     assert.equal(page.pageItems.length, 1);

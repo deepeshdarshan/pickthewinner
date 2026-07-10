@@ -218,6 +218,9 @@ export const PredictionManagementDomain = {
         case PREDICTION_SORT_FIELD.STATUS:
           comparison = String(left.displayStatus).localeCompare(String(right.displayStatus));
           break;
+        case PREDICTION_SORT_FIELD.POINTS:
+          comparison = Number(left.calculatedPoints ?? 0) - Number(right.calculatedPoints ?? 0);
+          break;
         default:
           comparison = toTime(left.submittedAt) - toTime(right.submittedAt);
       }

@@ -35,6 +35,7 @@ export const PREDICTION_SORT_FIELD = Object.freeze({
   SUBMITTED_AT: 'submittedAt',
   UPDATED_AT: 'updatedAt',
   STATUS: 'status',
+  POINTS: 'points',
 });
 
 /** @type {Readonly<number>} */

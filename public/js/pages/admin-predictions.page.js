@@ -139,6 +139,7 @@ async function initAdminPredictionsPage(outlet) {
           filterOptions: {
             viewMode,
             filterState,
+            sortField,
           },
         });
         bindPageHandlers(outlet, handlers);
@@ -197,6 +198,7 @@ async function initAdminPredictionsPage(outlet) {
           matches: tournamentData.matches,
           contestants,
           filterState,
+          sortField,
         },
       });
 

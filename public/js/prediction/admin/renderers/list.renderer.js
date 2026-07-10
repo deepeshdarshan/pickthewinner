@@ -81,6 +81,7 @@ export function renderPredictionFilters(options) {
     tournaments = [],
     selectedTournamentId = '',
     filterState = {},
+    sortField = PREDICTION_SORT_FIELD.SUBMITTED_AT,
   } = options;
 
   const matchOptions = matches.map((match) => `
@@ -182,11 +183,12 @@ export function renderPredictionFilters(options) {
       id: 'predictionSortField',
       html: `
         <select class="form-select" id="predictionSortField" aria-label="Sort predictions">
-          <option value="${PREDICTION_SORT_FIELD.SUBMITTED_AT}">Submission Time</option>
-          <option value="${PREDICTION_SORT_FIELD.MATCH_DATE}">Match Date</option>
-          <option value="${PREDICTION_SORT_FIELD.CONTESTANT}">Contestant</option>
-          <option value="${PREDICTION_SORT_FIELD.UPDATED_AT}">Last Updated</option>
-          <option value="${PREDICTION_SORT_FIELD.STATUS}">Status</option>
+          <option value="${PREDICTION_SORT_FIELD.SUBMITTED_AT}"${sortField === PREDICTION_SORT_FIELD.SUBMITTED_AT ? ' selected' : ''}>Submission Time</option>
+          <option value="${PREDICTION_SORT_FIELD.MATCH_DATE}"${sortField === PREDICTION_SORT_FIELD.MATCH_DATE ? ' selected' : ''}>Match Date</option>
+          <option value="${PREDICTION_SORT_FIELD.CONTESTANT}"${sortField === PREDICTION_SORT_FIELD.CONTESTANT ? ' selected' : ''}>Contestant</option>
+          <option value="${PREDICTION_SORT_FIELD.UPDATED_AT}"${sortField === PREDICTION_SORT_FIELD.UPDATED_AT ? ' selected' : ''}>Last Updated</option>
+          <option value="${PREDICTION_SORT_FIELD.STATUS}"${sortField === PREDICTION_SORT_FIELD.STATUS ? ' selected' : ''}>Status</option>
+          <option value="${PREDICTION_SORT_FIELD.POINTS}"${sortField === PREDICTION_SORT_FIELD.POINTS ? ' selected' : ''}>Points</option>
         </select>
       `,
     }),
