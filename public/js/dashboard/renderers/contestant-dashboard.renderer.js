@@ -6,11 +6,9 @@
 import { appSettings } from '../../config/app.config.js';
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
-import { renderSkeletonCardGrid } from '../../components/skeleton.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderActiveTournamentHero } from './active-tournament.renderer.js';
 import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
-import { renderTournamentGridSection } from './tournament-grid.renderer.js';
 import { renderQuickStatsSection } from './quick-stats.renderer.js';
 import { renderRecentActivitySection } from './recent-activity.renderer.js';
 import { renderDashboardInfoCardsSection } from './info-cards.renderer.js';
@@ -46,7 +44,14 @@ export function renderContestantDashboardLoading() {
       <div class="mb-4">
         <div class="card ptw-card ptw-skeleton-card" style="height: 200px;"></div>
       </div>
-      ${renderSkeletonCardGrid(2)}
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-6">
+          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;"></div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;"></div>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -63,6 +68,16 @@ export function renderContestantDashboard(data) {
   const liveMatchHtml = renderLiveMatchSection(data);
   const upcomingMatchHtml = renderFeaturedMatchSection(data);
   const hasLiveMatch = Boolean(data.featuredLiveMatch);
+  const hasUpcomingMatch = Boolean(data.featuredMatch);
+  const showBothMatches = hasLiveMatch && hasUpcomingMatch;
+  const matchColumnClass = showBothMatches ? 'col-12 col-lg-6' : 'col-12';
+
+  const upcomingColumnHtml = (hasUpcomingMatch || !hasLiveMatch)
+    ? `<div class="${matchColumnClass}">${upcomingMatchHtml}</div>`
+    : '';
+  const liveColumnHtml = hasLiveMatch
+    ? `<div class="${matchColumnClass}">${liveMatchHtml}</div>`
+    : '';
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
@@ -71,16 +86,9 @@ export function renderContestantDashboard(data) {
       ${renderActiveTournamentHero(data)}
 
       <div class="ptw-dashboard-main-grid mb-4">
-        <div class="row g-3">
-          <div class="col-12 col-lg-5">
-            ${renderTournamentGridSection(data)}
-          </div>
-          <div class="col-12 col-lg-7">
-            <div class="ptw-dashboard-matches d-flex flex-column gap-3 h-100">
-              ${hasLiveMatch ? liveMatchHtml : ''}
-              ${upcomingMatchHtml}
-            </div>
-          </div>
+        <div class="row g-3 ptw-dashboard-match-row">
+          ${liveColumnHtml}
+          ${upcomingColumnHtml}
         </div>
       </div>
 
