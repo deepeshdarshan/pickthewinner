@@ -9,9 +9,6 @@ import {
   renderTeamFlagTooltipHtml,
 } from '../../../master-data/teams/team-flag.util.js';
 import { PENALTY_WINNER, PredictionDomain } from '../../../domain/prediction.domain.js';
-import {
-  shouldShowPenaltyWinnerForPublishedResult,
-} from '../../../domain/prediction-management.domain.js';
 
 /**
  * @param {Record<string, unknown>} contestant
@@ -62,13 +59,7 @@ export function renderPredictedScoreHtml(match, prediction, options = {}) {
  * @returns {string}
  */
 export function renderPredictedWinnerHtml(match, prediction, options = {}) {
-  const { compact = false, result = null } = options;
-  const publishedResult = /** @type {Record<string, unknown>|null} */ (result);
-
-  if (publishedResult?.published && !shouldShowPenaltyWinnerForPublishedResult(publishedResult)) {
-    return '—';
-  }
-
+  const { compact = false } = options;
   const side = PredictionDomain.resolvePredictedWinnerSide(prediction);
 
   if (side === PENALTY_WINNER.HOME) {
@@ -126,10 +117,6 @@ export function renderActualScoreHtml(match, result, options = {}) {
  */
 export function renderActualWinnerHtml(match, result, options = {}) {
   if (!result?.published) {
-    return '—';
-  }
-
-  if (!shouldShowPenaltyWinnerForPublishedResult(result)) {
     return '—';
   }
 

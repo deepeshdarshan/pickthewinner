@@ -15,7 +15,7 @@ describe('prediction-display.renderer published result visibility', () => {
     awayTeamId: 'away',
   };
 
-  it('hides actual winner for normal time published results', () => {
+  it('shows actual winner for normal time published results', () => {
     const html = renderActualWinnerHtml(match, {
       published: true,
       winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
@@ -26,7 +26,7 @@ describe('prediction-display.renderer published result visibility', () => {
       awayTeamId: 'away',
     });
 
-    assert.equal(html, '—');
+    assert.match(html, /Brazil/);
   });
 
   it('shows actual winner for penalty published results', () => {
@@ -43,10 +43,10 @@ describe('prediction-display.renderer published result visibility', () => {
     assert.match(html, /Brazil/);
   });
 
-  it('hides predicted winner when published result is not penalties', () => {
+  it('shows predicted winner from scores when published result is not penalties', () => {
     const html = renderPredictedWinnerHtml(
       match,
-      { predictedWinner: PENALTY_WINNER.HOME },
+      { homeScore: 2, awayScore: 1 },
       {
         result: {
           published: true,
@@ -55,7 +55,7 @@ describe('prediction-display.renderer published result visibility', () => {
       },
     );
 
-    assert.equal(html, '—');
+    assert.match(html, /Brazil/);
   });
 
   it('shows predicted winner when published result is penalties', () => {
