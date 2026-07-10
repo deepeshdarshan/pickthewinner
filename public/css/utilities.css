@@ -2,7 +2,8 @@
  * PickTheWinner — Utility classes
  */
 
-.ptw-text-muted {
+.ptw-text-muted,
+.text-muted {
   color: var(--ptw-color-text-muted) !important;
 }
 

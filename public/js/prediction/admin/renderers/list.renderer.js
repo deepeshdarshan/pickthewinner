@@ -294,7 +294,7 @@ export function renderPredictionTable(predictions, options = {}) {
     </div>
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 px-3 py-2 border-top border-secondary">
-      <p class="small text-muted mb-0">
+      <p class="small ptw-text-muted mb-0">
         ${startRecord} to ${endRecord} of ${totalRecords} predictions
         <span class="d-none d-md-inline"> · Page ${currentPage} of ${totalPages}</span>
       </p>

@@ -52,6 +52,9 @@
   /* Bootstrap overrides */
   --bs-body-bg: var(--ptw-color-bg-primary);
   --bs-body-color: var(--ptw-color-text-primary);
+  --bs-body-color-rgb: 255, 255, 255;
+  --bs-secondary-color: var(--ptw-color-text-muted);
+  --bs-tertiary-color: var(--ptw-color-text-muted);
   --bs-primary: var(--ptw-color-primary-blue);
   --bs-success: var(--ptw-color-success);
   --bs-warning: var(--ptw-color-warning);

@@ -69,7 +69,7 @@ export function renderPredictionStatisticsCards(stats, lastUpdated = new Date())
   return `
     <section aria-label="Prediction statistics">
       ${renderStatisticCardGrid(cards)}
-      <p class="text-muted small mt-2 mb-0">
+      <p class="ptw-text-muted small mt-2 mb-0">
         <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>
         Last updated: ${escapeHtml(lastUpdatedLabel || 'just now')}
       </p>

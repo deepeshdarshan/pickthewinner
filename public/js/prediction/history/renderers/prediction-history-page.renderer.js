@@ -96,11 +96,11 @@ export function renderHistoryPage(data, params) {
 
           ${data.totalRecords > 0 ? `
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
-              <p class="small text-muted mb-0">
+              <p class="small ptw-text-muted mb-0">
                 Showing ${startRecord} to ${endRecord} of ${data.totalRecords} predictions
               </p>
               <div class="d-flex flex-wrap align-items-center gap-3">
-                <label class="small text-muted mb-0" for="ph-page-size">Per page</label>
+                <label class="small ptw-text-muted mb-0" for="ph-page-size">Per page</label>
                 <select class="form-select form-select-sm" id="ph-page-size" data-ph-page-size style="width:auto">
                   ${pageSizeOptions}
                 </select>
