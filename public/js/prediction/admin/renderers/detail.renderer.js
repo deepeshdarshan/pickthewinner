@@ -79,7 +79,13 @@ export function renderPredictionDetailBody(prediction) {
         <p class="mb-1 d-flex align-items-center gap-2 flex-wrap">
           Predicted Winner: ${renderPredictedWinnerHtml(match, prediction, { result })}
         </p>
-        <p class="mb-0">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
+        <dl class="row mb-0 small">
+          <dt class="col-5 fw-normal">Submitted</dt>
+          <dd class="col-7">${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</dd>
+          <dt class="col-5 fw-normal">Last Updated</dt>
+          <dd class="col-7">${escapeHtml(formatDateTime(prediction.updatedAt) || '—')}</dd>
+        </dl>
+        <p class="mb-0 mt-2">${renderPredictionStatusBadge(prediction.displayStatus ?? prediction.status)}</p>
       </div>
 
       ${hasResult ? `

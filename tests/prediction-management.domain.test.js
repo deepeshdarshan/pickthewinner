@@ -118,6 +118,22 @@ describe('PredictionManagementDomain', () => {
     assert.equal(sorted[1].contestant.displayName, 'Bob');
   });
 
+  it('sorts predictions by submission time ascending', () => {
+    const enriched = samplePredictions.map((prediction) => ({
+      ...prediction,
+      displayStatus: PredictionManagementDomain.resolveDisplayStatus(prediction),
+    }));
+
+    const sorted = PredictionManagementDomain.sortPredictions(
+      enriched,
+      PREDICTION_SORT_FIELD.SUBMITTED_AT,
+      'asc',
+    );
+
+    assert.equal(sorted[0].id, 'p1');
+    assert.equal(sorted[1].id, 'p2');
+  });
+
   it('sorts predictions by points descending', () => {
     const enriched = [
       { ...samplePredictions[0], calculatedPoints: 3 },

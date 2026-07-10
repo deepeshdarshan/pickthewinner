@@ -7,12 +7,14 @@ import { renderPageHeader } from '../../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../../components/admin-page-shell.component.js';
 import { renderEmptyState } from '../../../components/empty-state.component.js';
 import { escapeHtml } from '../../../utils/html.util.js';
+import { formatDateTime } from '../../../utils/date.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import {
   PREDICTION_VIEW_MODE,
   PREDICTION_ADMIN_STATUS,
   PREDICTION_ADMIN_STATUS_LABELS,
   PREDICTION_SORT_FIELD,
+  PREDICTION_SORT_DIRECTION,
   PREDICTION_PAGE_SIZE_OPTIONS,
   PREDICTION_MANAGEMENT_MESSAGES,
 } from '../prediction-management.constants.js';
@@ -82,6 +84,7 @@ export function renderPredictionFilters(options) {
     selectedTournamentId = '',
     filterState = {},
     sortField = PREDICTION_SORT_FIELD.SUBMITTED_AT,
+    sortDirection = PREDICTION_SORT_DIRECTION.ASC,
   } = options;
 
   const matchOptions = matches.map((match) => `
@@ -192,6 +195,16 @@ export function renderPredictionFilters(options) {
         </select>
       `,
     }),
+    renderFilterField({
+      label: 'Order',
+      id: 'predictionSortDirection',
+      html: `
+        <select class="form-select" id="predictionSortDirection" aria-label="Sort direction">
+          <option value="${PREDICTION_SORT_DIRECTION.ASC}"${sortDirection === PREDICTION_SORT_DIRECTION.ASC ? ' selected' : ''}>Earliest first</option>
+          <option value="${PREDICTION_SORT_DIRECTION.DESC}"${sortDirection === PREDICTION_SORT_DIRECTION.DESC ? ' selected' : ''}>Latest first</option>
+        </select>
+      `,
+    }),
   ].join('');
 
   return renderFilterBar({ fieldsHtml, extraClass: 'ptw-admin-predictions__filters ptw-filter-bar--scrollable' });
@@ -228,7 +241,7 @@ export function renderPredictionTable(predictions, options = {}) {
     return `
       <tr class="ptw-prediction-row" data-prediction-id="${escapeHtml(prediction.id)}" tabindex="0" role="button" aria-label="View prediction by ${escapeHtml(contestantName)}">
         <td class="ptw-prediction-table__index">${rowNumber}</td>
-        <td>
+        <td class="ptw-prediction-table__contestant">
           <div class="d-flex align-items-center gap-2">
             ${renderAvatar({ photoURL: String(contestant.photoURL ?? ''), size: 28 })}
             <div class="min-w-0 fw-semibold text-truncate">${escapeHtml(contestantName)}</div>
@@ -240,6 +253,7 @@ export function renderPredictionTable(predictions, options = {}) {
         <td>${renderActualScoreHtml(match, result, { compact: true })}</td>
         <td class="d-none d-lg-table-cell">${renderActualWinnerHtml(match, result, { compact: true })}</td>
         <td class="fw-semibold">${renderPointsHtml(prediction, result)}</td>
+        <td class="d-none d-md-table-cell text-nowrap small ptw-prediction-table__submitted-at">${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</td>
       </tr>
     `;
   }).join('');
@@ -248,6 +262,7 @@ export function renderPredictionTable(predictions, options = {}) {
     <th scope="col">${renderPredictionTableHeader('Actual', 'Score')}</th>
     <th scope="col" class="d-none d-lg-table-cell">${renderPredictionTableHeader('Actual', 'Winner')}</th>
     <th scope="col">Points</th>
+    <th scope="col" class="d-none d-md-table-cell ptw-prediction-table__submitted-at">${renderPredictionTableHeader('Submitted', 'At')}</th>
   `;
 
   const startRecord = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -263,7 +278,7 @@ export function renderPredictionTable(predictions, options = {}) {
         <thead>
           <tr>
             <th scope="col" class="ptw-prediction-table__index">#</th>
-            <th scope="col">Contestant</th>
+            <th scope="col" class="ptw-prediction-table__contestant">Contestant</th>
             <th scope="col" class="d-none d-xl-table-cell">Tournament</th>
             <th scope="col">${renderPredictionTableHeader('Predicted', 'Score')}</th>
             <th scope="col" class="d-none d-md-table-cell">${renderPredictionTableHeader('Predicted', 'Winner')}</th>

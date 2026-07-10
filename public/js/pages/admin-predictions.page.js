@@ -15,6 +15,7 @@ import { PredictionStatisticsService } from '../prediction/admin/PredictionStati
 import {
   PREDICTION_VIEW_MODE,
   PREDICTION_SORT_FIELD,
+  PREDICTION_SORT_DIRECTION,
   PREDICTION_LIST_PAGE_SIZE,
   PREDICTION_MANAGEMENT_MESSAGES,
 } from '../prediction/admin/prediction-management.constants.js';
@@ -71,6 +72,7 @@ async function initAdminPredictionsPage(outlet) {
     let currentPage = 1;
     let pageSize = PREDICTION_LIST_PAGE_SIZE;
     let sortField = PREDICTION_SORT_FIELD.SUBMITTED_AT;
+    let sortDirection = PREDICTION_SORT_DIRECTION.ASC;
     /** @type {{ search: string, matchId: string, contestantId: string, status: string }} */
     let filterState = {
       search: '',
@@ -87,6 +89,7 @@ async function initAdminPredictionsPage(outlet) {
         currentPage,
         pageSize,
         sortField,
+        sortDirection,
         filterState,
       }),
       setState: (updates) => {
@@ -116,6 +119,12 @@ async function initAdminPredictionsPage(outlet) {
         }
         if (updates.sortField !== undefined) {
           sortField = updates.sortField;
+          sortDirection = updates.sortField === PREDICTION_SORT_FIELD.SUBMITTED_AT
+            ? PREDICTION_SORT_DIRECTION.ASC
+            : PREDICTION_SORT_DIRECTION.DESC;
+        }
+        if (updates.sortDirection !== undefined) {
+          sortDirection = updates.sortDirection;
         }
         if (updates.filterState) {
           filterState = { ...filterState, ...updates.filterState };
@@ -140,6 +149,7 @@ async function initAdminPredictionsPage(outlet) {
             viewMode,
             filterState,
             sortField,
+            sortDirection,
           },
         });
         bindPageHandlers(outlet, handlers);
@@ -168,7 +178,13 @@ async function initAdminPredictionsPage(outlet) {
         return;
       }
 
-      const filtered = applyViewAndFilters(tournamentData, viewMode, filterState, sortField);
+      const filtered = applyViewAndFilters(
+        tournamentData,
+        viewMode,
+        filterState,
+        sortField,
+        sortDirection,
+      );
       const pagination = PredictionManagementDomain.paginatePredictions(
         filtered,
         currentPage,
@@ -199,6 +215,7 @@ async function initAdminPredictionsPage(outlet) {
           contestants,
           filterState,
           sortField,
+          sortDirection,
         },
       });
 
@@ -234,9 +251,10 @@ async function initAdminPredictionsPage(outlet) {
  * @param {string} viewMode
  * @param {Object} filterState
  * @param {string} sortField
+ * @param {'asc'|'desc'} sortDirection
  * @returns {import('../domain/prediction-management.domain.js').EnrichedPrediction[]}
  */
-function applyViewAndFilters(data, viewMode, filterState, sortField) {
+function applyViewAndFilters(data, viewMode, filterState, sortField, sortDirection) {
   let predictions = [...data.predictions];
 
   if (viewMode === PREDICTION_VIEW_MODE.MATCH && filterState.matchId) {
@@ -255,7 +273,7 @@ function applyViewAndFilters(data, viewMode, filterState, sortField) {
   };
 
   const filtered = PredictionManagementDomain.filterPredictions(predictions, scopedFilters);
-  return PredictionManagementDomain.sortPredictions(filtered, sortField, 'desc');
+  return PredictionManagementDomain.sortPredictions(filtered, sortField, sortDirection);
 }
 
 /**
@@ -330,6 +348,13 @@ function bindPageHandlers(outlet, handlers) {
   sortSelect?.addEventListener('change', (event) => {
     const target = /** @type {HTMLSelectElement} */ (event.target);
     handlers.setState({ sortField: target.value });
+    void handlers.paint();
+  });
+
+  const sortDirectionSelect = outlet.querySelector('#predictionSortDirection');
+  sortDirectionSelect?.addEventListener('change', (event) => {
+    const target = /** @type {HTMLSelectElement} */ (event.target);
+    handlers.setState({ sortDirection: target.value });
     void handlers.paint();
   });
 

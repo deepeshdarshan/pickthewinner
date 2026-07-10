@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
+import { formatDateTime } from '../../../utils/date.util.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import {
   resolveContestantDisplayName,
@@ -70,6 +71,10 @@ export function renderPredictionCard(prediction) {
           <div class="col-6">
             ${renderFieldLabel('bi-star-fill', 'Points')}
             <p class="mb-0 fw-semibold ptw-prediction-card__value ptw-prediction-card__points">${renderPointsHtml(prediction, result)}</p>
+          </div>
+          <div class="col-6">
+            ${renderFieldLabel('bi-clock', 'Submitted')}
+            <p class="mb-0 ptw-prediction-card__value">${escapeHtml(formatDateTime(prediction.submittedAt) || '—')}</p>
           </div>
         </div>
       </div>

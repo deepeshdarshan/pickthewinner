@@ -38,6 +38,12 @@ export const PREDICTION_SORT_FIELD = Object.freeze({
   POINTS: 'points',
 });
 
+/** @enum {string} */
+export const PREDICTION_SORT_DIRECTION = Object.freeze({
+  ASC: 'asc',
+  DESC: 'desc',
+});
+
 /** @type {Readonly<number>} */
 export const PREDICTION_LIST_PAGE_SIZE = 20;
 
