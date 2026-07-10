@@ -15,40 +15,14 @@ import {
 } from '../../match/renderers/match-scoring-points.renderer.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
-
-/** @type {Readonly<Record<string, ReadonlyArray<{ icon: string, modifier: string }>>>} */
-const FEATURED_MATCH_BG_ICONS = Object.freeze({
-  live: [
-    { icon: 'bi-broadcast-pin', modifier: '--primary' },
-    { icon: 'bi-stopwatch', modifier: '--secondary' },
-    { icon: 'bi-flag-fill', modifier: '--tertiary' },
-  ],
-  upcoming: [
-    { icon: 'bi-dribbble', modifier: '--primary' },
-    { icon: 'bi-bullseye', modifier: '--secondary' },
-    { icon: 'bi-trophy', modifier: '--tertiary' },
-  ],
-  empty: [
-    { icon: 'bi-dribbble', modifier: '--primary' },
-    { icon: 'bi-clock', modifier: '--secondary' },
-    { icon: 'bi-bullseye', modifier: '--tertiary' },
-  ],
-});
+import { renderMatchCardBgIcons } from '../../components/match-card-bg-icons.component.js';
 
 /**
  * @param {'live'|'upcoming'|'empty'} variant
  * @returns {string}
  */
 export function renderFeaturedMatchBgIcons(variant) {
-  const icons = FEATURED_MATCH_BG_ICONS[variant] ?? FEATURED_MATCH_BG_ICONS.upcoming;
-
-  return `
-    <div class="ptw-featured-match__bg-icons" aria-hidden="true">
-      ${icons.map(({ icon, modifier }) => `
-        <i class="bi ${icon} ptw-featured-match__bg-icon ptw-featured-match__bg-icon${modifier}"></i>
-      `).join('')}
-    </div>
-  `;
+  return renderMatchCardBgIcons(variant);
 }
 
 /**

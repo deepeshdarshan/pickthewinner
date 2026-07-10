@@ -1867,7 +1867,21 @@
 
 /* Additional Match Card Styles */
 .ptw-match-card {
+  position: relative;
+  overflow: hidden;
   transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
+}
+
+.ptw-match-card--upcoming {
+  border: 1px solid color-mix(in srgb, var(--ptw-color-primary-blue) 28%, var(--ptw-color-border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ptw-color-primary-blue) 6%, transparent);
+}
+
+.ptw-match-card--live {
+  border: 1px solid color-mix(in srgb, var(--ptw-color-danger, #dc3545) 45%, var(--ptw-color-border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-danger, #dc3545) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--ptw-color-danger, #dc3545) 8%, transparent);
 }
 
 .ptw-match-card:hover {
@@ -1926,8 +1940,12 @@
   gap: var(--ptw-space-4);
 }
 
-.ptw-predictions-page .ptw-match-card {
-  border: 1px solid color-mix(in srgb, var(--ptw-color-text-muted) 28%, var(--ptw-color-border));
+.ptw-predictions-page .ptw-match-card--upcoming {
+  border: 1px solid color-mix(in srgb, var(--ptw-color-primary-blue) 28%, var(--ptw-color-border));
+}
+
+.ptw-predictions-page .ptw-match-card--live {
+  border: 1px solid color-mix(in srgb, var(--ptw-color-danger, #dc3545) 45%, var(--ptw-color-border));
 }
 
 .ptw-match-cards {
@@ -3497,12 +3515,14 @@
   transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
 }
 
-.ptw-featured-match > .card-body {
+.ptw-featured-match > .card-body,
+.ptw-match-card > .card-header,
+.ptw-match-card > .card-body {
   position: relative;
   z-index: 1;
 }
 
-.ptw-featured-match__bg-icons {
+.ptw-decorated-card__bg-icons {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -3510,34 +3530,35 @@
   overflow: hidden;
 }
 
-.ptw-featured-match__bg-icon {
+.ptw-decorated-card__bg-icon {
   position: absolute;
   line-height: 1;
   pointer-events: none;
   user-select: none;
 }
 
-.ptw-featured-match__bg-icon--primary {
+.ptw-decorated-card__bg-icon--primary {
   right: -2rem;
   bottom: -2.5rem;
   font-size: clamp(8rem, 24vw, 13rem);
 }
 
-.ptw-featured-match__bg-icon--secondary {
+.ptw-decorated-card__bg-icon--secondary {
   top: -1.75rem;
   left: -1.25rem;
   font-size: clamp(5.5rem, 16vw, 9rem);
   transform: rotate(-12deg);
 }
 
-.ptw-featured-match__bg-icon--tertiary {
+.ptw-decorated-card__bg-icon--tertiary {
   top: 28%;
   right: 4%;
   font-size: clamp(4rem, 12vw, 7rem);
   transform: rotate(18deg);
 }
 
-.ptw-upcoming-match {
+.ptw-upcoming-match,
+.ptw-match-card--upcoming {
   background:
     linear-gradient(
       145deg,
@@ -3547,20 +3568,24 @@
     );
 }
 
-.ptw-upcoming-match .ptw-featured-match__bg-icon--primary {
-  color: color-mix(in srgb, var(--ptw-color-primary-blue) 18%, transparent);
+.ptw-upcoming-match .ptw-decorated-card__bg-icon--primary,
+.ptw-match-card--upcoming .ptw-decorated-card__bg-icon--primary {
+  color: color-mix(in srgb, var(--ptw-color-primary-blue) 8%, transparent);
 }
 
-.ptw-upcoming-match .ptw-featured-match__bg-icon--secondary {
-  color: color-mix(in srgb, var(--ptw-color-accent-gold) 15%, transparent);
+.ptw-upcoming-match .ptw-decorated-card__bg-icon--secondary,
+.ptw-match-card--upcoming .ptw-decorated-card__bg-icon--secondary {
+  color: color-mix(in srgb, var(--ptw-color-accent-gold) 6%, transparent);
 }
 
-.ptw-upcoming-match .ptw-featured-match__bg-icon--tertiary {
-  color: color-mix(in srgb, var(--ptw-color-primary-green) 13%, transparent);
+.ptw-upcoming-match .ptw-decorated-card__bg-icon--tertiary,
+.ptw-match-card--upcoming .ptw-decorated-card__bg-icon--tertiary {
+  color: color-mix(in srgb, var(--ptw-color-primary-green) 5%, transparent);
 }
 
 .ptw-featured-match--live,
-.ptw-live-match {
+.ptw-live-match,
+.ptw-match-card--live {
   background:
     linear-gradient(
       145deg,
@@ -3570,20 +3595,23 @@
     );
 }
 
-.ptw-featured-match--live .ptw-featured-match__bg-icon--primary,
-.ptw-live-match .ptw-featured-match__bg-icon--primary {
-  color: color-mix(in srgb, var(--ptw-color-danger, #dc3545) 20%, transparent);
+.ptw-featured-match--live .ptw-decorated-card__bg-icon--primary,
+.ptw-live-match .ptw-decorated-card__bg-icon--primary,
+.ptw-match-card--live .ptw-decorated-card__bg-icon--primary {
+  color: color-mix(in srgb, var(--ptw-color-danger, #dc3545) 9%, transparent);
   animation: ptw-live-bg-pulse 2.4s ease-in-out infinite;
 }
 
-.ptw-featured-match--live .ptw-featured-match__bg-icon--secondary,
-.ptw-live-match .ptw-featured-match__bg-icon--secondary {
-  color: color-mix(in srgb, var(--ptw-color-primary-blue) 16%, transparent);
+.ptw-featured-match--live .ptw-decorated-card__bg-icon--secondary,
+.ptw-live-match .ptw-decorated-card__bg-icon--secondary,
+.ptw-match-card--live .ptw-decorated-card__bg-icon--secondary {
+  color: color-mix(in srgb, var(--ptw-color-primary-blue) 7%, transparent);
 }
 
-.ptw-featured-match--live .ptw-featured-match__bg-icon--tertiary,
-.ptw-live-match .ptw-featured-match__bg-icon--tertiary {
-  color: color-mix(in srgb, var(--ptw-color-accent-gold) 14%, transparent);
+.ptw-featured-match--live .ptw-decorated-card__bg-icon--tertiary,
+.ptw-live-match .ptw-decorated-card__bg-icon--tertiary,
+.ptw-match-card--live .ptw-decorated-card__bg-icon--tertiary {
+  color: color-mix(in srgb, var(--ptw-color-accent-gold) 6%, transparent);
 }
 
 @keyframes ptw-live-bg-pulse {
@@ -3593,8 +3621,8 @@
   }
 
   50% {
-    opacity: 0.72;
-    transform: scale(1.04);
+    opacity: 0.55;
+    transform: scale(1.03);
   }
 }
 

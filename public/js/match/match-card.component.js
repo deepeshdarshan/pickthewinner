@@ -3,6 +3,11 @@
  * @module match/match-card.component
  */
 
+import {
+  renderMatchCardBgIcons,
+  resolveMatchCardBgIconVariant,
+  resolveMatchCardThemeClass,
+} from '../components/match-card-bg-icons.component.js';
 import { renderMatchCountdownFromDto } from '../components/countdown.component.js';
 import {
   renderTeamInlineHtml,
@@ -69,9 +74,12 @@ export function renderMatchCard(options) {
 
   const stageLabel = String(match.stage ?? '') || getRoundLabel(String(match.round ?? ''));
   const tournamentName = resolveTournamentName(match);
+  const bgVariant = resolveMatchCardBgIconVariant(match);
+  const themeClass = resolveMatchCardThemeClass(match);
 
   return `
-    <div class="card ptw-card ptw-match-card mb-3">
+    <div class="card ptw-card ptw-match-card ${themeClass} mb-3">
+      ${renderMatchCardBgIcons(bgVariant)}
       <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex align-items-center flex-wrap gap-2">
           ${tournamentName ? `<span class="badge bg-secondary">${escapeHtml(tournamentName)}</span>` : ''}
