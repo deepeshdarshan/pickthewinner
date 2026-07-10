@@ -133,3 +133,51 @@ describe('PredictionDomain winner result evaluation', () => {
     assert.equal(PredictionDomain.resolveResultWinnerName(result, match), 'France');
   });
 });
+
+describe('PredictionDomain.isWinnerStatCorrect', () => {
+  const match = {
+    homeTeamId: 'home-team',
+    awayTeamId: 'away-team',
+    homeTeam: { name: 'France' },
+    awayTeam: { name: 'Morocco' },
+  };
+
+  it('requires exact score for normal time results', () => {
+    const exactPrediction = { homeScore: 2, awayScore: 1 };
+    const wrongScorePrediction = { homeScore: 2, awayScore: 0 };
+    const result = {
+      homeScore: 2,
+      awayScore: 1,
+      winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+    };
+
+    assert.equal(PredictionDomain.isWinnerStatCorrect(exactPrediction, result, match), true);
+    assert.equal(PredictionDomain.isWinnerStatCorrect(wrongScorePrediction, result, match), false);
+  });
+
+  it('uses penalty winner comparison for penalty results', () => {
+    const correctPenaltyWinner = { homeScore: 1, awayScore: 1, predictedWinner: PENALTY_WINNER.HOME };
+    const wrongPenaltyWinner = { homeScore: 1, awayScore: 1, predictedWinner: PENALTY_WINNER.AWAY };
+    const result = {
+      homeScore: 1,
+      awayScore: 1,
+      winnerResolution: WINNER_RESOLUTION.PENALTIES,
+      winningTeamId: 'home-team',
+    };
+
+    assert.equal(PredictionDomain.isWinnerStatCorrect(correctPenaltyWinner, result, match), true);
+    assert.equal(PredictionDomain.isWinnerStatCorrect(wrongPenaltyWinner, result, match), false);
+  });
+
+  it('does not count penalty winner correct when exact score wrong and penalty pick wrong', () => {
+    const prediction = { homeScore: 2, awayScore: 2, predictedWinner: PENALTY_WINNER.AWAY };
+    const result = {
+      homeScore: 1,
+      awayScore: 1,
+      winnerResolution: WINNER_RESOLUTION.PENALTIES,
+      winningTeamId: 'home-team',
+    };
+
+    assert.equal(PredictionDomain.isWinnerStatCorrect(prediction, result, match), false);
+  });
+});

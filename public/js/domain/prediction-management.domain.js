@@ -138,7 +138,7 @@ export const PredictionManagementDomain = {
     let exactScoreCorrect = null;
 
     if (hasResult) {
-      winnerPredictionCorrect = PredictionDomain.isWinnerPredictionCorrect(prediction, result, match);
+      winnerPredictionCorrect = PredictionDomain.isWinnerStatCorrect(prediction, result, match);
       exactScoreCorrect = Number(prediction.homeScore) === Number(result.homeScore)
         && Number(prediction.awayScore) === Number(result.awayScore);
     }

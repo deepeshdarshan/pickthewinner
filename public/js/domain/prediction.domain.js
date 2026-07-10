@@ -202,12 +202,40 @@ export const PredictionDomain = {
     const predictedSide = PredictionDomain.resolvePredictedWinnerSide(prediction);
 
     if (!actualSide) {
-      const homeScore = Number(prediction.homeScore ?? 0);
-      const awayScore = Number(prediction.awayScore ?? 0);
-      return homeScore === awayScore && !predictedSide;
+      const predHome = Number(prediction.homeScore ?? 0);
+      const predAway = Number(prediction.awayScore ?? 0);
+      const resultHome = Number(result.homeScore ?? 0);
+      const resultAway = Number(result.awayScore ?? 0);
+
+      if (resultHome !== resultAway) {
+        return false;
+      }
+
+      return predHome === resultHome && predAway === resultAway && !predictedSide;
     }
 
     return predictedSide === actualSide;
+  },
+
+  /**
+   * Returns whether a prediction counts as a correct winner for leaderboard and accuracy stats.
+   * Normal-time results require an exact score; penalty results use penalty-winner comparison.
+   * @param {Record<string, unknown>|null} prediction
+   * @param {Record<string, unknown>|null} result
+   * @param {{ homeTeamId?: string, awayTeamId?: string }} match
+   * @returns {boolean}
+   */
+  isWinnerStatCorrect(prediction, result, match) {
+    if (!prediction || !result) {
+      return false;
+    }
+
+    if (String(result.winnerResolution) === WINNER_RESOLUTION.PENALTIES) {
+      return PredictionDomain.isWinnerPredictionCorrect(prediction, result, match);
+    }
+
+    return Number(prediction.homeScore) === Number(result.homeScore)
+      && Number(prediction.awayScore) === Number(result.awayScore);
   },
 
   /**

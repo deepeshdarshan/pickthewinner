@@ -208,7 +208,7 @@ describe('LeaderboardDomain', () => {
       },
     };
 
-    it('should count winner correct but not exact', () => {
+    it('should not count right team with wrong score as winner for normal time', () => {
       const matchById = new Map([
         ['m1', matchWinnerCorrectNotExact],
       ]);
@@ -218,9 +218,9 @@ describe('LeaderboardDomain', () => {
 
       const stats = LeaderboardDomain.calculateContestantStats(predictions, matchById);
 
-      assert.equal(stats.correctWinnerCount, 1);
+      assert.equal(stats.correctWinnerCount, 0);
       assert.equal(stats.exactScoreCount, 0);
-      assert.equal(stats.accuracy, 100);
+      assert.equal(stats.accuracy, 0);
       assert.equal(stats.completedCount, 1);
     });
 
@@ -248,6 +248,34 @@ describe('LeaderboardDomain', () => {
       const predictions = [
         { matchId: 'm1', homeScore: 2, awayScore: 1 },
         { matchId: 'm3', homeScore: 1, awayScore: 0 },
+      ];
+
+      const stats = LeaderboardDomain.calculateContestantStats(predictions, matchById);
+
+      assert.equal(stats.correctWinnerCount, 0);
+      assert.equal(stats.exactScoreCount, 0);
+      assert.equal(stats.accuracy, 0);
+      assert.equal(stats.completedCount, 1);
+    });
+
+    it('should count penalty winner correct without exact score', () => {
+      const matchPenalties = {
+        id: 'm4',
+        homeTeamId,
+        awayTeamId,
+        result: {
+          published: true,
+          homeScore: 1,
+          awayScore: 1,
+          winnerResolution: WINNER_RESOLUTION.PENALTIES,
+          winningTeamId: homeTeamId,
+        },
+      };
+      const matchById = new Map([
+        ['m4', matchPenalties],
+      ]);
+      const predictions = [
+        { matchId: 'm4', homeScore: 2, awayScore: 2, predictedWinner: 'HOME' },
       ];
 
       const stats = LeaderboardDomain.calculateContestantStats(predictions, matchById);

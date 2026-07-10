@@ -34,7 +34,7 @@ export function renderDashboardInfoCardsSection() {
   const phone = escapeHtml(appSettings.supportContactPhone);
 
   return `
-    <section class="ptw-dashboard-info-cards mb-4" aria-label="Platform information">
+    <section class="ptw-dashboard-info-cards mt-4 mb-4" aria-label="Platform information">
       <div class="row g-3">
         ${renderInfoCard({
     icon: 'bi-clock',

@@ -46,7 +46,7 @@ export function renderQuickStatsSection(data) {
   }
 
   return `
-    <section class="card ptw-card ptw-quick-stats-card mb-4" aria-labelledby="ptw-quick-stats-heading">
+    <section class="card ptw-card ptw-quick-stats-card" aria-labelledby="ptw-quick-stats-heading">
       <div class="card-header">
         <h2 class="h5 mb-0" id="ptw-quick-stats-heading">Quick Statistics</h2>
       </div>

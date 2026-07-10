@@ -3191,7 +3191,7 @@
 .ptw-dashboard-secondary-sections {
   display: flex;
   flex-direction: column;
-  gap: var(--ptw-space-3);
+  gap: var(--ptw-space-5);
 }
 
 .ptw-dashboard-secondary-sections .ptw-quick-stats-card,

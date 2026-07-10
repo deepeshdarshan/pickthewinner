@@ -84,12 +84,12 @@ export function renderContestantDashboard(data) {
         </div>
       </div>
 
-      ${renderDashboardInfoCardsSection()}
-
       <div class="ptw-dashboard-secondary-sections">
         ${renderQuickStatsSection(data)}
         ${renderRecentActivitySection(data)}
       </div>
+
+      ${renderDashboardInfoCardsSection()}
     </div>
   `;
 }

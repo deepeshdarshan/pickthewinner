@@ -145,6 +145,31 @@ describe('PredictionManagementDomain', () => {
     assert.equal(enriched.exactScoreCorrect, true);
   });
 
+  it('does not mark winner correct when team is right but score is wrong', () => {
+    const match = {
+      homeTeamId: 'home',
+      awayTeamId: 'away',
+      homeTeam: { name: 'France' },
+      awayTeam: { name: 'Morocco' },
+      result: {
+        published: true,
+        homeScore: 2,
+        awayScore: 1,
+        winnerResolution: WINNER_RESOLUTION.NORMAL_TIME_EXTRA_TIME,
+      },
+    };
+
+    const enriched = PredictionManagementDomain.enrichPrediction({
+      homeScore: 2,
+      awayScore: 0,
+      status: 'scored',
+      scored: true,
+    }, match);
+
+    assert.equal(enriched.winnerPredictionCorrect, false);
+    assert.equal(enriched.exactScoreCorrect, false);
+  });
+
   it('partitions tournaments for selector', () => {
     const { active, archived } = PredictionManagementDomain.partitionTournamentsForSelector([
       { id: '1', status: 'published' },

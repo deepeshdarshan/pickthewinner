@@ -102,7 +102,7 @@ async function initScorePage(outlet) {
       const prediction = predictionsMap.get(match.id);
       if (prediction) {
         const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
-        if (PredictionDomain.isWinnerPredictionCorrect(prediction, result, match)) {
+        if (PredictionDomain.isWinnerStatCorrect(prediction, result, match)) {
           correctWinners++;
         }
         if (checkExactScore(prediction, match)) {
