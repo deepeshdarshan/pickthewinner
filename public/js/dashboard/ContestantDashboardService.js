@@ -16,6 +16,7 @@ import { getPredictionSummary } from '../prediction/prediction-submission.servic
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
+import { buildRecentActivity } from './contestant-dashboard-activity.util.js';
 
 /**
  * @typedef {Object} ContestantActivityItem
@@ -363,36 +364,4 @@ function buildQuickStats(input) {
     currentRank: null,
     lifetimePoints: 0,
   };
-}
-
-/**
- * @param {import('../match/match.service.js').EnrichedMatch[]} matches
- * @param {string|null} userId
- * @returns {ContestantActivityItem[]}
- */
-function buildRecentActivity(matches, userId) {
-  if (!userId) {
-    return [];
-  }
-
-  const published = matches
-    .filter((match) => match.result?.published)
-    .slice(0, 3)
-    .map((match, index) => ({
-      id: `result-${match.id}`,
-      type: 'result',
-      message: `Result published for ${match.homeTeam?.name ?? 'Home'} vs ${match.awayTeam?.name ?? 'Away'}.`,
-      timestampLabel: 'Recently',
-    }));
-
-  if (published.length > 0) {
-    return published;
-  }
-
-  return [{
-    id: 'welcome-activity',
-    type: 'info',
-    message: 'Submit predictions for upcoming matches to see activity here.',
-    timestampLabel: 'Now',
-  }];
 }
