@@ -26,6 +26,23 @@ function renderUserProfileLink(uid, name) {
 }
 
 /**
+ * @param {import('firebase/firestore').Timestamp|Date|null|undefined} lastLogin
+ * @returns {string}
+ */
+function renderLastLoginCell(lastLogin) {
+  const { primary, secondary } = UserAdminDomain.formatLastLoginDisplay(lastLogin);
+
+  if (primary === 'Never') {
+    return '<div class="text-white-50" style="font-size: 0.8125rem;">Never</div>';
+  }
+
+  return `
+    <div class="text-white" style="font-size: 0.8125rem;">${escapeHtml(primary)}</div>
+    ${secondary ? `<small class="text-white-50 d-block" style="font-size: 0.75rem;">${escapeHtml(secondary)}</small>` : ''}
+  `;
+}
+
+/**
  * @param {UserProfile[]} users
  * @param {Object} [options]
  * @param {(uid: string) => void} [options.onLockClick]
@@ -41,7 +58,7 @@ export function renderUserTable(users, options = {}) {
     const rows = users.map((user) => {
     const statusBadgeClass = UserAdminDomain.getStatusBadgeClass(user.status);
     const roleBadgeClass = UserAdminDomain.getRoleBadgeClass(user.role);
-    const activityLabel = UserAdminDomain.getUserActivityLabel(user.lastLogin);
+    const lastLoginDisplay = UserAdminDomain.formatLastLoginDisplay(user.lastLogin);
     const isLocked = user.status === USER_STATUS.LOCKED;
     const isAdmin = user.role === USER_ROLES.ADMIN;
 
@@ -57,7 +74,7 @@ export function renderUserTable(users, options = {}) {
 
     return `
       <tr style="font-size: 0.875rem;">
-        <td style="padding: 0.5rem;">
+        <td class="ptw-user-admin-table__user-col" style="padding: 0.5rem;">
           <div class="d-flex align-items-center">
             <img 
               src="${escapeHtml(user.photoURL || '')}" 
@@ -86,10 +103,10 @@ export function renderUserTable(users, options = {}) {
           <div class="text-white" style="font-size: 0.8125rem;">${user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString() : 'N/A'}</div>
         </td>
         <td style="padding: 0.5rem;">
-          <div class="text-white" style="font-size: 0.8125rem;">${activityLabel}</div>
+          ${renderLastLoginCell(user.lastLogin)}
         </td>
-        <td class="text-center" style="padding: 0.5rem;">
-          <span class="text-white" style="font-size: 0.8125rem;">${user.statistics?.tournamentsPlayed ?? 0}</span>
+        <td style="padding: 0.5rem;">
+          <div class="text-white" style="font-size: 0.8125rem;">${escapeHtml(user.pradeshikaSabha || '—')}</div>
         </td>
         <td class="text-end" style="padding: 0.5rem;">
           <div class="btn-group btn-group-sm" role="group">
@@ -110,15 +127,18 @@ export function renderUserTable(users, options = {}) {
 
   return `
     <div class="table-responsive">
-      <table class="table table-dark table-hover align-middle mb-0 ptw-table ptw-table--compact" aria-label="Users">
+      <table class="table table-dark table-hover align-middle mb-0 ptw-table ptw-table--compact ptw-user-admin-table" aria-label="Users">
+        <colgroup>
+          <col class="ptw-user-admin-table__user-col" />
+        </colgroup>
         <thead>
           <tr style="background-color: #1F2A44;">
-            <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">User</th>
+            <th scope="col" class="text-white ptw-user-admin-table__user-col" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">User</th>
             <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Role</th>
             <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Status</th>
             <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Registered</th>
             <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Last Login</th>
-            <th scope="col" class="text-center text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Tournaments</th>
+            <th scope="col" class="text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Pradeshika Sabha</th>
             <th scope="col" class="text-end text-white" style="padding: 0.75rem 0.5rem; font-size: 0.8125rem; font-weight: 600;">Actions</th>
           </tr>
         </thead>
@@ -143,7 +163,7 @@ export function renderUserCards(users) {
   return users.map((user) => {
     const statusBadgeClass = UserAdminDomain.getStatusBadgeClass(user.status);
     const roleBadgeClass = UserAdminDomain.getRoleBadgeClass(user.role);
-    const activityLabel = UserAdminDomain.getUserActivityLabel(user.lastLogin);
+    const lastLoginDisplay = UserAdminDomain.formatLastLoginDisplay(user.lastLogin);
     const isLocked = user.status === USER_STATUS.LOCKED;
     const isAdmin = user.role === USER_ROLES.ADMIN;
 
@@ -181,11 +201,12 @@ export function renderUserCards(users) {
           <div class="row g-2 mb-2">
             <div class="col-6">
               <small class="text-white-50 d-block" style="font-size: 0.7rem;">Last Login</small>
-              <strong class="text-white" style="font-size: 0.8125rem;">${activityLabel}</strong>
+              <strong class="text-white" style="font-size: 0.8125rem;">${escapeHtml(lastLoginDisplay.primary)}</strong>
+              ${lastLoginDisplay.secondary ? `<small class="text-white-50 d-block" style="font-size: 0.7rem;">${escapeHtml(lastLoginDisplay.secondary)}</small>` : ''}
             </div>
             <div class="col-6">
-              <small class="text-white-50 d-block" style="font-size: 0.7rem;">Tournaments</small>
-              <strong class="text-white" style="font-size: 0.8125rem;">${user.statistics?.tournamentsPlayed ?? 0}</strong>
+              <small class="text-white-50 d-block" style="font-size: 0.7rem;">Pradeshika Sabha</small>
+              <strong class="text-white" style="font-size: 0.8125rem;">${escapeHtml(user.pradeshikaSabha || '—')}</strong>
             </div>
           </div>
           

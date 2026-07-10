@@ -27,6 +27,7 @@ let currentFilter = 'all';
 let allEntries = [];
 let currentTournamentId = null;
 let currentUserId = null;
+let canLinkContestantProfiles = false;
 
 /**
  * Renders the leaderboard page.
@@ -85,6 +86,7 @@ async function initLeaderboardPage(outlet) {
     let contestantStats = null;
     await AuthorizationService.resolve();
     const isAdmin = AuthorizationService.hasRole(Roles.ADMIN);
+    canLinkContestantProfiles = isAdmin;
     if (currentUserId && !isAdmin) {
       contestantStats = await leaderboardService.getContestantStatistics(
         tournament.id,
@@ -112,6 +114,7 @@ async function initLeaderboardPage(outlet) {
  */
 function renderLeaderboardView(entries, tournamentStats, contestantStats) {
   const isMobile = window.innerWidth < 768;
+  const linkOptions = { linkProfiles: canLinkContestantProfiles };
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
@@ -147,7 +150,7 @@ function renderLeaderboardView(entries, tournamentStats, contestantStats) {
         </div>
         <div class="card-body p-0">
           <div id="leaderboardContent">
-            ${isMobile ? renderLeaderboardCards(entries) : renderLeaderboardTable(entries)}
+            ${isMobile ? renderLeaderboardCards(entries, linkOptions) : renderLeaderboardTable(entries, linkOptions)}
           </div>
         </div>
       </div>
@@ -263,9 +266,10 @@ function updateLeaderboardContent(outlet, entries) {
   if (!contentContainer) return;
 
   const isMobile = window.innerWidth < 768;
+  const linkOptions = { linkProfiles: canLinkContestantProfiles };
   contentContainer.innerHTML = isMobile
-    ? renderLeaderboardCards(entries)
-    : renderLeaderboardTable(entries);
+    ? renderLeaderboardCards(entries, linkOptions)
+    : renderLeaderboardTable(entries, linkOptions);
 }
 
 /**

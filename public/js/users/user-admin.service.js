@@ -26,6 +26,10 @@ import {
 import { USER_EVENTS, emitUserEvent } from './user.events.js';
 import { Logger } from '../utils/logger.util.js';
 import { UserAdminDomain } from '../domain/user-admin.domain.js';
+import { predictionHistoryRepository } from '../prediction/history/PredictionHistoryRepository.js';
+import { predictionHistoryService } from '../prediction/history/PredictionHistoryService.js';
+import { PredictionHistoryDomain } from '../domain/prediction-history.domain.js';
+import { createDefaultStatistics } from './user.service.js';
 
 /**
  * @typedef {import('./user.service.js').UserProfile} UserProfile
@@ -321,10 +325,41 @@ class UserAdminServiceClass extends BaseFirestoreService {
       return null;
     }
 
-    return /** @type {UserProfile} */ ({
+    const profile = /** @type {UserProfile} */ ({
       uid,
       ...data,
     });
+
+    if (profile.role === USER_ROLES.CONTESTANT) {
+      profile.statistics = await this.getComputedContestantStatistics(uid);
+    }
+
+    return profile;
+  }
+
+  /**
+   * Computes contestant statistics from scored predictions (not stale Firestore counters).
+   * @param {string} uid
+   * @returns {Promise<import('./user.service.js').UserStatistics>}
+   */
+  async getComputedContestantStatistics(uid) {
+    try {
+      const rawPredictions = await predictionHistoryRepository.listByUser(uid);
+      const enrichedItems = await predictionHistoryService.enrichPredictions(rawPredictions);
+      const overallStats = PredictionHistoryDomain.calculateOverallStatistics(enrichedItems);
+      const tournamentSummaries = PredictionHistoryDomain.groupByTournament(enrichedItems);
+
+      return {
+        tournamentsPlayed: tournamentSummaries.length,
+        matchesPredicted: overallStats.predictionsSubmitted,
+        exactPredictions: overallStats.exactScores,
+        correctWinnerPredictions: overallStats.correctWinners,
+        totalPoints: overallStats.totalPoints,
+      };
+    } catch (error) {
+      Logger.error('[UserAdminService] getComputedContestantStatistics failed:', uid, error);
+      return createDefaultStatistics();
+    }
   }
 }
 

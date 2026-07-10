@@ -143,3 +143,29 @@ export function isSameDay(a, b) {
 
   return dayKey(a) === dayKey(b);
 }
+
+/**
+ * Returns a stable day index for calendar-day comparisons in the app timezone.
+ * @param {Date} date
+ * @returns {number}
+ */
+function getCalendarDayIndex(date) {
+  const formatted = new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+  const [year, month, day] = formatted.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+}
+
+/**
+ * Returns whole calendar days between two instants in the app timezone.
+ * @param {Date} earlier
+ * @param {Date} [later]
+ * @returns {number}
+ */
+export function getCalendarDayDifference(earlier, later = new Date()) {
+  return getCalendarDayIndex(later) - getCalendarDayIndex(earlier);
+}

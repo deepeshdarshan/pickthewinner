@@ -1627,6 +1627,15 @@
   border-bottom: none;
 }
 
+.ptw-user-admin-table {
+  table-layout: fixed;
+}
+
+.ptw-user-admin-table__user-col {
+  width: 32%;
+  min-width: 14rem;
+}
+
 /* Master data admin forms */
 .ptw-team-form-page {
   width: 100%;
@@ -3297,16 +3306,23 @@
   line-height: 1.2;
 }
 
-.ptw-dashboard-stat-grid__footer-link {
-  color: var(--ptw-color-text-secondary);
-  font-size: var(--ptw-font-size-sm);
-  text-decoration: none;
-  transition: color var(--ptw-transition-fast);
+.ptw-dashboard-stat-grid__footer-btn {
+  box-shadow: 0 4px 14px rgba(21, 101, 255, 0.35);
+  transition:
+    background-color var(--ptw-transition-fast),
+    border-color var(--ptw-transition-fast),
+    box-shadow var(--ptw-transition-fast),
+    transform var(--ptw-transition-fast);
 }
 
-.ptw-dashboard-stat-grid__footer-link:hover,
-.ptw-dashboard-stat-grid__footer-link:focus {
-  color: var(--ptw-color-primary-blue);
+.ptw-dashboard-stat-grid__footer-btn:hover,
+.ptw-dashboard-stat-grid__footer-btn:focus,
+.ptw-dashboard-stat-grid__footer-btn:focus-visible {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-primary-blue) 70%, white),
+    0 0 22px rgba(21, 101, 255, 0.55),
+    0 6px 18px rgba(21, 101, 255, 0.4);
+  transform: translateY(-1px);
 }
 
 .ptw-featured-match {
@@ -3960,6 +3976,11 @@
 .ptw-profile-link:hover {
   color: var(--ptw-color-primary);
   text-decoration: underline;
+}
+
+.ptw-leaderboard-table .ptw-profile-link:hover,
+.ptw-leaderboard-card .ptw-profile-link:hover {
+  color: var(--ptw-color-primary);
 }
 
 .ptw-contact-actions .btn {

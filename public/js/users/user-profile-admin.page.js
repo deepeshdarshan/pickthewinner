@@ -103,6 +103,7 @@ function renderProfilePage(outlet, user) {
            <i class="bi bi-unlock-fill me-1" aria-hidden="true"></i>Unlock User
          </button>`
       : '';
+  const lastLoginDisplay = UserAdminDomain.formatLastLoginDisplay(user.lastLogin);
 
   outlet.innerHTML = `
     <div class="${ADMIN_PAGE_SHELL_CLASSES}">
@@ -164,6 +165,16 @@ function renderProfilePage(outlet, user) {
               `}
               
               <div class="mb-3">
+                <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">District</label>
+                <p class="text-white mb-0" style="font-size: 0.8125rem;">${escapeHtml(user.district || 'N/A')}</p>
+              </div>
+              
+              <div class="mb-3">
+                <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">Pradeshika Sabha</label>
+                <p class="text-white mb-0" style="font-size: 0.8125rem;">${escapeHtml(user.pradeshikaSabha || 'N/A')}</p>
+              </div>
+              
+              <div class="mb-3">
                 <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">User ID</label>
                 <p class="text-white mb-0 font-monospace" style="font-size: 0.75rem; word-break: break-all;">${escapeHtml(user.uid)}</p>
               </div>
@@ -202,8 +213,13 @@ function renderProfilePage(outlet, user) {
                 <div class="col-6 col-md-4">
                   <label class="text-white-50 d-block mb-1" style="font-size: 0.75rem;">Last Login</label>
                   <p class="text-white mb-0" style="font-size: 0.8125rem;">
-                    ${UserAdminDomain.getUserActivityLabel(user.lastLogin)}
+                    ${escapeHtml(lastLoginDisplay.primary)}
                   </p>
+                  ${lastLoginDisplay.secondary ? `
+                  <small class="text-white-50" style="font-size: 0.75rem;">
+                    ${escapeHtml(lastLoginDisplay.secondary)}
+                  </small>
+                  ` : ''}
                 </div>
                 
                 <div class="col-6 col-md-4">
@@ -242,9 +258,9 @@ function renderProfilePage(outlet, user) {
                 <div class="col-6 col-md-3">
                   <div class="text-center">
                     <div class="text-info" style="font-size: 1.5rem; font-weight: 600;">
-                      ${user.statistics?.exactPredictions ?? 0}
+                      ${user.statistics?.correctWinnerPredictions ?? 0}
                     </div>
-                    <small class="text-white-50" style="font-size: 0.75rem;">Exact Scores</small>
+                    <small class="text-white-50" style="font-size: 0.75rem;">Correct Winners</small>
                   </div>
                 </div>
                 

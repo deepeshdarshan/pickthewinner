@@ -4,6 +4,7 @@
  */
 
 import { USER_ROLES, USER_STATUS } from '../users/user.constants.js';
+import { formatDateTime, getCalendarDayDifference, toDate } from '../utils/date.util.js';
 
 /**
  * @typedef {import('../users/user.service.js').UserProfile} UserProfile
@@ -107,14 +108,13 @@ export const UserAdminDomain = {
    * @returns {string}
    */
   getUserActivityLabel(lastLogin) {
-    if (!lastLogin) {
+    const date = toDate(lastLogin);
+
+    if (!date) {
       return 'Never';
     }
 
-    const date = lastLogin instanceof Date ? lastLogin : lastLogin.toDate();
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = getCalendarDayDifference(date);
 
     if (diffDays === 0) {
       return 'Today';
@@ -140,6 +140,24 @@ export const UserAdminDomain = {
 
     const years = Math.floor(diffDays / 365);
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+  },
+
+  /**
+   * Formats last login for admin tables with an absolute timestamp and relative label.
+   * @param {import('firebase/firestore').Timestamp|Date|null|undefined} lastLogin
+   * @returns {{ primary: string, secondary: string }}
+   */
+  formatLastLoginDisplay(lastLogin) {
+    const date = toDate(lastLogin);
+
+    if (!date) {
+      return { primary: 'Never', secondary: '' };
+    }
+
+    return {
+      primary: formatDateTime(date),
+      secondary: UserAdminDomain.getUserActivityLabel(lastLogin),
+    };
   },
 
   /**

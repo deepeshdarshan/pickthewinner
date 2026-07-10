@@ -39,9 +39,8 @@ function renderLeaderboardCard(entry, options = {}) {
   const { linkProfiles = false } = options;
   const rankBadgeClass = getRankBadgeClass(entry.rank);
   const nameHtml = linkProfiles
-    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-leaderboard-card__name mb-0 d-inline-block" data-route>
+    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-leaderboard-card__name mb-0 d-inline-block text-decoration-none" data-route title="View profile">
         ${escapeHtml(entry.displayName)}
-        <i class="bi bi-box-arrow-up-right ms-1 small" aria-hidden="true"></i>
       </a>`
     : `<h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>`;
   return `

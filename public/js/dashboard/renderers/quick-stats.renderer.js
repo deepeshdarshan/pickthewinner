@@ -54,8 +54,12 @@ export function renderQuickStatsSection(data) {
         <div class="ptw-dashboard-stat-grid">
           ${rows.map((row) => renderDashboardStatCard(row)).join('')}
         </div>
-        <div class="text-center mt-3">
-          <a href="/score" class="ptw-dashboard-stat-grid__footer-link" data-route>
+        <div class="mt-3">
+          <a
+            href="/score"
+            class="btn btn-ptw-primary ptw-dashboard-stat-grid__footer-btn w-100"
+            data-route
+          >
             <i class="bi bi-eye me-1" aria-hidden="true"></i>View Full Stats
           </a>
         </div>

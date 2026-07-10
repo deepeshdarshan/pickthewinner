@@ -37,30 +37,31 @@ export async function initUserModule() {
 }
 
 /**
- * Loads profile and updates last login for returning users.
+ * Loads the current profile when an existing auth session is restored.
+ * Does not update last login — that is recorded only on explicit sign-in.
  * @returns {Promise<void>}
  */
 async function handleSessionRestored() {
   try {
-    const profile = await loadCurrentUser();
-
-    if (profile?.uid) {
-      await updateLastLogin(profile.uid);
-    }
+    await loadCurrentUser();
   } catch (error) {
     Logger.error('[UserBootstrap] Session restore handling failed:', error);
   }
 }
 
 /**
- * Ensures profile cache is warm after login.
+ * Ensures profile cache is warm after login and records last login time.
  * Skips network reads for new users — complete-profile handles that flow.
  * @returns {Promise<void>}
  */
 async function handleLoginSuccess() {
   try {
-    if (getCachedProfile()) {
-      await loadCurrentUser(true);
+    const profile = getCachedProfile()
+      ? await loadCurrentUser(true)
+      : await loadCurrentUser();
+
+    if (profile?.uid) {
+      await updateLastLogin(profile.uid);
     }
   } catch (error) {
     Logger.error('[UserBootstrap] Login handling failed:', error);

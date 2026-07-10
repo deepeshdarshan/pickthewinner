@@ -64,9 +64,8 @@ function renderLeaderboardRow(entry, options = {}) {
   const { linkProfiles = false } = options;
   const rankBadgeClass = getRankBadgeClass(entry.rank);
   const nameHtml = linkProfiles
-    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link fw-semibold text-truncate d-block" data-route>
+    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link fw-semibold text-white text-decoration-none text-truncate d-block" data-route title="View profile">
         ${escapeHtml(entry.displayName)}
-        <i class="bi bi-box-arrow-up-right ms-1 small" aria-hidden="true"></i>
       </a>`
     : `<span class="fw-semibold text-truncate d-block">${escapeHtml(entry.displayName)}</span>`;
 
