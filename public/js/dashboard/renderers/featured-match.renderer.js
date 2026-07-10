@@ -6,9 +6,8 @@
 import { renderMatchCountdownFromDto } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import {
-  CONTESTANT_PREDICTION_UI_STATUS,
   getContestantPredictionUiStatus,
-  renderContestantPredictionDisabledButton,
+  renderContestantPredictionActionButtons,
 } from '../../match/match-prediction-ui.util.js';
 import {
   renderCustomScoringSourceBadge,
@@ -209,37 +208,17 @@ function renderPredictionSummary(prediction) {
  * @returns {string}
  */
 function renderUpcomingActionButtons(match, prediction, predictionStatus) {
-  if (match.result?.published) {
-    return `
-      <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
-        View Details
-      </a>
-    `;
-  }
-
-  if (
-    predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.LOCKED
-    || predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON
-  ) {
-    return renderContestantPredictionDisabledButton(
-      predictionStatus,
-      'btn btn-secondary ptw-featured-match__action-btn',
-    );
-  }
-
-  if (prediction && predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED) {
-    return `
-      <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
-        <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
-      </a>
-    `;
-  }
-
-  return `
-    <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary ptw-featured-match__action-btn" data-route>
-      <i class="bi bi-bullseye me-2" aria-hidden="true"></i>Predict Match
-    </a>
-  `;
+  return renderContestantPredictionActionButtons({
+    matchId: match.id,
+    predictionStatus,
+    resultPublished: Boolean(match.result?.published),
+    predictionExists: Boolean(prediction),
+    predictionLocked: Boolean(prediction?.locked),
+    disabledButtonClass: 'btn btn-secondary ptw-featured-match__action-btn',
+    enabledButtonClass: 'btn btn-ptw-primary ptw-featured-match__action-btn',
+    editButtonClass: 'btn btn-ptw-primary ptw-featured-match__action-btn',
+    predictLabel: 'Predict Match',
+  });
 }
 
 /**

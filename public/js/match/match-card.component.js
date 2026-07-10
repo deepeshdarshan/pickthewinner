@@ -21,9 +21,8 @@ import {
 } from './renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 import {
-  CONTESTANT_PREDICTION_UI_STATUS,
   getContestantPredictionUiStatus,
-  renderContestantPredictionDisabledButton,
+  renderContestantPredictionActionButtons,
   renderContestantPredictionStatusBadge,
 } from './match-prediction-ui.util.js';
 
@@ -57,7 +56,7 @@ export function renderMatchCard(options) {
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
 
   const predictionStatus = getContestantPredictionUiStatus(match, prediction);
-  const statusBadge = renderContestantPredictionStatusBadge(predictionStatus);
+  const statusBadge = renderContestantPredictionStatusBadge(predictionStatus, { syncable: true });
   const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
   const countdownHtml = match.matchCountdown
     ? renderMatchCountdownFromDto(match.matchCountdown, {
@@ -297,44 +296,19 @@ function checkExactScore(prediction, match) {
  * @returns {string}
  */
 function renderActionButtons(match, prediction, predictionStatus) {
-  if (match.result?.published) {
-    return `
-      <div class="mt-3 pt-3 border-top">
-        <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-outline-primary w-100" data-route>
-          View Details
-        </a>
-      </div>
-    `;
-  }
-
-  if (
-    predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.LOCKED
-    || predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON
-  ) {
-    return `
-      <div class="mt-3 pt-3 border-top">
-        ${renderContestantPredictionDisabledButton(predictionStatus)}
-      </div>
-    `;
-  }
-
-  if (prediction && predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED) {
-    return `
-      <div class="mt-3 pt-3 border-top">
-        <a href="/predictions?action=edit&matchId=${encodeURIComponent(match.id)}" class="btn btn-primary w-100" data-route>
-          <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
-        </a>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="mt-3 pt-3 border-top">
-      <a href="/predictions?action=create&matchId=${encodeURIComponent(match.id)}" class="btn btn-ptw-primary w-100" data-route>
-        <i class="bi bi-bullseye me-2" aria-hidden="true"></i>Make Prediction
-      </a>
-    </div>
-  `;
+  return renderContestantPredictionActionButtons({
+    matchId: match.id,
+    predictionStatus,
+    resultPublished: Boolean(match.result?.published),
+    predictionExists: Boolean(prediction),
+    predictionLocked: Boolean(prediction?.locked),
+    disabledButtonClass: 'btn btn-secondary w-100',
+    enabledButtonClass: 'btn btn-ptw-primary w-100',
+    editButtonClass: 'btn btn-primary w-100',
+    viewDetailsButtonClass: 'btn btn-outline-primary w-100',
+    predictLabel: 'Make Prediction',
+    wrapperClass: 'mt-3 pt-3 border-top',
+  });
 }
 
 /**

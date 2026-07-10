@@ -4,6 +4,7 @@ import {
   CONTESTANT_PREDICTION_UI_STATUS,
   getContestantPredictionUiStatus,
   isPredictionNotYetOpen,
+  resolvePredictionUiStatusFromCountdownPhase,
 } from '../public/js/match/match-prediction-ui.util.js';
 import { MATCH_COUNTDOWN_PHASE } from '../public/js/domain/match.domain.js';
 
@@ -40,6 +41,60 @@ describe('match-prediction-ui.util', () => {
     assert.equal(
       getContestantPredictionUiStatus(match, null),
       CONTESTANT_PREDICTION_UI_STATUS.PENDING,
+    );
+  });
+});
+
+describe('resolvePredictionUiStatusFromCountdownPhase', () => {
+  it('maps PRE_OPEN to OPENS_SOON when no prediction exists', () => {
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.PRE_OPEN, {
+        predictionExists: false,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON,
+    );
+  });
+
+  it('maps OPEN to PENDING when no prediction exists', () => {
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.OPEN, {
+        predictionExists: false,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.PENDING,
+    );
+  });
+
+  it('maps OPEN to SUBMITTED when a prediction exists', () => {
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.OPEN, {
+        predictionExists: true,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED,
+    );
+  });
+
+  it('maps CLOSED and HIDDEN to LOCKED', () => {
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.CLOSED, {
+        predictionExists: false,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
+    );
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.HIDDEN, {
+        predictionExists: true,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
+    );
+  });
+
+  it('returns LOCKED when prediction is locked regardless of phase', () => {
+    assert.equal(
+      resolvePredictionUiStatusFromCountdownPhase(MATCH_COUNTDOWN_PHASE.OPEN, {
+        predictionExists: true,
+        predictionLocked: true,
+      }),
+      CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
     );
   });
 });

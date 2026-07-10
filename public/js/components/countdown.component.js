@@ -15,6 +15,7 @@ import {
   formatPredictionWindowCountdown,
 } from '../utils/countdown.util.js';
 import { msUntil } from '../utils/time.util.js';
+import { syncContestantPredictionUiFromCountdownPhase } from '../match/match-prediction-ui.util.js';
 
 /**
  * @typedef {Object} CountdownOptions
@@ -385,8 +386,13 @@ function startLifecycleCountdown(countdownContainer, valueElement) {
   };
 
   const tick = () => {
+    const previousPhase = countdownContainer.getAttribute('data-phase');
     const state = resolveLifecyclePhaseFromElement(countdownContainer);
     applyLifecycleCountdownState(countdownContainer, state);
+
+    if (state.phase !== previousPhase) {
+      syncContestantPredictionUiFromCountdownPhase(countdownContainer, state.phase);
+    }
 
     if (
       state.phase === MATCH_COUNTDOWN_PHASE.CLOSED
