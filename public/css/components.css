@@ -2163,6 +2163,16 @@
   color: color-mix(in srgb, var(--ptw-color-primary-green) 8%, transparent);
 }
 
+.ptw-match-cards--contestant-browse .ptw-match-card .ptw-performance-card__matchup-vs {
+  flex: 1 1 11.5rem;
+  max-width: 13.5rem;
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card .ptw-countdown__label {
+  min-width: 11rem;
+  max-width: 13.5rem;
+}
+
 .ptw-match-card .badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
@@ -4659,6 +4669,27 @@
 .ptw-prediction-history-detail-btn:hover .bi,
 .ptw-prediction-history-detail-btn:focus-visible .bi {
   transform: translateX(2px);
+}
+
+/* Prediction history performance stats — center on mobile */
+@media (max-width: 991.98px) {
+  .ptw-prediction-history-card .ptw-performance-card__stat,
+  .ptw-admin-prediction-history__row .ptw-performance-card__stat {
+    text-align: center;
+  }
+
+  .ptw-prediction-history-card .ptw-performance-card__stat-head,
+  .ptw-admin-prediction-history__row .ptw-performance-card__stat-head {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ptw-prediction-history-card .ptw-performance-card__stat-label,
+  .ptw-admin-prediction-history__row .ptw-performance-card__stat-label {
+    text-align: center;
+  }
 }
 
 .ptw-prediction-timeline__group-label,
