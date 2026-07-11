@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PredictionHistoryDomain, resolvePrimaryResultBadge, resolveResultBadges, isArchivedHistoryItem, filterHistoryItemsByScope, partitionHistoryItems } from '../public/js/domain/prediction-history.domain.js';
+import { PredictionHistoryDomain, resolvePrimaryResultBadge, resolveResultBadges, resolvePredictionLockState, isArchivedHistoryItem, filterHistoryItemsByScope, partitionHistoryItems } from '../public/js/domain/prediction-history.domain.js';
 import {
   PREDICTION_HISTORY_RESULT_FILTER,
   PREDICTION_HISTORY_DATE_RANGE,
@@ -163,6 +163,111 @@ describe('PredictionHistoryDomain', () => {
     const lifecycle = PredictionHistoryDomain.buildPredictionLifecycle(sampleItems[0], sampleItems[0].match);
     assert.equal(lifecycle[0].key, PREDICTION_LIFECYCLE_STEP.SUBMITTED);
     assert.equal(lifecycle.at(-1).completed, true);
+  });
+
+  it('marks prediction locked when match progressed without prediction.locked flag', () => {
+    const submittedAt = new Date('2026-07-10T07:04:00.000Z');
+    const kickoffUtc = new Date('2026-07-11T15:00:00.000Z');
+    const locksAt = new Date('2026-07-11T14:50:00.000Z');
+    const publishedAt = new Date('2026-07-11T18:00:00.000Z');
+    const scoredAt = new Date('2026-07-11T18:05:00.000Z');
+
+    const prediction = {
+      id: 'p-scored',
+      status: 'saved',
+      locked: false,
+      scored: true,
+      submittedAt,
+      scoredAt,
+      calculatedPoints: 0,
+    };
+
+    const match = {
+      status: MATCH_STATUS.RESULT_PUBLISHED,
+      kickoffUtc,
+      predictionStatus: 'Closed',
+      matchCountdown: {
+        phase: 'hidden',
+        locksAt: locksAt.toISOString(),
+      },
+      result: {
+        published: true,
+        publishedAt,
+      },
+    };
+
+    const lifecycle = PredictionHistoryDomain.buildPredictionLifecycle(prediction, match);
+    const lockedStep = lifecycle.find((step) => step.key === PREDICTION_LIFECYCLE_STEP.LOCKED);
+    const completedStep = lifecycle.find((step) => step.key === PREDICTION_LIFECYCLE_STEP.MATCH_COMPLETED);
+
+    assert.equal(lockedStep?.completed, true);
+    assert.equal(lockedStep?.timestamp?.toISOString(), locksAt.toISOString());
+    assert.equal(completedStep?.timestamp, null);
+    assert.equal(
+      lifecycle.find((step) => step.key === PREDICTION_LIFECYCLE_STEP.RESULTS_PUBLISHED)?.timestamp?.toISOString(),
+      publishedAt.toISOString(),
+    );
+    assert.equal(
+      lifecycle.find((step) => step.key === PREDICTION_LIFECYCLE_STEP.POINTS_AWARDED)?.timestamp?.toISOString(),
+      scoredAt.toISOString(),
+    );
+  });
+
+  it('uses manual prediction override timestamp when admin locked predictions', () => {
+    const manualLockAt = new Date('2026-07-10T12:00:00.000Z');
+    const prediction = { locked: false, status: 'saved' };
+    const match = {
+      status: MATCH_STATUS.PREDICTION_LOCKED,
+      predictionOverride: {
+        isActive: true,
+        status: MATCH_STATUS.PREDICTION_LOCKED,
+        timestamp: manualLockAt,
+      },
+      matchCountdown: {
+        phase: 'closed',
+        locksAt: new Date('2026-07-11T14:50:00.000Z').toISOString(),
+      },
+    };
+
+    const lockState = resolvePredictionLockState(prediction, match);
+    assert.equal(lockState.locked, true);
+    assert.equal(lockState.lockedAt?.toISOString(), manualLockAt.toISOString());
+  });
+
+  it('uses scheduled locksAt when auto-locking predictions', () => {
+    const locksAt = new Date('2026-07-11T14:50:00.000Z');
+    const prediction = { locked: false, status: 'saved' };
+    const match = {
+      status: MATCH_STATUS.PREDICTION_LOCKED,
+      matchCountdown: {
+        phase: 'closed',
+        locksAt: locksAt.toISOString(),
+      },
+    };
+
+    const lockState = resolvePredictionLockState(prediction, match);
+    assert.equal(lockState.locked, true);
+    assert.equal(lockState.lockedAt?.toISOString(), locksAt.toISOString());
+  });
+
+  it('calculates auto lock time from kickoff when countdown data is unavailable', () => {
+    const kickoffUtc = new Date('2026-07-11T15:00:00.000Z');
+    const expectedLocksAt = new Date('2026-07-11T14:45:00.000Z');
+    const prediction = { locked: false, status: 'saved' };
+    const match = {
+      status: MATCH_STATUS.RESULT_PUBLISHED,
+      kickoffUtc,
+      predictionStatus: 'Closed',
+      matchCountdown: null,
+      result: { published: true },
+    };
+
+    const lockState = resolvePredictionLockState(prediction, match, new Date('2026-07-12T00:00:00.000Z'), {
+      lockMinutes: 15,
+    });
+
+    assert.equal(lockState.locked, true);
+    assert.equal(lockState.lockedAt?.toISOString(), expectedLocksAt.toISOString());
   });
 
   it('filters by date range', () => {

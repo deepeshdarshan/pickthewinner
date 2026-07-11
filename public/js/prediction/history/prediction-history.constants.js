@@ -59,6 +59,9 @@ export const PREDICTION_HISTORY_PAGE_SIZE_OPTIONS = Object.freeze([10, 25, 50, 1
 /** @type {Readonly<number>} */
 export const PREDICTION_HISTORY_HIGH_POINTS_THRESHOLD = 5;
 
+/** @type {Readonly<number>} */
+export const PREDICTION_HISTORY_DEFAULT_LOCK_MINUTES = 15;
+
 /** @enum {string} */
 export const PREDICTION_HISTORY_ROUTES = Object.freeze({
   LIST: '/predictions/history',

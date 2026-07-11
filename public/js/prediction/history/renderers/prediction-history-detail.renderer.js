@@ -9,6 +9,7 @@ import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.
 import { renderPredictionStatusBadge } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import { renderPredictionComparisonPanel } from './prediction-comparison.renderer.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
+import { resolveLockMinutes, resolvePredictionLockState } from '../../../domain/prediction-history.domain.js';
 
 /**
  * @typedef {import('../../../domain/prediction-history.domain.js').HistoryItem} HistoryItem
@@ -92,6 +93,7 @@ function renderLifecycleTimeline(lifecycle) {
           </div>
           <div class="ptw-lifecycle-timeline__content">
             <p class="mb-0 fw-semibold">${escapeHtml(step.label)}</p>
+            <p class="mb-0 ptw-lifecycle-timeline__timestamp">${escapeHtml(formatLifecycleTimestamp(step))}</p>
           </div>
           ${index < lifecycle.length - 1 ? '<div class="ptw-lifecycle-timeline__connector" aria-hidden="true"></div>' : ''}
         </li>
@@ -101,10 +103,26 @@ function renderLifecycleTimeline(lifecycle) {
 }
 
 /**
+ * @param {LifecycleStep} step
+ * @returns {string}
+ */
+function formatLifecycleTimestamp(step) {
+  if (!step.completed || !step.timestamp) {
+    return '—';
+  }
+
+  return formatDateTime(step.timestamp) || '—';
+}
+
+/**
  * @param {HistoryItem} item
  * @returns {string}
  */
 function renderMetadata(item) {
+  const match = item.match ?? {};
+  const lockMinutes = resolveLockMinutes(item.tournament);
+  const lockState = resolvePredictionLockState(item, match, new Date(), { lockMinutes });
+
   return `
     <dl class="row mb-0 small">
       <dt class="col-sm-5">Submitted</dt>
@@ -112,7 +130,7 @@ function renderMetadata(item) {
       <dt class="col-sm-5">Last Updated</dt>
       <dd class="col-sm-7">${escapeHtml(formatDateTime(item.updatedAt) || '—')}</dd>
       <dt class="col-sm-5">Locked</dt>
-      <dd class="col-sm-7">${item.locked ? 'Yes' : 'No'}</dd>
+      <dd class="col-sm-7">${lockState.locked ? 'Yes' : 'No'}</dd>
       <dt class="col-sm-5">Scored</dt>
       <dd class="col-sm-7">${item.scored ? 'Yes' : 'No'}</dd>
       <dt class="col-sm-5">Match ID</dt>

@@ -96,8 +96,13 @@ function renderTimelineItem(item) {
 
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
             ${renderComparisonBadges(item)}
-            <a href="${detailUrl}" class="btn btn-sm btn-link" data-ph-detail="${escapeHtml(String(item.id))}" aria-label="View details">
-              <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            <a
+              href="${detailUrl}"
+              class="btn btn-sm btn-outline-primary ptw-prediction-history-detail-btn"
+              data-ph-detail="${escapeHtml(String(item.id))}"
+              aria-label="View prediction details"
+            >
+              View Details <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
             </a>
           </div>
         </div>

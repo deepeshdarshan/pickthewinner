@@ -83,9 +83,14 @@ export function renderHistoryCard(item) {
 
         <div class="mt-3">${renderComparisonBadges(item)}</div>
 
-        <div class="d-flex justify-content-end mt-3">
-          <a href="${detailUrl}" class="btn btn-sm btn-outline-primary" data-ph-detail="${escapeHtml(String(item.id))}" aria-label="View prediction details">
-            View Details <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        <div class="mt-3">
+          <a
+            href="${detailUrl}"
+            class="btn btn-outline-primary w-100 ptw-prediction-history-detail-btn"
+            data-ph-detail="${escapeHtml(String(item.id))}"
+            aria-label="View prediction details"
+          >
+            View Details <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
           </a>
         </div>
       </div>

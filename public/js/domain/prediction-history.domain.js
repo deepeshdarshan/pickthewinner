@@ -3,7 +3,8 @@
  * @module domain/prediction-history.domain
  */
 
-import { MATCH_STATUS } from './match.domain.js';
+import { MATCH_STATUS, MATCH_COUNTDOWN_PHASE, MatchDomain } from './match.domain.js';
+import { PREDICTION_STATUS } from './prediction.domain.js';
 import { TournamentDomain } from './tournament.domain.js';
 import {
   resolvePrimaryResultBadge as resolveManagementPrimaryResultBadge,
@@ -20,6 +21,7 @@ import {
   PREDICTION_HISTORY_SCOPE,
   PREDICTION_LIFECYCLE_STEP,
   PREDICTION_LIFECYCLE_LABELS,
+  PREDICTION_HISTORY_DEFAULT_LOCK_MINUTES,
 } from '../prediction/history/prediction-history.constants.js';
 
 /**
@@ -71,11 +73,18 @@ import {
  */
 
 /**
+ * @typedef {Object} PredictionLockState
+ * @property {boolean} locked
+ * @property {Date|null} lockedAt
+ */
+
+/**
  * @typedef {Object} LifecycleStep
  * @property {string} key
  * @property {string} label
  * @property {boolean} completed
  * @property {boolean} current
+ * @property {Date|null} [timestamp]
  */
 
 /**
@@ -329,12 +338,25 @@ export const PredictionHistoryDomain = {
   /**
    * @param {HistoryItem} prediction
    * @param {Record<string, unknown>} match
+   * @param {Date} [now]
+   * @param {{ lockMinutes?: number }} [options]
+   * @returns {PredictionLockState}
+   */
+  resolvePredictionLockState(prediction, match, now, options) {
+    return resolvePredictionLockState(prediction, match, now, options);
+  },
+
+  /**
+   * @param {HistoryItem} prediction
+   * @param {Record<string, unknown>} match
    * @returns {LifecycleStep[]}
    */
   buildPredictionLifecycle(prediction, match) {
     const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
     const hasSubmitted = Boolean(prediction.submittedAt || prediction.status);
-    const isLocked = Boolean(prediction.locked);
+    const lockMinutes = resolveLockMinutes(prediction.tournament);
+    const lockState = resolvePredictionLockState(prediction, match, new Date(), { lockMinutes });
+    const timestamps = resolveLifecycleTimestamps(prediction, match, lockState);
     const matchStatus = String(match.status ?? '');
     const isLive = matchStatus === MATCH_STATUS.LIVE;
     const isCompleted = [MATCH_STATUS.COMPLETED, MATCH_STATUS.RESULT_PUBLISHED].includes(matchStatus);
@@ -343,7 +365,7 @@ export const PredictionHistoryDomain = {
 
     const steps = [
       { key: PREDICTION_LIFECYCLE_STEP.SUBMITTED, completed: hasSubmitted },
-      { key: PREDICTION_LIFECYCLE_STEP.LOCKED, completed: isLocked },
+      { key: PREDICTION_LIFECYCLE_STEP.LOCKED, completed: lockState.locked },
       { key: PREDICTION_LIFECYCLE_STEP.MATCH_STARTED, completed: isLive || isCompleted || hasResult },
       { key: PREDICTION_LIFECYCLE_STEP.MATCH_COMPLETED, completed: isCompleted || hasResult },
       { key: PREDICTION_LIFECYCLE_STEP.RESULTS_PUBLISHED, completed: hasResult },
@@ -358,6 +380,7 @@ export const PredictionHistoryDomain = {
         label: PREDICTION_LIFECYCLE_LABELS[step.key] ?? step.key,
         completed: step.completed,
         current: false,
+        timestamp: timestamps[step.key] ?? null,
       };
 
       if (!foundCurrent && !step.completed) {
@@ -395,6 +418,110 @@ export const PredictionHistoryDomain = {
     return resolvePrimaryResultBadge(item);
   },
 };
+
+/**
+ * @param {Record<string, unknown>|undefined} tournament
+ * @returns {number}
+ */
+export function resolveLockMinutes(tournament) {
+  const configuration = /** @type {{ predictionLockMinutes?: number }|undefined} */ (
+    /** @type {Record<string, unknown>|undefined} */ (tournament)?.configuration
+  );
+  const value = Number(configuration?.predictionLockMinutes);
+
+  return Number.isFinite(value) && value > 0
+    ? value
+    : PREDICTION_HISTORY_DEFAULT_LOCK_MINUTES;
+}
+
+/**
+ * @param {HistoryItem} prediction
+ * @param {Record<string, unknown>} match
+ * @param {Date} [now]
+ * @param {{ lockMinutes?: number }} [options]
+ * @returns {PredictionLockState}
+ */
+export function resolvePredictionLockState(prediction, match, now = new Date(), options = {}) {
+  const lockMinutes = Number(options.lockMinutes ?? PREDICTION_HISTORY_DEFAULT_LOCK_MINUTES);
+  const matchStatus = String(match.status ?? '');
+  const kickoff = toDate(match.kickoffUtc);
+  const predictionStatus = String(match.predictionStatus ?? '');
+  const countdownPhase = String(
+    /** @type {{ phase?: string }|undefined} */ (match.matchCountdown)?.phase ?? '',
+  );
+  const predictionOverride = /** @type {{ isActive?: boolean, status?: string, timestamp?: unknown }|null} */ (
+    match.predictionOverride ?? null
+  );
+
+  const explicitlyLocked = Boolean(prediction.locked)
+    || String(prediction.status ?? '') === PREDICTION_STATUS.LOCKED;
+
+  const matchLifecycleLocked = [
+    MATCH_STATUS.PREDICTION_LOCKED,
+    MATCH_STATUS.LIVE,
+    MATCH_STATUS.COMPLETED,
+    MATCH_STATUS.RESULT_PUBLISHED,
+  ].includes(matchStatus);
+
+  const predictionWindowClosed = predictionStatus === 'Locked' || predictionStatus === 'Closed';
+
+  const countdownLocked = countdownPhase === MATCH_COUNTDOWN_PHASE.CLOSED
+    || countdownPhase === MATCH_COUNTDOWN_PHASE.HIDDEN;
+
+  const kickoffPassed = kickoff ? now >= kickoff : false;
+
+  const locked = explicitlyLocked
+    || matchLifecycleLocked
+    || predictionWindowClosed
+    || countdownLocked
+    || kickoffPassed;
+
+  let lockedAt = null;
+
+  if (locked) {
+    if (
+      predictionOverride?.isActive
+      && predictionOverride?.status === MATCH_STATUS.PREDICTION_LOCKED
+    ) {
+      lockedAt = toDate(predictionOverride.timestamp);
+    }
+
+    if (!lockedAt) {
+      lockedAt = toDate(
+        /** @type {{ locksAt?: unknown }|undefined} */ (match.matchCountdown)?.locksAt,
+      );
+    }
+
+    if (!lockedAt && kickoff) {
+      lockedAt = MatchDomain.calculatePredictionLock(kickoff, lockMinutes);
+    }
+  }
+
+  return { locked, lockedAt };
+}
+
+/**
+ * @param {HistoryItem} prediction
+ * @param {Record<string, unknown>} match
+ * @param {PredictionLockState} lockState
+ * @returns {Record<string, Date|null>}
+ */
+function resolveLifecycleTimestamps(prediction, match, lockState) {
+  const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
+  const matchStatus = String(match.status ?? '');
+  const matchCompletedAt = matchStatus === MATCH_STATUS.COMPLETED
+    ? toDate(match.updatedAt)
+    : null;
+
+  return {
+    [PREDICTION_LIFECYCLE_STEP.SUBMITTED]: toDate(prediction.submittedAt),
+    [PREDICTION_LIFECYCLE_STEP.LOCKED]: lockState.lockedAt,
+    [PREDICTION_LIFECYCLE_STEP.MATCH_STARTED]: toDate(match.kickoffUtc),
+    [PREDICTION_LIFECYCLE_STEP.MATCH_COMPLETED]: matchCompletedAt,
+    [PREDICTION_LIFECYCLE_STEP.RESULTS_PUBLISHED]: toDate(result.publishedAt),
+    [PREDICTION_LIFECYCLE_STEP.POINTS_AWARDED]: toDate(prediction.scoredAt),
+  };
+}
 
 /**
  * @param {HistoryItem} item
