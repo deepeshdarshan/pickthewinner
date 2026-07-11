@@ -1,0 +1,318 @@
+/**
+ * Admin predictions management card — scoped to /admin/predictions list views only.
+ * Do not reuse these classes outside admin prediction management renderers.
+ */
+
+.ptw-admin-pred-mgmt-card-list-wrap {
+  padding: 0;
+}
+
+.ptw-admin-pred-mgmt-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-3);
+  padding: var(--ptw-space-3);
+}
+
+.ptw-admin-pred-mgmt-card {
+  background-color: var(--ptw-color-bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--ptw-color-border) 85%, #ffffff 15%);
+  border-radius: var(--ptw-radius-lg);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--ptw-transition-fast), box-shadow var(--ptw-transition-fast);
+}
+
+.ptw-admin-pred-mgmt-card:hover,
+.ptw-admin-pred-mgmt-card:focus-visible {
+  border-color: color-mix(in srgb, var(--ptw-color-primary-blue) 55%, var(--ptw-color-border));
+  box-shadow: var(--ptw-shadow-sm);
+  outline: none;
+}
+
+/* Header — date, tournament, contestant */
+.ptw-admin-pred-mgmt-card__header {
+  padding: var(--ptw-space-3) var(--ptw-space-3) var(--ptw-space-2);
+}
+
+.ptw-admin-pred-mgmt-card__meta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ptw-space-3);
+  min-width: 0;
+}
+
+.ptw-admin-pred-mgmt-card__date-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--ptw-radius-md);
+  background: color-mix(in srgb, #7c3aed 78%, var(--ptw-color-primary-blue) 22%);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.ptw-admin-pred-mgmt-card__date {
+  color: var(--ptw-color-text-primary);
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  line-height: 1.35;
+}
+
+.ptw-admin-pred-mgmt-card__context {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  line-height: 1.4;
+  margin-top: 0.125rem;
+}
+
+/* Body — contestant row, team row, stacked scores */
+.ptw-admin-pred-mgmt-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-2);
+  padding: 0 var(--ptw-space-3) var(--ptw-space-3);
+}
+
+.ptw-admin-pred-mgmt-card__contestant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ptw-space-3);
+}
+
+.ptw-admin-pred-mgmt-card__contestant {
+  display: flex;
+  align-items: center;
+  gap: var(--ptw-space-2);
+  min-width: 0;
+  color: var(--ptw-color-text-secondary);
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
+  line-height: 1.3;
+}
+
+.ptw-admin-pred-mgmt-card__matchup-title {
+  text-align: center;
+  color: var(--ptw-color-text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--ptw-font-weight-bold);
+  line-height: 1.35;
+  padding: var(--ptw-space-1) 0 var(--ptw-space-2);
+}
+
+.ptw-admin-pred-mgmt-card__matchup-title .ptw-teams-matchup {
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: var(--ptw-space-2);
+}
+
+.ptw-admin-pred-mgmt-card__matchup-title .ptw-team-flag {
+  width: 1.375rem;
+  height: 0.9375rem;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.ptw-admin-pred-mgmt-card__matchup-title strong {
+  font-weight: var(--ptw-font-weight-bold);
+}
+
+.ptw-admin-pred-mgmt-card__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.ptw-admin-pred-mgmt-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--ptw-radius-full, 999px);
+  color: #fff;
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ptw-admin-pred-mgmt-card__badge--correct,
+.ptw-admin-pred-mgmt-card__badge--exact {
+  background-color: color-mix(in srgb, var(--ptw-color-success) 88%, #000 12%);
+}
+
+.ptw-admin-pred-mgmt-card__badge--incorrect {
+  background-color: color-mix(in srgb, var(--ptw-color-danger) 90%, #000 10%);
+}
+
+.ptw-admin-pred-mgmt-card__badge--pending {
+  background-color: color-mix(in srgb, var(--ptw-color-primary-blue) 75%, #000 25%);
+}
+
+.ptw-admin-pred-mgmt-card__points {
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  line-height: 1.2;
+}
+
+.ptw-admin-pred-mgmt-card__points--correct,
+.ptw-admin-pred-mgmt-card__points--exact {
+  color: var(--ptw-color-success);
+}
+
+.ptw-admin-pred-mgmt-card__points--incorrect {
+  color: var(--ptw-color-danger);
+}
+
+.ptw-admin-pred-mgmt-card__points--pending {
+  color: var(--ptw-color-text-muted);
+}
+
+.ptw-admin-pred-mgmt-card__scores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-3);
+  margin-top: var(--ptw-space-1);
+}
+
+.ptw-admin-pred-mgmt-card__score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ptw-admin-pred-mgmt-card__scores-label {
+  color: var(--ptw-color-text-muted);
+  font-size: 0.625rem;
+  font-weight: var(--ptw-font-weight-semibold);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  margin-bottom: 0;
+  text-transform: uppercase;
+}
+
+.ptw-admin-pred-mgmt-card__score-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 5.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--ptw-radius-md);
+  background-color: color-mix(in srgb, var(--ptw-color-bg-primary) 65%, var(--ptw-color-bg-tertiary));
+  border: 1px solid color-mix(in srgb, var(--ptw-color-border) 80%, transparent);
+}
+
+.ptw-admin-pred-mgmt-card__score-pill--pending {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-medium);
+}
+
+.ptw-admin-pred-mgmt-card__score-num {
+  color: var(--ptw-color-text-primary);
+  font-size: var(--ptw-font-size-md);
+  font-weight: var(--ptw-font-weight-bold);
+  line-height: 1;
+  min-width: 1.1rem;
+  text-align: center;
+}
+
+.ptw-admin-pred-mgmt-card__score-num--win {
+  color: var(--ptw-color-success);
+}
+
+.ptw-admin-pred-mgmt-card__score-num--lose {
+  color: var(--ptw-color-text-secondary);
+}
+
+.ptw-admin-pred-mgmt-card__score-sep {
+  color: var(--ptw-color-text-muted);
+  font-weight: var(--ptw-font-weight-semibold);
+}
+
+/* Footer */
+.ptw-admin-pred-mgmt-card__footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid color-mix(in srgb, var(--ptw-color-border) 75%, transparent);
+}
+
+.ptw-admin-pred-mgmt-card__footer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: var(--ptw-space-3) var(--ptw-space-2);
+  text-align: center;
+}
+
+.ptw-admin-pred-mgmt-card__footer-col + .ptw-admin-pred-mgmt-card__footer-col {
+  border-left: 1px solid color-mix(in srgb, var(--ptw-color-border) 75%, transparent);
+}
+
+.ptw-admin-pred-mgmt-card__footer-icon {
+  color: var(--ptw-color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.ptw-admin-pred-mgmt-card__footer-icon--gold {
+  color: var(--ptw-color-accent-gold);
+}
+
+.ptw-admin-pred-mgmt-card__footer-icon--success {
+  color: var(--ptw-color-success);
+}
+
+.ptw-admin-pred-mgmt-card__footer-icon--danger {
+  color: var(--ptw-color-danger);
+}
+
+.ptw-admin-pred-mgmt-card__footer-label {
+  color: var(--ptw-color-text-muted);
+  font-size: 0.625rem;
+  font-weight: var(--ptw-font-weight-medium);
+  line-height: 1.2;
+}
+
+.ptw-admin-pred-mgmt-card__footer-value {
+  color: var(--ptw-color-text-primary);
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptw-admin-pred-mgmt-card__footer-value--success {
+  color: var(--ptw-color-success);
+}
+
+.ptw-admin-pred-mgmt-card__footer-value--danger {
+  color: var(--ptw-color-danger);
+}
+
+@media (max-width: 575.98px) {
+  .ptw-admin-pred-mgmt-card__matchup-title {
+    font-size: 1rem;
+  }
+
+  .ptw-admin-pred-mgmt-card__matchup-title .ptw-teams-matchup {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .ptw-admin-pred-mgmt-card__footer-value {
+    white-space: normal;
+  }
+}

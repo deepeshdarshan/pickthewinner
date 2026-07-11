@@ -289,7 +289,7 @@ export function renderPredictionTable(predictions, options = {}) {
       </table>
     </div>
 
-    <div class="d-lg-none px-3 py-2 ptw-admin-card-list ptw-prediction-card-list" aria-label="Prediction cards">
+    <div class="d-lg-none ptw-admin-pred-mgmt-card-list-wrap" aria-label="Prediction cards">
       ${renderPredictionCardList(predictions)}
     </div>
 
@@ -400,10 +400,6 @@ function partitionTournaments(tournaments) {
   return { active, archived };
 }
 
-/**
- * @param {Record<string, unknown>} match
- * @returns {string}
- */
 /**
  * @param {string} line1
  * @param {string} line2
