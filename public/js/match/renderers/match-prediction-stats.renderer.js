@@ -43,7 +43,7 @@ export function buildMatchPredictionStats(match, prediction, options = {}) {
       icon: 'bi-trophy-fill',
       value: predictedWinnerValue,
       label: 'Predicted Winner',
-      tone: hasPredictedWinner ? 'warning' : 'default',
+      tone: hasPredictedWinner ? 'success' : 'default',
     },
     {
       icon: 'bi-flag-fill',
