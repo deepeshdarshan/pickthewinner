@@ -68,30 +68,54 @@ describe('admin-list-tabs.component', () => {
 });
 
 describe('sidebar-nav.config admin sections', () => {
-  it('exposes a single tournaments link without archived sub-link', () => {
+  it('groups overview under Dashboard', () => {
+    const dashboardGroup = ADMIN_NAV_SECTIONS.find((section) => (
+      section.type === 'group' && section.label === 'Dashboard'
+    ));
+
+    assert.ok(dashboardGroup && dashboardGroup.type === 'group');
+    assert.deepEqual(
+      dashboardGroup.children.map((child) => child.path),
+      ['/admin'],
+    );
+    assert.equal(dashboardGroup.children[0].label, 'Overview');
+  });
+
+  it('groups tournaments and matches without archived sub-links', () => {
     const tournamentGroup = ADMIN_NAV_SECTIONS.find((section) => (
       section.type === 'group' && section.label === 'Tournament Management'
     ));
 
     assert.ok(tournamentGroup && tournamentGroup.type === 'group');
-    assert.equal(tournamentGroup.children.length, 1);
-    assert.equal(tournamentGroup.children[0].path, '/admin/tournaments');
-    assert.equal(tournamentGroup.children[0].label, 'Tournaments');
+    assert.deepEqual(
+      tournamentGroup.children.map((child) => child.path),
+      ['/admin/tournaments', '/admin/matches'],
+    );
     assert.ok(!tournamentGroup.children.some((child) => child.path.includes('archived')));
   });
 
-  it('exposes matches and predictions without archived matches sub-link', () => {
-    const matchGroup = ADMIN_NAV_SECTIONS.find((section) => (
-      section.type === 'group' && section.label === 'Match Management'
+  it('groups predictions, history, and leaderboard under Predictions', () => {
+    const predictionsGroup = ADMIN_NAV_SECTIONS.find((section) => (
+      section.type === 'group' && section.label === 'Predictions'
     ));
 
-    assert.ok(matchGroup && matchGroup.type === 'group');
-    assert.equal(matchGroup.children.length, 3);
+    assert.ok(predictionsGroup && predictionsGroup.type === 'group');
     assert.deepEqual(
-      matchGroup.children.map((child) => child.path),
-      ['/admin/matches', '/admin/predictions', '/admin/prediction-history'],
+      predictionsGroup.children.map((child) => child.path),
+      ['/admin/predictions', '/admin/prediction-history', '/leaderboard'],
     );
-    assert.ok(!matchGroup.children.some((child) => child.path.includes('archived')));
+  });
+
+  it('groups profile and settings under My Account', () => {
+    const accountGroup = ADMIN_NAV_SECTIONS.find((section) => (
+      section.type === 'group' && section.label === 'My Account'
+    ));
+
+    assert.ok(accountGroup && accountGroup.type === 'group');
+    assert.deepEqual(
+      accountGroup.children.map((child) => child.path),
+      ['/profile', '/settings'],
+    );
   });
 });
 

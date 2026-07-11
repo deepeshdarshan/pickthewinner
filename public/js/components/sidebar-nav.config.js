@@ -19,44 +19,65 @@ export const CONTESTANT_SHELL_EXACT_PATHS = new Set([
   '/settings',
 ]);
 
-/** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean }>} */
+/** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean } | { type: 'divider' }>} */
 export const ADMIN_NAV_SECTIONS = Object.freeze([
-  { type: 'item', path: '/admin', label: 'Overview', icon: 'bi-house' },
+  {
+    type: 'group',
+    label: 'Dashboard',
+    icon: 'bi-house',
+    children: [
+      { path: '/admin', label: 'Overview' },
+    ],
+  },
+  { type: 'divider' },
   {
     type: 'group',
     label: 'Tournament Management',
-    icon: 'bi-calendar-event',
+    icon: 'bi-trophy',
     children: [
       { path: '/admin/tournaments', label: 'Tournaments' },
+      { path: '/admin/matches', label: 'Matches' },
     ],
   },
+  { type: 'divider' },
   {
     type: 'group',
-    label: 'Match Management',
-    icon: 'bi-flag',
+    label: 'Predictions',
+    icon: 'bi-bullseye',
     children: [
-      { path: '/admin/matches', label: 'Matches' },
       { path: '/admin/predictions', label: 'Predictions' },
       { path: '/admin/prediction-history', label: 'Prediction History' },
+      { path: '/leaderboard', label: 'Leaderboard' },
     ],
   },
+  { type: 'divider' },
   {
     type: 'group',
     label: 'Master Data',
-    icon: 'bi-database',
+    icon: 'bi-book',
     children: [
       { path: '/admin/teams', label: 'Teams' },
       { path: '/admin/match-stages', label: 'Match Stages' },
     ],
   },
-  { type: 'item', path: '/leaderboard', label: 'Leaderboard', icon: 'bi-bar-chart' },
+  { type: 'divider' },
   {
     type: 'group',
     label: 'Administration',
-    icon: 'bi-shield-lock',
+    icon: 'bi-people',
     children: [
       { path: '/admin/users', label: 'User Management' },
       { path: '/admin/settings', label: 'General Settings' },
+    ],
+  },
+  { type: 'divider' },
+  {
+    type: 'group',
+    label: 'My Account',
+    icon: 'bi-person',
+    children: [
+      { path: '/profile', label: 'Profile' },
+      { path: '/settings', label: 'Settings' },
     ],
   },
 ]);
@@ -93,10 +114,7 @@ export const CONTESTANT_NAV_SECTIONS = Object.freeze([
 ]);
 
 /** @type {ReadonlyArray<{ path: string, label: string, icon: string }>} */
-export const ADMIN_ACCOUNT_LINKS = Object.freeze([
-  { path: '/profile', label: 'Profile', icon: 'bi-person' },
-  { path: '/settings', label: 'Settings', icon: 'bi-gear' },
-]);
+export const ADMIN_ACCOUNT_LINKS = Object.freeze([]);
 
 /** @type {ReadonlyArray<{ path: string, label: string, icon: string }>} */
 export const CONTESTANT_ACCOUNT_LINKS = Object.freeze([

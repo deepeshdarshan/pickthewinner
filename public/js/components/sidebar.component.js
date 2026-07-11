@@ -98,6 +98,14 @@ export function renderSidebar(options = {}) {
   const displayName = resolveSidebarDisplayName(isContestant);
   const roleLabel = isContestant ? 'Contestant' : 'Administrator';
   const photoURL = AppContext.getPhotoURL();
+  const accountSectionMarkup = accountMarkup
+    ? `
+        <div class="ptw-sidebar__account-links">
+          ${accountMarkup}
+        </div>
+        <div class="ptw-sidebar__divider" role="presentation"></div>
+      `
+    : '';
 
   return `
     <aside class="ptw-sidebar" aria-label="${escapeHtml(navLabel)}">
@@ -115,10 +123,7 @@ export function renderSidebar(options = {}) {
       </nav>
 
       <div class="ptw-sidebar__footer">
-        <div class="ptw-sidebar__account-links">
-          ${accountMarkup}
-        </div>
-        <div class="ptw-sidebar__divider" role="presentation"></div>
+        ${accountSectionMarkup}
         <div class="ptw-sidebar__user">
           ${renderAvatar({ photoURL, className: 'ptw-sidebar__user-avatar', size: 36 })}
           <div class="ptw-sidebar__user-meta">
@@ -211,6 +216,12 @@ export function renderSidebarOffcanvas(options = {}) {
  * @returns {string}
  */
 function renderNavSection(section, activePath, homePath, navPaths) {
+  if (section.type === 'divider') {
+    return `
+      <li class="ptw-sidebar__divider" role="presentation"></li>
+    `;
+  }
+
   if (section.type === 'item') {
     const isActive = isNavPathActive(activePath, section.path, homePath, navPaths);
 
