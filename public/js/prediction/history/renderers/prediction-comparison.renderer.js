@@ -6,13 +6,15 @@
 import { escapeHtml } from '../../../utils/html.util.js';
 import { renderResultBadges } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import {
-  renderPredictedScoreHtml,
   renderPredictedWinnerHtml,
-  renderActualScoreHtml,
   renderActualWinnerHtml,
-  renderPointsHtml,
 } from '../../admin/renderers/prediction-display.renderer.js';
-import { resolveBonusPoints, resolveResultBadges } from '../../../domain/prediction-history.domain.js';
+import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
+import {
+  resolveBonusPoints,
+  resolvePrimaryResultBadge,
+  resolveResultBadges,
+} from '../../../domain/prediction-history.domain.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 
 /**
@@ -44,9 +46,11 @@ export function renderComparisonBadges(item) {
 
 /**
  * @param {HistoryItem} item
+ * @param {{ variant?: 'default'|'detail' }} [options]
  * @returns {string}
  */
-export function renderScoringBreakdown(item) {
+export function renderScoringBreakdown(item, options = {}) {
+  const { variant = 'default' } = options;
   const breakdown = /** @type {Array<{ label: string, points: number, correct: boolean }>} */ (
     item.scoringBreakdown ?? []
   );
@@ -55,6 +59,36 @@ export function renderScoringBreakdown(item) {
 
   if (!result.published) {
     return '<p class="text-muted mb-0">Points will be awarded after the result is published.</p>';
+  }
+
+  if (variant === 'detail') {
+    if (breakdown.length === 0) {
+      return `
+        <div class="ptw-prediction-comparison__breakdown">
+          <p class="ptw-prediction-comparison__breakdown-title mb-2">Scoring Breakdown</p>
+          <p class="text-muted mb-0 small">No scoring breakdown available.</p>
+        </div>
+        ${renderTotalPointsEarned(totalPoints)}
+      `;
+    }
+
+    return `
+      <div class="ptw-prediction-comparison__breakdown">
+        <p class="ptw-prediction-comparison__breakdown-title mb-2">Scoring Breakdown</p>
+        <ul class="list-unstyled mb-0">
+          ${breakdown.map((entry) => `
+            <li class="ptw-prediction-comparison__breakdown-row">
+              <span class="ptw-prediction-comparison__breakdown-label">
+                <i class="bi ${entry.correct ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2" aria-hidden="true"></i>
+                ${escapeHtml(entry.label)}
+              </span>
+              <span class="ptw-prediction-comparison__breakdown-points ${entry.correct ? 'text-success' : 'text-danger'}">${entry.points} pts</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+      ${renderTotalPointsEarned(totalPoints)}
+    `;
   }
 
   if (breakdown.length === 0) {
@@ -91,30 +125,122 @@ export function renderPredictionComparisonPanel(item) {
   const actualWinnerHtml = hasResult ? renderActualWinnerHtml(match, result) : '';
 
   return `
-    <div class="row g-4 ptw-prediction-comparison">
-      <div class="col-md-6 ptw-prediction-comparison__column">
-        <h3 class="h6 text-uppercase ptw-text-muted mb-0">My Prediction</h3>
-        <div class="ptw-prediction-comparison__score">
-          ${renderPredictedScoreHtml(match, item)}
+    <div class="ptw-prediction-comparison ptw-prediction-comparison--detail">
+      <div class="ptw-prediction-comparison__row">
+        <div class="ptw-prediction-comparison__boxes">
+          <div class="ptw-prediction-comparison__box">
+            <p class="ptw-prediction-comparison__box-label">Your Prediction</p>
+            ${renderDetailedScoreBox(match, item, 'prediction')}
+            ${showPenaltyWinner ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
+          </div>
+          <div class="ptw-prediction-comparison__box">
+            <p class="ptw-prediction-comparison__box-label">Official Result</p>
+            ${hasResult
+    ? renderDetailedScoreBox(match, result, 'result')
+    : '<p class="ptw-text-muted mb-0 small">Not published yet</p>'}
+            ${showPenaltyWinner ? renderWinnerComparisonRow('Penalty Winner', actualWinnerHtml) : ''}
+          </div>
         </div>
-        ${showPenaltyWinner ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
+        ${renderComparisonVerdict(item)}
       </div>
-      <div class="col-md-6 ptw-prediction-comparison__column">
-        <h3 class="h6 text-uppercase ptw-text-muted mb-0">Official Result</h3>
-        <div class="ptw-prediction-comparison__score">
-          ${hasResult ? renderActualScoreHtml(match, result) : '<span class="ptw-text-muted">Not published yet</span>'}
-        </div>
-        ${showPenaltyWinner ? renderWinnerComparisonRow('Penalty Winner', actualWinnerHtml) : ''}
+      <hr class="ptw-prediction-comparison__divider">
+      ${renderScoringBreakdown(item, { variant: 'detail' })}
+    </div>
+  `;
+}
+
+/**
+ * @param {Record<string, unknown>} match
+ * @param {Record<string, unknown>} data
+ * @param {'prediction'|'result'} side
+ * @returns {string}
+ */
+function renderDetailedScoreBox(match, data, side) {
+  const homeTeam = match.homeTeam ?? {};
+  const awayTeam = match.awayTeam ?? {};
+  const homeName = String(homeTeam.name ?? 'Home');
+  const awayName = String(awayTeam.name ?? 'Away');
+  const homeScore = side === 'prediction'
+    ? String(data.homeScore ?? '')
+    : String(data.homeScore ?? '');
+  const awayScore = side === 'prediction'
+    ? String(data.awayScore ?? '')
+    : String(data.awayScore ?? '');
+  const scoreClass = side === 'result'
+    ? 'ptw-prediction-comparison__score-value ptw-prediction-comparison__score-value--result'
+    : 'ptw-prediction-comparison__score-value';
+
+  return `
+    <div class="ptw-prediction-comparison__matchup">
+      <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--home">
+        ${renderTeamInlineHtml(homeTeam, { fallback: 'Home' })}
+        <span class="ptw-prediction-comparison__team-name">${escapeHtml(homeName)}</span>
+      </div>
+      <span class="${scoreClass}">${escapeHtml(homeScore)} - ${escapeHtml(awayScore)}</span>
+      <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--away">
+        <span class="ptw-prediction-comparison__team-name">${escapeHtml(awayName)}</span>
+        ${renderTeamInlineHtml(awayTeam, { fallback: 'Away' })}
       </div>
     </div>
-    <hr>
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-      <div>${renderComparisonBadges(item)}</div>
-      <div class="text-end">${renderPointsHtml(item, result)}</div>
+  `;
+}
+
+/**
+ * @param {HistoryItem} item
+ * @returns {string}
+ */
+function renderComparisonVerdict(item) {
+  const result = item.match?.result ?? {};
+
+  if (!result.published) {
+    return `
+      <div class="ptw-prediction-comparison__verdict ptw-prediction-comparison__verdict--pending" aria-label="Awaiting result">
+        <span class="ptw-prediction-comparison__verdict-icon">
+          <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        </span>
+        <span class="ptw-prediction-comparison__verdict-text">Awaiting Result</span>
+      </div>
+    `;
+  }
+
+  const primaryBadge = resolvePrimaryResultBadge(item);
+
+  if (!primaryBadge || primaryBadge.correct === null || primaryBadge.correct === undefined) {
+    return '';
+  }
+
+  if (primaryBadge.correct) {
+    return `
+      <div class="ptw-prediction-comparison__verdict ptw-prediction-comparison__verdict--success" aria-label="Exact score matched">
+        <span class="ptw-prediction-comparison__verdict-icon">
+          <i class="bi bi-check-lg" aria-hidden="true"></i>
+        </span>
+        <span class="ptw-prediction-comparison__verdict-text">Exact Score Matched</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="ptw-prediction-comparison__verdict ptw-prediction-comparison__verdict--failure" aria-label="Exact score not matched">
+      <span class="ptw-prediction-comparison__verdict-icon">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </span>
+      <span class="ptw-prediction-comparison__verdict-text">Exact Score Not Matched</span>
     </div>
-    <div class="mt-3">
-      <h3 class="h6">Scoring Breakdown</h3>
-      ${renderScoringBreakdown(item)}
+  `;
+}
+
+/**
+ * @param {number} totalPoints
+ * @returns {string}
+ */
+function renderTotalPointsEarned(totalPoints) {
+  const toneClass = totalPoints > 0 ? 'text-success' : 'text-danger';
+
+  return `
+    <div class="ptw-prediction-comparison__scoring-footer">
+      <span class="ptw-prediction-comparison__scoring-footer-label">Total Points Earned</span>
+      <span class="ptw-prediction-comparison__scoring-footer-value ${toneClass}">${totalPoints} pts</span>
     </div>
   `;
 }

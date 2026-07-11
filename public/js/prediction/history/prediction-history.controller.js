@@ -7,7 +7,8 @@ import { showLoadingOverlay, hideLoadingOverlay } from '../../components/loading
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-shell.component.js';
 import { renderContestantPageHeader } from '../../components/page-header.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
-import { showErrorToast } from '../../utils/toast.util.js';
+import { showErrorToast, showSuccessToast } from '../../utils/toast.util.js';
+import { renderPredictionStatusBadge } from '../admin/renderers/prediction-status-badge.renderer.js';
 import { predictionHistoryService } from './PredictionHistoryService.js';
 import {
   parseHistoryQueryParams,
@@ -115,15 +116,20 @@ async function renderDetailView(outlet, config, predictionId, pageContext) {
       { isAdmin: config.isAdmin ?? false },
     );
 
+    const headerHtml = renderContestantPageHeader({
+      title: pageContext.detailTitle,
+      subtitle: pageContext.detailSubtitle,
+      actionsHtml: renderPredictionStatusBadge(
+        detail.item.displayStatus ?? detail.item.status,
+      ),
+    });
+
     outlet.innerHTML = `
       <div class="${pageContext.shellClasses}">
-        ${renderContestantPageHeader({
-          title: pageContext.detailTitle,
-          subtitle: pageContext.detailSubtitle,
-        })}
         ${renderPredictionDetail(detail.item, detail.lifecycle, {
           backHref: pageContext.backHref,
           backLabel: pageContext.backLabel,
+          headerHtml,
         })}
       </div>
     `;
@@ -266,14 +272,30 @@ function attachHistoryHandlers(outlet, config, currentParams, pageContext) {
  * @returns {void}
  */
 function attachDetailHandlers(outlet, config) {
-  const backLink = outlet.querySelector('[data-ph-back]');
-  if (backLink instanceof HTMLAnchorElement) {
+  outlet.querySelectorAll('[data-ph-back]').forEach((backLink) => {
     backLink.addEventListener('click', (event) => {
       event.preventDefault();
       window.history.pushState({}, '', config.baseRoute);
       void initPredictionHistoryPage(outlet, config);
     });
-  }
+  });
+
+  outlet.querySelectorAll('[data-ph-copy]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const value = button.getAttribute('data-ph-copy');
+      if (!value) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(value);
+        showSuccessToast('Copied to clipboard');
+      } catch (error) {
+        Logger.error('[prediction-history.controller] copy failed:', error);
+        showErrorToast('Unable to copy to clipboard');
+      }
+    });
+  });
 }
 
 /**
