@@ -58,7 +58,7 @@ class AdminPredictionHistoryServiceClass {
       getActiveTournament(),
     ]);
 
-    /** @type {Map<string, { rank: number, totalPoints: number }>} */
+    /** @type {Map<string, { rank: number, totalPoints: number, accuracy: number, correctWinnerCount: number, exactScoreCount: number }>} */
     const leaderboardByUserId = new Map();
 
     if (activeTournament?.id) {
@@ -68,6 +68,9 @@ class AdminPredictionHistoryServiceClass {
           leaderboardByUserId.set(entry.userId, {
             rank: entry.rank,
             totalPoints: entry.totalPoints,
+            accuracy: entry.accuracy,
+            correctWinnerCount: entry.correctWinnerCount,
+            exactScoreCount: entry.exactScoreCount,
           });
         }
       } catch (error) {
@@ -88,6 +91,9 @@ class AdminPredictionHistoryServiceClass {
         predictionsSubmitted: aggregate?.predictionsSubmitted ?? 0,
         currentPoints: leaderboardEntry?.totalPoints ?? null,
         currentRank: leaderboardEntry?.rank ?? null,
+        accuracy: leaderboardEntry?.accuracy ?? 0,
+        correctWinnerCount: leaderboardEntry?.correctWinnerCount ?? 0,
+        exactScoreCount: leaderboardEntry?.exactScoreCount ?? 0,
       };
     });
 

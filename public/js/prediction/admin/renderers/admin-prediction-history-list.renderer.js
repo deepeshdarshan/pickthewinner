@@ -11,6 +11,11 @@ import { renderPagination } from '../../../components/pagination.component.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
 import { getRankRowHighlightClass, renderRankBadge } from '../../../shared/badges/rank-badge.component.js';
 import {
+  renderPerformanceCardFooter,
+  renderPerformanceCardHeader,
+  renderPerformanceCardStats,
+} from '../../../shared/cards/performance-card.component.js';
+import {
   ADMIN_PREDICTION_HISTORY_MESSAGES,
   ADMIN_PREDICTION_HISTORY_SORT_FIELD,
   ADMIN_PREDICTION_HISTORY_PAGE_SIZE_OPTIONS,
@@ -173,7 +178,7 @@ export function renderContestantCards(rows) {
   }
 
   return `
-    <div class="ptw-leaderboard-cards" aria-label="Contestant prediction history cards">
+    <div class="ptw-leaderboard-cards ptw-performance-card-list" aria-label="Contestant prediction history cards">
       ${rows.map((row) => renderContestantCard(row)).join('')}
     </div>
   `;
@@ -186,58 +191,66 @@ export function renderContestantCards(rows) {
 function renderContestantCard(row) {
   const historyRoute = adminPredictionHistoryContestantRoute(row.uid);
   const rowHighlightClass = getRankRowHighlightClass(row.currentRank);
+  const pointsTone = row.currentRank === 1 ? 'gold' : 'primary';
+  const topPerformerBadge = row.currentRank === 1
+    ? '<span class="ptw-performance-card__badge"><i class="bi bi-trophy-fill" aria-hidden="true"></i> Top Ranked</span>'
+    : '';
 
   return `
     <article
-      class="card ptw-card ptw-leaderboard-card ptw-admin-prediction-history__row${rowHighlightClass}"
+      class="card ptw-card ptw-leaderboard-card ptw-performance-card ptw-admin-prediction-history__row${rowHighlightClass}"
       data-aph-row="${escapeHtml(row.uid)}"
       tabindex="0"
       role="link"
       aria-label="View prediction history for ${escapeHtml(row.name)}"
     >
       <div class="card-body">
-        <div class="d-flex align-items-center mb-3">
-          ${renderRankBadge(row.currentRank, { variant: 'featured', showLabel: true })}
-          ${renderAvatar({ photoURL: row.photoURL, size: 48, className: 'ptw-avatar flex-shrink-0' })}
-          <div class="ms-3 flex-grow-1 min-w-0">
-            <h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(row.name)}</h6>
-          </div>
-        </div>
+        ${renderPerformanceCardHeader({
+          indicatorHtml: renderRankBadge(row.currentRank, { variant: 'featured', showLabel: true }),
+          avatarHtml: renderAvatar({ photoURL: row.photoURL, size: 48, className: 'ptw-avatar flex-shrink-0' }),
+          title: escapeHtml(row.name),
+          badgeHtml: topPerformerBadge,
+          pointsValue: formatNullableNumber(row.currentPoints),
+          pointsLabel: 'Points',
+          pointsTone,
+        })}
 
-        <div class="row g-2 mb-2">
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Current Points</div>
-              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--primary">${formatNullableNumber(row.currentPoints)}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Predictions</div>
-              <div class="ptw-leaderboard-card__stat-value">${row.predictionsSubmitted}</div>
-            </div>
-          </div>
-        </div>
+        ${renderPerformanceCardStats([
+          {
+            icon: 'bi-bullseye',
+            value: `${row.accuracy}%`,
+            label: 'Accuracy',
+            tone: 'primary',
+          },
+          {
+            icon: 'bi-trophy',
+            value: String(row.correctWinnerCount),
+            label: 'Winners',
+            tone: 'success',
+          },
+          {
+            icon: 'bi-bullseye',
+            value: String(row.exactScoreCount),
+            label: 'Exact Scores',
+            tone: 'info',
+          },
+        ])}
 
-        <div class="row g-2">
-          <div class="col-12">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Tournaments Joined</div>
-              <div class="ptw-leaderboard-card__stat-value">${row.tournamentsJoined}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ptw-leaderboard-card__footer">
-          <a
-            href="${escapeHtml(historyRoute)}"
-            class="btn btn-sm btn-outline-primary w-100"
-            data-route
-            data-aph-view="${escapeHtml(row.uid)}"
-          >
-            View History
-          </a>
-        </div>
+        ${renderPerformanceCardFooter({
+          leftIcon: 'bi-clock-history',
+          leftValue: `${row.predictionsSubmitted} submitted`,
+          leftLabel: 'Prediction Activity',
+          rightHtml: `
+            <a
+              href="${escapeHtml(historyRoute)}"
+              class="btn btn-sm btn-outline-primary w-100"
+              data-route
+              data-aph-view="${escapeHtml(row.uid)}"
+            >
+              View History
+            </a>
+          `,
+        })}
       </div>
     </article>
   `;

@@ -4642,46 +4642,21 @@
 
 .ptw-prediction-timeline__list {
   position: relative;
-  padding-left: var(--ptw-space-4);
+  padding-left: 0;
 }
 
 .ptw-prediction-timeline__item {
-  position: relative;
-  display: grid;
-  grid-template-columns: 2rem 1fr;
-  gap: var(--ptw-space-3);
   margin-bottom: var(--ptw-space-3);
-  --ptw-prediction-timeline-marker-size: 1.1rem;
-  --ptw-prediction-timeline-marker-center: calc(var(--ptw-space-3) + (var(--ptw-prediction-timeline-marker-size) / 2));
-  --ptw-prediction-timeline-marker-bottom: calc(var(--ptw-space-3) + var(--ptw-prediction-timeline-marker-size));
 }
 
-.ptw-prediction-timeline__item::before {
-  content: '';
-  position: absolute;
-  left: 0.95rem;
-  top: calc(var(--ptw-prediction-timeline-marker-bottom) + 0.125rem);
-  bottom: calc(-1 * var(--ptw-space-3) - var(--ptw-prediction-timeline-marker-center));
-  width: 2px;
-  background: var(--ptw-color-border);
-}
-
-.ptw-prediction-timeline__item:last-child::before {
-  display: none;
-}
-
+.ptw-prediction-timeline__item::before,
 .ptw-prediction-timeline__marker {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: var(--ptw-space-3);
-  font-size: var(--ptw-prediction-timeline-marker-size, 1.1rem);
+  display: none;
 }
 
 .ptw-prediction-timeline__content {
   min-width: 0;
+  margin-bottom: 0;
 }
 
 .ptw-accuracy-donut {

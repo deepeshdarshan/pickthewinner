@@ -60,7 +60,7 @@ export function renderRankBadge(rank, options = {}) {
   const {
     variant = 'table',
     showLabel = false,
-    labelledBy = 'Current rank',
+    labelledBy = 'Rank',
   } = options;
   const modifier = getRankBadgeModifier(rank);
   const label = formatRankLabel(rank);

@@ -16,6 +16,9 @@ const SAMPLE_ROWS = [
     predictionsSubmitted: 10,
     currentPoints: 25,
     currentRank: 1,
+    accuracy: 100,
+    correctWinnerCount: 2,
+    exactScoreCount: 2,
   },
   {
     uid: 'u2',
@@ -25,6 +28,9 @@ const SAMPLE_ROWS = [
     predictionsSubmitted: 5,
     currentPoints: null,
     currentRank: null,
+    accuracy: 0,
+    correctWinnerCount: 0,
+    exactScoreCount: 0,
   },
   {
     uid: 'u3',
@@ -34,6 +40,9 @@ const SAMPLE_ROWS = [
     predictionsSubmitted: 15,
     currentPoints: 18,
     currentRank: 3,
+    accuracy: 67,
+    correctWinnerCount: 1,
+    exactScoreCount: 1,
   },
 ];
 
@@ -92,11 +101,16 @@ describe('admin-prediction-history-list.renderer mobile cards', () => {
   it('renders leaderboard-style cards for contestants', () => {
     const html = renderContestantCards(SAMPLE_ROWS);
 
-    assert.match(html, /ptw-leaderboard-cards/);
-    assert.match(html, /ptw-leaderboard-card/);
+    assert.match(html, /ptw-performance-card-list/);
+    assert.match(html, /ptw-performance-card/);
     assert.match(html, /View History/);
     assert.match(html, /data-aph-row="u1"/);
     assert.match(html, /ptw-rank-badge--gold/);
-    assert.match(html, /ptw-rank-badge--featured/);
+    assert.match(html, />Rank</);
+    assert.match(html, /Accuracy/);
+    assert.match(html, /Winners/);
+    assert.match(html, /Exact Scores/);
+    assert.doesNotMatch(html, /Current tournament rank/);
+    assert.doesNotMatch(html, /Current Rank/);
   });
 });

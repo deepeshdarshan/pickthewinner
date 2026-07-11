@@ -10,6 +10,12 @@ import {
   RANK_MOVEMENT_ICONS,
 } from '../leaderboard.constants.js';
 import { getRankRowHighlightClass, renderRankBadge } from '../../shared/badges/rank-badge.component.js';
+import {
+  renderPerformanceCardFooter,
+  renderPerformanceCardFooterMeta,
+  renderPerformanceCardHeader,
+  renderPerformanceCardStats,
+} from '../../shared/cards/performance-card.component.js';
 
 /**
  * Renders leaderboard as card list for mobile.
@@ -41,64 +47,65 @@ function renderLeaderboardCard(entry, options = {}) {
   const { linkProfiles = false } = options;
   const rowHighlightClass = getRankRowHighlightClass(entry.rank);
   const nameHtml = linkProfiles
-    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-leaderboard-card__name mb-0 d-inline-block text-decoration-none" data-route title="View profile">
+    ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-performance-card__title mb-0 d-inline-block text-decoration-none" data-route title="View profile">
         ${escapeHtml(entry.displayName)}
       </a>`
-    : `<h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>`;
+    : escapeHtml(entry.displayName);
+  const topPerformerBadge = entry.rank === 1
+    ? '<span class="ptw-performance-card__badge"><i class="bi bi-trophy-fill" aria-hidden="true"></i> Top Performer</span>'
+    : '';
+  const pointsTone = entry.rank === 1 ? 'gold' : 'primary';
+
   return `
-    <div class="card ptw-card ptw-leaderboard-card mb-3${rowHighlightClass}" data-user-id="${escapeHtml(entry.userId)}">
+    <article class="card ptw-card ptw-leaderboard-card ptw-performance-card mb-3${rowHighlightClass}" data-user-id="${escapeHtml(entry.userId)}">
       <div class="card-body">
-        <div class="d-flex align-items-center mb-3">
-          ${renderRankBadge(entry.rank, { variant: 'featured', showLabel: true })}
-          ${renderAvatar(entry.photoURL, entry.displayName)}
-          <div class="ms-3 flex-grow-1 min-w-0">
-            ${nameHtml}
-            ${entry.country ? `<small class="ptw-leaderboard-card__country">${escapeHtml(entry.country)}</small>` : ''}
-          </div>
-          ${renderMovementIndicator(entry.movement)}
-        </div>
+        ${renderPerformanceCardHeader({
+          indicatorHtml: renderRankBadge(entry.rank, { variant: 'featured', showLabel: true }),
+          avatarHtml: renderAvatar(entry.photoURL, entry.displayName),
+          title: nameHtml,
+          subtitle: entry.country ? escapeHtml(entry.country) : '',
+          badgeHtml: topPerformerBadge,
+          pointsValue: String(entry.totalPoints),
+          pointsLabel: 'Points',
+          pointsTone,
+        })}
 
-        <div class="row g-2">
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Points</div>
-              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--primary">${entry.totalPoints}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Accuracy</div>
-              <div class="ptw-leaderboard-card__stat-value">${entry.accuracy}%</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Winners</div>
-              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--success">${entry.correctWinnerCount}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Exact Scores</div>
-              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--info">${entry.exactScoreCount}</div>
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="ptw-leaderboard-card__stat">
-              <div class="ptw-leaderboard-card__stat-label">Avg Response Time</div>
-              <div class="ptw-leaderboard-card__stat-value">${escapeHtml(formatDurationMs(entry.averageResponseTimeMs))}</div>
-            </div>
-          </div>
-        </div>
+        ${renderPerformanceCardStats([
+          {
+            icon: 'bi-bullseye',
+            value: `${entry.accuracy}%`,
+            label: 'Accuracy',
+            tone: 'primary',
+          },
+          {
+            icon: 'bi-trophy',
+            value: String(entry.correctWinnerCount),
+            label: 'Winners',
+            tone: 'success',
+          },
+          {
+            icon: 'bi-bullseye',
+            value: String(entry.exactScoreCount),
+            label: 'Exact Scores',
+            tone: 'info',
+          },
+        ])}
 
-        <div class="ptw-leaderboard-card__footer">
-          <div class="d-flex justify-content-between">
-            <span>Predicted: ${entry.matchesPredicted}</span>
-            <span>Remaining: ${entry.matchesRemaining}</span>
-          </div>
-        </div>
+        ${renderPerformanceCardFooter({
+          leftIcon: 'bi-clock',
+          leftValue: escapeHtml(formatDurationMs(entry.averageResponseTimeMs)),
+          leftLabel: 'Avg Response Time',
+          inline: true,
+          rightHtml: `
+            ${renderPerformanceCardFooterMeta([
+              { icon: 'bi-bullseye', label: 'Predicted', value: entry.matchesPredicted },
+              { icon: 'bi-hourglass-split', label: 'Remaining', value: entry.matchesRemaining },
+            ])}
+            ${renderMovementIndicator(entry.movement)}
+          `,
+        })}
       </div>
-    </div>
+    </article>
   `;
 }
 
@@ -117,7 +124,7 @@ function renderMovementIndicator(movement) {
     return '';
   }
 
-  return `<span class="ptw-leaderboard-card__movement ptw-leaderboard-card__movement--${movement}" aria-hidden="true">${movementIcon}</span>`;
+  return `<div class="ptw-leaderboard-card__movement ptw-leaderboard-card__movement--${movement}" aria-hidden="true">${movementIcon}</div>`;
 }
 
 /**
@@ -129,23 +136,24 @@ function renderMovementIndicator(movement) {
 function renderAvatar(photoURL, displayName) {
   if (photoURL) {
     return `
-      <img 
-        src="${escapeHtml(photoURL)}" 
-        alt="${escapeHtml(displayName)}" 
-        class="rounded-circle"
-        style="width: 48px; height: 48px; object-fit: cover;"
+      <img
+        src="${escapeHtml(photoURL)}"
+        alt="${escapeHtml(displayName)}"
+        class="rounded-circle flex-shrink-0"
+        width="48"
+        height="48"
+        style="object-fit: cover;"
       />
     `;
   }
 
   const initial = displayName.charAt(0).toUpperCase();
   return `
-    <div 
-      class="ptw-leaderboard-card__avatar-placeholder rounded-circle d-flex align-items-center justify-content-center"
+    <div
+      class="ptw-leaderboard-card__avatar-placeholder rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
       style="width: 48px; height: 48px;"
     >
       <span class="fw-bold fs-5">${escapeHtml(initial)}</span>
     </div>
   `;
 }
-

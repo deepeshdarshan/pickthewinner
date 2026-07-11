@@ -22,14 +22,19 @@ import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { renderResultBadge } from '../prediction/admin/renderers/prediction-status-badge.renderer.js';
 import {
   renderCustomScoringSourceBadge,
-  renderMatchScoringPointsHtml,
 } from './renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 import {
   getContestantPredictionUiStatus,
   renderContestantPredictionActionButtons,
   renderContestantPredictionStatusBadge,
+  CONTESTANT_PREDICTION_UI_STATUS,
 } from './match-prediction-ui.util.js';
+import {
+  renderPerformanceCardFooter,
+  renderPerformanceCardHeader,
+  renderPerformanceCardStats,
+} from '../shared/cards/performance-card.component.js';
 
 /**
  * @typedef {Object} MatchCardOptions
@@ -76,67 +81,164 @@ export function renderMatchCard(options) {
   const tournamentName = resolveTournamentName(match);
   const bgVariant = resolveMatchCardBgIconVariant(match);
   const themeClass = resolveMatchCardThemeClass(match);
+  const performanceThemeClass = themeClass.includes('live')
+    ? 'ptw-performance-card--live'
+    : 'ptw-performance-card--pending';
+  const predictedScore = prediction
+    ? `${prediction.homeScore} - ${prediction.awayScore}`
+    : '—';
+  const officialScore = showResult && match.result?.published
+    ? `${match.result.homeScore} - ${match.result.awayScore}`
+    : 'Pending';
+  const pointsValue = showPoints && showResult && match.result?.published
+    ? String(resolvedPointsEarned)
+    : '';
+  const stakePoints = match.effectiveScoringConfig?.correctMatchScorePoints ?? '—';
+  const statusStat = resolveStatusStatLabel(predictionStatus);
 
   return `
-    <div class="card ptw-card ptw-match-card ${themeClass} mb-3">
+    <div class="card ptw-card ptw-match-card ptw-performance-card ${themeClass} ${performanceThemeClass} mb-3">
       ${renderMatchCardBgIcons(bgVariant)}
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div class="d-flex align-items-center flex-wrap gap-2">
-          ${tournamentName ? `<span class="badge bg-secondary">${escapeHtml(tournamentName)}</span>` : ''}
-          ${stageLabel ? `<span class="badge bg-info">${escapeHtml(stageLabel)}</span>` : ''}
-          ${statusBadge}
-          ${customPointsBadge}
-        </div>
-        ${countdownHtml}
-      </div>
       <div class="card-body">
-        <div class="row align-items-center g-3">
-          <!-- Home Team -->
-          <div class="col-5 text-center">
+        ${renderPerformanceCardHeader({
+          indicatorHtml: renderStatusIndicator(predictionStatus),
+          avatarHtml: renderTeamPairAvatar(match),
+          title: escapeHtml(tournamentName || 'Match'),
+          subtitle: stageLabel ? escapeHtml(stageLabel) : '',
+          badgeHtml: customPointsBadge,
+          pointsValue: pointsValue || (showResult && match.result?.published ? '0' : ''),
+          pointsLabel: pointsValue || (showResult && match.result?.published) ? 'Points' : '',
+          pointsTone: resolvedPointsEarned > 0 ? 'gold' : 'primary',
+        })}
+
+        <div class="ptw-performance-card__matchup">
+          <div class="ptw-performance-card__matchup-team">
             ${renderTeamStackHtml(match.homeTeam, {
     fallback: 'TBD',
     extraHtml: showResult && match.result
-      ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.homeScore ?? '-'))}</div>`
+      ? `<div class="ptw-performance-card__matchup-score mt-2">${escapeHtml(String(match.result.homeScore ?? '-'))}</div>`
       : '',
   })}
+            <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.homeTeam?.name ?? 'TBD'))}</span>
           </div>
-          
-          <!-- VS -->
-          <div class="col-2 text-center">
-            <div class="ptw-text-muted">VS</div>
+          <div class="ptw-performance-card__matchup-vs">
+            ${countdownHtml || '<span>VS</span>'}
           </div>
-          
-          <!-- Away Team -->
-          <div class="col-5 text-center">
+          <div class="ptw-performance-card__matchup-team">
             ${renderTeamStackHtml(match.awayTeam, {
     fallback: 'TBD',
     extraHtml: showResult && match.result
-      ? `<div class="h3 mb-0 mt-2 text-primary">${escapeHtml(String(match.result.awayScore ?? '-'))}</div>`
+      ? `<div class="ptw-performance-card__matchup-score mt-2">${escapeHtml(String(match.result.awayScore ?? '-'))}</div>`
       : '',
   })}
+            <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.awayTeam?.name ?? 'TBD'))}</span>
           </div>
         </div>
-        
-        <!-- Match Info -->
-        <div class="mt-3 text-center">
-          ${kickoff ? `<div class="ptw-text-muted mb-1"><i class="bi bi-clock me-1" aria-hidden="true"></i>${escapeHtml(formatDateTime(kickoff))}</div>` : ''}
-        </div>
 
-        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
+        ${renderPerformanceCardStats([
+          {
+            icon: 'bi-bullseye',
+            value: escapeHtml(String(predictedScore)),
+            label: 'My Prediction',
+            tone: prediction ? 'primary' : 'warning',
+          },
+          {
+            icon: 'bi-flag-fill',
+            value: escapeHtml(String(officialScore)),
+            label: 'Official Result',
+            tone: showResult && match.result?.published ? 'default' : 'warning',
+          },
+          {
+            icon: 'bi-trophy',
+            value: escapeHtml(String(stakePoints)),
+            label: 'Points at Stake',
+            tone: 'info',
+          },
+        ])}
+
+        ${renderPerformanceCardFooter({
+          leftIcon: 'bi-clock',
+          leftValue: kickoff ? escapeHtml(formatDateTime(kickoff)) : '—',
+          leftLabel: statusStat,
+          rightHtml: `
+            <div>${statusBadge}</div>
+            ${renderActionButtons(match, prediction, predictionStatus)}
+          `,
+        })}
 
         ${showResult && match.result?.published ? renderOfficialResultDisplay(match) : ''}
-        
-        <!-- Prediction Display -->
-        ${showPrediction && prediction ? renderPredictionDisplay(prediction, match) : ''}
-        
-        <!-- Points Display -->
-        ${showPoints && showResult ? renderPointsDisplay(resolvedPointsEarned, prediction, match) : ''}
-        
-        <!-- Action Buttons -->
-        ${renderActionButtons(match, prediction, predictionStatus)}
       </div>
     </div>
   `;
+}
+
+/**
+ * @param {string} predictionStatus
+ * @returns {string}
+ */
+function renderStatusIndicator(predictionStatus) {
+  const config = {
+    [CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED]: { icon: 'bi-check-circle-fill', label: 'Status', tone: 'success' },
+    [CONTESTANT_PREDICTION_UI_STATUS.PENDING]: { icon: 'bi-exclamation-circle-fill', label: 'Status', tone: 'warning' },
+    [CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON]: { icon: 'bi-clock-fill', label: 'Status', tone: 'primary' },
+    [CONTESTANT_PREDICTION_UI_STATUS.LOCKED]: { icon: 'bi-lock-fill', label: 'Status', tone: 'default' },
+  }[predictionStatus] ?? { icon: 'bi-circle-fill', label: 'Status', tone: 'default' };
+
+  return `
+    <div class="ptw-rank-badge ptw-rank-badge--${config.tone} ptw-rank-badge--featured" aria-hidden="true">
+      <span class="ptw-rank-badge__label">${config.label}</span>
+      <i class="bi ${config.icon} ptw-rank-badge__icon" aria-hidden="true"></i>
+    </div>
+  `;
+}
+
+/**
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {string}
+ */
+function renderTeamPairAvatar(match) {
+  return `
+    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+      ${renderTeamInlineHtml(match.homeTeam, { fallback: 'H', className: 'ptw-team-flag ptw-team-flag--sm' })}
+      ${renderTeamInlineHtml(match.awayTeam, { fallback: 'A', className: 'ptw-team-flag ptw-team-flag--sm' })}
+    </div>
+  `;
+}
+
+/**
+ * @param {string} predictionStatus
+ * @returns {string}
+ */
+function resolveStatusStatLabel(predictionStatus) {
+  switch (predictionStatus) {
+    case CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED:
+      return 'Prediction Submitted';
+    case CONTESTANT_PREDICTION_UI_STATUS.PENDING:
+      return 'Prediction Pending';
+    case CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON:
+      return 'Opens Soon';
+    case CONTESTANT_PREDICTION_UI_STATUS.LOCKED:
+      return 'Prediction Locked';
+    default:
+      return 'Match Status';
+  }
+}
+
+/**
+ * @param {string} predictionStatus
+ * @returns {'primary'|'success'|'warning'|'default'}
+ */
+function resolveStatusTone(predictionStatus) {
+  switch (predictionStatus) {
+    case CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED:
+      return 'success';
+    case CONTESTANT_PREDICTION_UI_STATUS.PENDING:
+      return 'warning';
+    case CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON:
+      return 'primary';
+    default:
+      return 'default';
+  }
 }
 
 /**
@@ -315,7 +417,7 @@ function renderActionButtons(match, prediction, predictionStatus) {
     editButtonClass: 'btn btn-primary w-100',
     viewDetailsButtonClass: 'btn btn-outline-primary w-100',
     predictLabel: 'Make Prediction',
-    wrapperClass: 'mt-3 pt-3 border-top',
+    wrapperClass: 'mt-2',
   });
 }
 

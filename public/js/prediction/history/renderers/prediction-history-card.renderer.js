@@ -4,30 +4,18 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
-import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
-import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
-import {
-  renderPredictedScoreHtml,
-  renderActualScoreHtml,
-  renderPredictedWinnerHtml,
-  renderActualWinnerHtml,
-  renderPointsHtml,
-} from '../../admin/renderers/prediction-display.renderer.js';
-import { renderComparisonBadges } from './prediction-comparison.renderer.js';
+import { formatDateDisplay, formatDateTime, toDate } from '../../../utils/date.util.js';
+import { renderTeamInlineHtml, renderTeamStackHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
-import { renderMatchScoringPointsHtml } from '../../../match/renderers/match-scoring-points.renderer.js';
-import { renderMatchCardBgIcons } from '../../../components/match-card-bg-icons.component.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
+import {
+  renderPerformanceCardFooter,
+  renderPerformanceCardHeader,
+  renderPerformanceCardStats,
+} from '../../../shared/cards/performance-card.component.js';
 
 /** @type {string} */
 export const PREDICTION_HISTORY_CARD_CLASS = 'ptw-prediction-history-card';
-
-/**
- * @returns {string}
- */
-export function renderPredictionHistoryCardDecorations() {
-  return renderMatchCardBgIcons('history');
-}
 
 /**
  * @typedef {import('../../../domain/prediction-history.domain.js').HistoryItem} HistoryItem
@@ -35,9 +23,38 @@ export function renderPredictionHistoryCardDecorations() {
 
 /**
  * @param {HistoryItem} item
+ * @param {{ asTimelineContent?: boolean }} [options]
  * @returns {string}
  */
-export function renderHistoryCard(item) {
+export function renderHistoryCard(item, options = {}) {
+  const { asTimelineContent = false } = options;
+  const sections = buildHistoryCardSections(item);
+  const cardClass = [
+    'card',
+    'ptw-card',
+    'ptw-performance-card',
+    PREDICTION_HISTORY_CARD_CLASS,
+    sections.themeClass,
+    asTimelineContent ? 'ptw-prediction-timeline__content' : 'mb-3',
+  ].filter(Boolean).join(' ');
+
+  return `
+    <article class="${cardClass}" data-prediction-id="${escapeHtml(String(item.id))}">
+      <div class="card-body">
+        ${sections.header}
+        ${sections.matchup}
+        ${sections.stats}
+        ${sections.footer}
+      </div>
+    </article>
+  `;
+}
+
+/**
+ * @param {HistoryItem} item
+ * @returns {{ header: string, matchup: string, stats: string, footer: string, themeClass: string }}
+ */
+export function buildHistoryCardSections(item) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
@@ -45,68 +62,178 @@ export function renderHistoryCard(item) {
   const kickoffLabel = kickoffDate
     ? formatDateDisplay(kickoffDate, { day: '2-digit', month: 'short', year: 'numeric' })
     : '—';
-  const kickoffDatetime = kickoffDate?.toISOString() ?? '';
+  const kickoffTimeLabel = kickoffDate
+    ? formatDateTime(match.kickoffUtc)?.split(', ').slice(1).join(', ') ?? ''
+    : '';
   const tournamentName = String(tournament.name ?? tournament.title ?? 'Tournament');
   const stage = String(match.stage ?? match.round ?? '');
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
-  const showPenaltyWinner = Boolean(result.published)
+  const hasResult = Boolean(result.published);
+  const points = Number(item.calculatedPoints ?? 0);
+  const predictedScore = `${item.homeScore} - ${item.awayScore}`;
+  const officialScore = hasResult
+    ? `${result.homeScore} - ${result.awayScore}`
+    : 'Pending';
+  const winnerStat = resolveWinnerStatLabel(item, hasResult);
+  const exactStat = resolveExactStatLabel(item, hasResult);
+  const pointsTone = hasResult && points > 0 ? 'gold' : hasResult ? 'default' : 'primary';
+  const themeClass = hasResult && points > 0
+    ? 'ptw-performance-card--success'
+    : 'ptw-performance-card--pending';
+
+  return {
+    themeClass,
+    header: renderPerformanceCardHeader({
+      indicatorHtml: renderDateIndicator(kickoffLabel),
+      avatarHtml: renderTeamPairAvatar(match),
+      title: escapeHtml(tournamentName),
+      subtitle: stage ? escapeHtml(stage) : '',
+      badgeHtml: hasResult && points > 0
+        ? '<span class="ptw-performance-card__badge"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Points Awarded</span>'
+        : '',
+      pointsValue: hasResult ? String(points) : '—',
+      pointsLabel: hasResult ? 'Points' : 'Pending',
+      pointsTone,
+    }),
+    matchup: renderMatchup(match, item, result, hasResult),
+    stats: renderPerformanceCardStats([
+      {
+        icon: 'bi-bullseye',
+        value: escapeHtml(predictedScore),
+        label: 'My Prediction',
+        tone: 'primary',
+      },
+      {
+        icon: 'bi-flag-fill',
+        value: escapeHtml(String(officialScore)),
+        label: 'Official Result',
+        tone: hasResult ? 'default' : 'warning',
+      },
+      {
+        icon: 'bi-trophy',
+        value: escapeHtml(winnerStat),
+        label: 'Winner',
+        tone: item.winnerPredictionCorrect === true ? 'success' : item.winnerPredictionCorrect === false ? 'danger' : 'default',
+      },
+    ]),
+    footer: renderPerformanceCardFooter({
+      leftIcon: 'bi-clock',
+      leftValue: kickoffTimeLabel
+        ? `${escapeHtml(kickoffLabel)} · ${escapeHtml(kickoffTimeLabel)}`
+        : escapeHtml(kickoffLabel),
+      leftLabel: 'Match Date',
+      rightHtml: `
+        <div>${escapeHtml(exactStat)}</div>
+        <a
+          href="${detailUrl}"
+          class="btn btn-sm btn-outline-primary ptw-prediction-history-detail-btn mt-2"
+          data-ph-detail="${escapeHtml(String(item.id))}"
+          aria-label="View prediction details"
+        >
+          View Details <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+        </a>
+      `,
+    }),
+  };
+}
+
+/**
+ * @param {HistoryItem} item
+ * @param {boolean} hasResult
+ * @returns {string}
+ */
+function resolveWinnerStatLabel(item, hasResult) {
+  if (!hasResult) {
+    return '—';
+  }
+
+  if (item.winnerPredictionCorrect === true) {
+    return 'Correct';
+  }
+
+  if (item.winnerPredictionCorrect === false) {
+    return 'Incorrect';
+  }
+
+  return '—';
+}
+
+/**
+ * @param {HistoryItem} item
+ * @param {boolean} hasResult
+ * @returns {string}
+ */
+function resolveExactStatLabel(item, hasResult) {
+  if (!hasResult) {
+    return 'Exact Score: Pending';
+  }
+
+  if (item.exactScoreCorrect === true) {
+    return 'Exact Score: Correct';
+  }
+
+  if (item.exactScoreCorrect === false) {
+    return 'Exact Score: Incorrect';
+  }
+
+  return 'Exact Score: —';
+}
+
+/**
+ * @param {string} kickoffLabel
+ * @returns {string}
+ */
+function renderDateIndicator(kickoffLabel) {
+  return `
+    <div class="ptw-rank-badge ptw-rank-badge--default ptw-rank-badge--featured" aria-hidden="true">
+      <span class="ptw-rank-badge__label">Date</span>
+      <span class="ptw-rank-badge__value" style="font-size:0.7rem;">${escapeHtml(kickoffLabel)}</span>
+    </div>
+  `;
+}
+
+/**
+ * @param {Record<string, unknown>} match
+ * @returns {string}
+ */
+function renderTeamPairAvatar(match) {
+  return `
+    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+      ${renderTeamInlineHtml(match.homeTeam, { fallback: 'H', className: 'ptw-team-flag ptw-team-flag--sm' })}
+      ${renderTeamInlineHtml(match.awayTeam, { fallback: 'A', className: 'ptw-team-flag ptw-team-flag--sm' })}
+    </div>
+  `;
+}
+
+/**
+ * @param {Record<string, unknown>} match
+ * @param {HistoryItem} item
+ * @param {Record<string, unknown>} result
+ * @param {boolean} hasResult
+ * @returns {string}
+ */
+function renderMatchup(match, item, result, hasResult) {
+  const showPenaltyWinner = hasResult
     && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
+  const displayHome = hasResult ? result.homeScore : item.homeScore;
+  const displayAway = hasResult ? result.awayScore : item.awayScore;
 
   return `
-    <article class="card ptw-card ${PREDICTION_HISTORY_CARD_CLASS} mb-3" data-prediction-id="${escapeHtml(String(item.id))}">
-      ${renderPredictionHistoryCardDecorations()}
-      <div class="ptw-prediction-history-card__banner" style="${tournament.bannerUrl ? `background-image:url('${escapeHtml(String(tournament.bannerUrl))}')` : ''}">
-        <div class="ptw-prediction-history-card__banner-overlay">
-          <p class="mb-0 small">${escapeHtml(tournamentName)}</p>
-          ${stage ? `<p class="mb-0 small opacity-75">${escapeHtml(stage)}</p>` : ''}
-        </div>
+    <div class="ptw-performance-card__matchup">
+      <div class="ptw-performance-card__matchup-team">
+        ${renderTeamStackHtml(match.homeTeam, { fallback: 'Home' })}
+        <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.homeTeam?.name ?? 'Home'))}</span>
       </div>
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-          <time class="small ptw-text-muted" datetime="${escapeHtml(kickoffDatetime)}">${escapeHtml(kickoffLabel)}</time>
-          <div>${renderPointsHtml(item, result)}</div>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-6 text-center">
-            ${renderTeamInlineHtml(match.homeTeam, { fallback: 'Home' })}
-            <p class="mb-0 small fw-semibold mt-1">${escapeHtml(String(match.homeTeam?.name ?? 'Home'))}</p>
-          </div>
-          <div class="col-6 text-center">
-            ${renderTeamInlineHtml(match.awayTeam, { fallback: 'Away' })}
-            <p class="mb-0 small fw-semibold mt-1">${escapeHtml(String(match.awayTeam?.name ?? 'Away'))}</p>
-          </div>
-        </div>
-
-        ${renderMatchScoringPointsHtml(match.effectiveScoringConfig)}
-
-        <div class="row g-3">
-          <div class="col-md-6">
-            <h3 class="h6 text-uppercase text-muted">My Prediction</h3>
-            ${renderPredictedScoreHtml(match, item)}
-            ${showPenaltyWinner ? `<p class="mb-0 small mt-2"><span class="text-muted">Predicted Winner:</span> ${renderPredictedWinnerHtml(match, item, { result })}</p>` : ''}
-          </div>
-          <div class="col-md-6">
-            <h3 class="h6 text-uppercase text-muted">Official Result</h3>
-            ${result.published ? renderActualScoreHtml(match, result) : '<p class="text-muted mb-0 small">Pending</p>'}
-            ${showPenaltyWinner ? `<p class="mb-0 small mt-2"><span class="text-muted">Penalty Winner:</span> ${renderActualWinnerHtml(match, result)}</p>` : ''}
-          </div>
-        </div>
-
-        <div class="mt-3">${renderComparisonBadges(item)}</div>
-
-        <div class="mt-3">
-          <a
-            href="${detailUrl}"
-            class="btn btn-outline-primary w-100 ptw-prediction-history-detail-btn"
-            data-ph-detail="${escapeHtml(String(item.id))}"
-            aria-label="View prediction details"
-          >
-            View Details <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
-          </a>
-        </div>
+      <div class="ptw-performance-card__matchup-vs">
+        <div class="ptw-performance-card__matchup-score">${escapeHtml(String(displayHome))} - ${escapeHtml(String(displayAway))}</div>
+        <span>VS</span>
       </div>
-    </article>
+      <div class="ptw-performance-card__matchup-team">
+        ${renderTeamStackHtml(match.awayTeam, { fallback: 'Away' })}
+        <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.awayTeam?.name ?? 'Away'))}</span>
+      </div>
+    </div>
+    ${showPenaltyWinner ? `<p class="small text-center ptw-text-muted mb-3">Penalty winner included in result</p>` : ''}
   `;
 }
 
@@ -119,5 +246,17 @@ export function renderHistoryCardList(items) {
     return '';
   }
 
-  return items.map((item) => renderHistoryCard(item)).join('');
+  return `
+    <div class="ptw-performance-card-list">
+      ${items.map((item) => renderHistoryCard(item)).join('')}
+    </div>
+  `;
+}
+
+/**
+ * @deprecated Use buildHistoryCardSections or renderHistoryCard directly.
+ * @returns {string}
+ */
+export function renderPredictionHistoryCardDecorations() {
+  return '';
 }

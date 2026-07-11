@@ -28,6 +28,7 @@ describe('rank-badge.component', () => {
     assert.match(html, /ptw-rank-badge--gold/);
     assert.match(html, /bi-trophy-fill/);
     assert.match(html, /ptw-rank-badge__label/);
+    assert.match(html, />Rank</);
     assert.match(html, />1</);
   });
 

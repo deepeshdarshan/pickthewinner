@@ -14,6 +14,9 @@ import { ADMIN_PREDICTION_HISTORY_SORT_FIELD } from '../prediction/admin/admin-p
  * @property {number} predictionsSubmitted
  * @property {number|null} currentPoints
  * @property {number|null} currentRank
+ * @property {number} accuracy
+ * @property {number} correctWinnerCount
+ * @property {number} exactScoreCount
  */
 
 /**
