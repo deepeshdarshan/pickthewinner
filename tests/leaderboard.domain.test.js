@@ -425,6 +425,95 @@ describe('LeaderboardDomain', () => {
     });
   });
 
+  describe('rankEntriesByStandings', () => {
+    it('should rank by total points first', () => {
+      const ranked = LeaderboardDomain.rankEntriesByStandings([
+        { totalPoints: 20, accuracy: 100, averageResponseTimeMs: 1000, displayName: 'Arun' },
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 5000, displayName: 'Prasad' },
+      ]);
+
+      assert.equal(ranked[0].displayName, 'Prasad');
+      assert.equal(ranked[1].displayName, 'Arun');
+    });
+
+    it('should use accuracy as second tie-breaker', () => {
+      const ranked = LeaderboardDomain.rankEntriesByStandings([
+        { totalPoints: 40, accuracy: 80, averageResponseTimeMs: 1000, displayName: 'Contestant B' },
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 5000, displayName: 'Contestant A' },
+      ]);
+
+      assert.equal(ranked[0].displayName, 'Contestant A');
+      assert.equal(ranked[1].displayName, 'Contestant B');
+    });
+
+    it('should use lower average response time as third tie-breaker', () => {
+      const ranked = LeaderboardDomain.rankEntriesByStandings([
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 40 * 60 * 1000, displayName: 'Slower' },
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 15 * 60 * 1000, displayName: 'Faster' },
+      ]);
+
+      assert.equal(ranked[0].displayName, 'Faster');
+      assert.equal(ranked[1].displayName, 'Slower');
+    });
+
+    it('should use alphabetical order as final tie-breaker', () => {
+      const ranked = LeaderboardDomain.rankEntriesByStandings([
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 1000, displayName: 'Charlie' },
+        { totalPoints: 40, accuracy: 100, averageResponseTimeMs: 1000, displayName: 'Alice' },
+      ]);
+
+      assert.equal(ranked[0].displayName, 'Alice');
+      assert.equal(ranked[1].displayName, 'Charlie');
+    });
+  });
+
+  describe('calculateAverageResponseTime', () => {
+    const openHours = 12;
+    const kickoff = new Date('2026-07-10T20:00:00Z');
+    const opensAt = new Date(kickoff.getTime() - openHours * 60 * 60 * 1000);
+
+    it('should average response times across predictions', () => {
+      const matchById = new Map([
+        ['m1', { id: 'm1', kickoffUtc: kickoff }],
+        ['m2', { id: 'm2', kickoffUtc: kickoff }],
+      ]);
+
+      const average = LeaderboardDomain.calculateAverageResponseTime(
+        [
+          { matchId: 'm1', submittedAt: new Date(opensAt.getTime() + 15 * 60 * 1000) },
+          { matchId: 'm2', submittedAt: new Date(opensAt.getTime() + 40 * 60 * 1000) },
+        ],
+        matchById,
+        openHours,
+      );
+
+      assert.equal(average, 27.5 * 60 * 1000);
+    });
+
+    it('should ignore predictions without submittedAt or kickoff', () => {
+      const matchById = new Map([
+        ['m1', { id: 'm1', kickoffUtc: kickoff }],
+        ['m2', { id: 'm2', kickoffUtc: null }],
+      ]);
+
+      const average = LeaderboardDomain.calculateAverageResponseTime(
+        [
+          { matchId: 'm1', submittedAt: new Date(opensAt.getTime() + 20 * 60 * 1000) },
+          { matchId: 'm2', submittedAt: new Date(opensAt.getTime() + 60 * 60 * 1000) },
+        ],
+        matchById,
+        openHours,
+      );
+
+      assert.equal(average, 20 * 60 * 1000);
+    });
+
+    it('should return null when no valid response times exist', () => {
+      const average = LeaderboardDomain.calculateAverageResponseTime([], new Map(), openHours);
+      assert.equal(average, null);
+    });
+  });
+
   describe('canViewContestantDetails', () => {
     it('should allow admins to view any contestant', () => {
       const result = LeaderboardDomain.canViewContestantDetails(true, 'user1', 'user2');

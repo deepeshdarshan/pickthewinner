@@ -122,6 +122,31 @@ export const ScoringDomain = {
 
     return { totalPoints, breakdown };
   },
+
+  /**
+   * Sums awarded points per user from scored predictions.
+   * @param {Array<Record<string, unknown>>} predictions
+   * @returns {Record<string, number>}
+   */
+  aggregatePointsByUser(predictions) {
+    const totals = {};
+
+    for (const prediction of predictions) {
+      if (!prediction.scored) {
+        continue;
+      }
+
+      const userId = String(prediction.userId ?? '');
+
+      if (!userId) {
+        continue;
+      }
+
+      totals[userId] = (totals[userId] ?? 0) + Number(prediction.calculatedPoints ?? 0);
+    }
+
+    return totals;
+  },
 };
 
 /**

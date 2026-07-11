@@ -126,6 +126,43 @@ export const LeaderboardDomain = {
   },
 
   /**
+   * Ranks entries by tournament standings: points, accuracy, response time, name.
+   * @param {Array<Record<string, unknown>>} entries
+   * @returns {Array<Record<string, unknown>>}
+   */
+  rankEntriesByStandings(entries) {
+    const sorted = [...entries].sort((a, b) => {
+      const pointsA = Number(a.totalPoints ?? 0);
+      const pointsB = Number(b.totalPoints ?? 0);
+
+      if (pointsB !== pointsA) {
+        return pointsB - pointsA;
+      }
+
+      const accuracyA = Number(a.accuracy ?? 0);
+      const accuracyB = Number(b.accuracy ?? 0);
+
+      if (accuracyB !== accuracyA) {
+        return accuracyB - accuracyA;
+      }
+
+      const responseA = resolveResponseTimeForSort(a.averageResponseTimeMs);
+      const responseB = resolveResponseTimeForSort(b.averageResponseTimeMs);
+
+      if (responseA !== responseB) {
+        return responseA - responseB;
+      }
+
+      return String(a.displayName ?? '').localeCompare(String(b.displayName ?? ''));
+    });
+
+    return sorted.map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+    }));
+  },
+
+  /**
    * Calculates rank movement indicator.
    * @param {number|null} currentRank
    * @param {number|null} previousRank
@@ -233,6 +270,37 @@ export const LeaderboardDomain = {
   },
 
   /**
+   * Calculates average response time across all predictions with valid timestamps.
+   * @param {Array<Record<string, unknown>>} predictions
+   * @param {Map<string, Record<string, unknown>>} matchById
+   * @param {number} openHours
+   * @returns {number|null}
+   */
+  calculateAverageResponseTime(predictions, matchById, openHours) {
+    const responseTimes = [];
+
+    for (const prediction of predictions) {
+      const match = matchById.get(String(prediction.matchId ?? ''));
+      const kickoff = parseTimestamp(match?.kickoffUtc);
+      const submittedAt = parseTimestamp(prediction.submittedAt);
+
+      if (!kickoff || !submittedAt) {
+        continue;
+      }
+
+      const { opensAt } = MatchDomain.calculatePredictionWindow(kickoff, openHours, 10);
+      const responseMs = Math.max(0, submittedAt.getTime() - opensAt.getTime());
+      responseTimes.push(responseMs);
+    }
+
+    if (responseTimes.length === 0) {
+      return null;
+    }
+
+    return responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length;
+  },
+
+  /**
    * @param {number} rank
    * @param {number} totalPlayers
    * @returns {boolean}
@@ -300,3 +368,37 @@ export const LeaderboardDomain = {
     return isAdmin || viewerUserId === targetUserId;
   },
 };
+
+/**
+ * @param {unknown} value
+ * @returns {number}
+ */
+function resolveResponseTimeForSort(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+    return Infinity;
+  }
+
+  return Number(value);
+}
+
+/**
+ * @param {unknown} value
+ * @returns {Date|null}
+ */
+function parseTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof value.toDate === 'function') {
+    const date = value.toDate();
+    return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null;
+  }
+
+  const date = new Date(/** @type {string|number} */ (value));
+  return Number.isNaN(date.getTime()) ? null : date;
+}

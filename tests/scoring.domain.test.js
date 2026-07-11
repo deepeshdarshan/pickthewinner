@@ -200,4 +200,28 @@ describe('ScoringDomain', () => {
       assert.equal(config?.showPenaltyWinnerPoints, false);
     });
   });
+
+  describe('aggregatePointsByUser', () => {
+    it('should sum scored prediction points per user', () => {
+      const totals = ScoringDomain.aggregatePointsByUser([
+        { userId: 'user-a', scored: true, calculatedPoints: 20 },
+        { userId: 'user-a', scored: true, calculatedPoints: 20 },
+        { userId: 'user-b', scored: true, calculatedPoints: 10 },
+        { userId: 'user-c', scored: false, calculatedPoints: 15 },
+      ]);
+
+      assert.deepEqual(totals, {
+        'user-a': 40,
+        'user-b': 10,
+      });
+    });
+
+    it('should return empty object when no scored predictions exist', () => {
+      const totals = ScoringDomain.aggregatePointsByUser([
+        { userId: 'user-a', scored: false, calculatedPoints: 20 },
+      ]);
+
+      assert.deepEqual(totals, {});
+    });
+  });
 });

@@ -4,6 +4,7 @@
  */
 
 import { renderStatTileGrid } from '../../components/statistic-card.component.js';
+import { formatDurationMs } from '../../utils/time.util.js';
 import {
   RANK_MOVEMENT_ICONS,
   RANK_MOVEMENT_COLORS,
@@ -43,6 +44,7 @@ export function renderContestantStats(stats) {
     { label: 'Bonus Points', value: stats.bonusPoints },
     { label: 'Predictions Made', value: stats.predictionsSubmitted },
     { label: 'Remaining', value: stats.predictionsRemaining },
+    { label: 'Avg Response Time', value: formatDurationMs(stats.averageResponseTimeMs) },
   ])}
       </div>
     </div>

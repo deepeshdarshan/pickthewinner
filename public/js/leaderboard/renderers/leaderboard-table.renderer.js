@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { formatDurationMs } from '../../utils/time.util.js';
 
 /**
  * @typedef {Object} LeaderboardTableOptions
@@ -34,6 +35,7 @@ export function renderLeaderboardTable(entries, options = {}) {
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
+          <col class="ptw-leaderboard-table__stat">
         </colgroup>
         <thead class="sticky-top">
           <tr>
@@ -44,6 +46,7 @@ export function renderLeaderboardTable(entries, options = {}) {
             <th scope="col" class="text-center d-none d-lg-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Exact')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Accuracy')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Predicted', 'Matches')}</th>
+            <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Avg Response', 'Time')}</th>
           </tr>
         </thead>
         <tbody>
@@ -97,6 +100,9 @@ function renderLeaderboardRow(entry, options = {}) {
       </td>
       <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
         ${entry.matchesPredicted}/${entry.matchesPredicted + entry.matchesRemaining}
+      </td>
+      <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
+        ${escapeHtml(formatDurationMs(entry.averageResponseTimeMs))}
       </td>
     </tr>
   `;

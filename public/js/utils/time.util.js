@@ -77,3 +77,29 @@ export function msUntil(target) {
 
   return Math.max(0, date.getTime() - Date.now());
 }
+
+/**
+ * Formats a duration in milliseconds for display (e.g. "28 min", "1h 15m").
+ * @param {number|null|undefined} ms
+ * @returns {string}
+ */
+export function formatDurationMs(ms) {
+  if (ms === null || ms === undefined || !Number.isFinite(ms)) {
+    return '—';
+  }
+
+  const totalMinutes = Math.round(ms / 60000);
+
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}m`;
+}

@@ -6,6 +6,8 @@
 import { leaderboardRepository } from './leaderboard.repository.js';
 import { LeaderboardDomain } from '../domain/leaderboard.domain.js';
 import { listMatchesForContestant } from '../match/match.service.js';
+import { ScoringEngine } from '../scoring/scoring.service.js';
+import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { TournamentConfigurationService } from '../tournament/configuration/TournamentConfigurationService.js';
 import { Logger } from '../utils/logger.util.js';
 import { LEADERBOARD_EVENTS, emitLeaderboardEvent } from './leaderboard.events.js';
@@ -21,6 +23,7 @@ import { LEADERBOARD_EVENTS, emitLeaderboardEvent } from './leaderboard.events.j
  * @property {number} accuracy
  * @property {number} matchesPredicted
  * @property {number} matchesRemaining
+ * @property {number|null} averageResponseTimeMs
  * @property {number|null} previousRank
  * @property {string} movement
  * @property {string} displayName
@@ -41,6 +44,7 @@ import { LEADERBOARD_EVENTS, emitLeaderboardEvent } from './leaderboard.events.j
  * @property {number} accuracy
  * @property {number} predictionsSubmitted
  * @property {number} predictionsRemaining
+ * @property {number|null} averageResponseTimeMs
  * @property {string} movement
  */
 
@@ -92,51 +96,53 @@ class LeaderboardService {
 
       Logger.info('[LeaderboardService] Fetching leaderboard for tournament:', tournamentId);
 
-      // Get leaderboard cache with user points
-      const leaderboardCache = await leaderboardRepository.getLeaderboardCache(tournamentId);
+      const predictions = await leaderboardRepository.listPredictionsByTournament(tournamentId);
 
-      if (!leaderboardCache || !leaderboardCache.totals) {
-        Logger.warn('[LeaderboardService] No leaderboard data found');
+      if (predictions.length === 0) {
+        Logger.warn('[LeaderboardService] No predictions found for tournament');
         return [];
       }
 
-      // Get all predictions to calculate detailed statistics
-      const predictions = await leaderboardRepository.listPredictionsByTournament(tournamentId);
       const activeMatches = await listMatchesForContestant({ tournamentId });
-
-      // Get unique user IDs
-      const userIds = Object.keys(leaderboardCache.totals);
+      const pointsByUser = ScoringDomain.aggregatePointsByUser(predictions);
+      const userIds = [...new Set(predictions.map((prediction) => String(prediction.userId ?? '')).filter(Boolean))];
 
       if (userIds.length === 0) {
         return [];
       }
 
-      // Fetch user data
+      await TournamentConfigurationService.load(tournamentId);
+      const openHours = TournamentConfigurationService.getPredictionOpenHoursBeforeKickoff();
+
       const users = await leaderboardRepository.getUsersByIds(userIds);
       const matchById = new Map(activeMatches.map((match) => [match.id, match]));
 
-      // Build leaderboard entries
       const entries = userIds.map((userId) => {
-        const userPredictions = predictions.filter((p) => p.userId === userId);
+        const userPredictions = predictions.filter((prediction) => prediction.userId === userId);
         const stats = LeaderboardDomain.calculateContestantStats(userPredictions, matchById);
         const participation = LeaderboardDomain.calculatePredictionParticipation(
           userPredictions,
           activeMatches,
         );
+        const averageResponseTimeMs = LeaderboardDomain.calculateAverageResponseTime(
+          userPredictions,
+          matchById,
+          openHours,
+        );
 
         const user = users[userId] || {};
-        const totalPoints = leaderboardCache.totals[userId] || 0;
 
         return {
           userId,
-          totalPoints,
+          totalPoints: pointsByUser[userId] ?? 0,
           correctWinnerCount: stats.correctWinnerCount,
           exactScoreCount: stats.exactScoreCount,
-          bonusPoints: 0, // TODO: Implement bonus points if needed
+          bonusPoints: 0,
           accuracy: stats.accuracy,
           matchesPredicted: participation.matchesPredicted,
           matchesRemaining: participation.matchesRemaining,
-          previousRank: null, // TODO: Implement historical rank tracking
+          averageResponseTimeMs,
+          previousRank: null,
           displayName: user.name || user.displayName || user.email?.split('@')[0] || 'Unknown User',
           photoURL: user.photoURL || null,
           country: user.country || null,
@@ -144,12 +150,7 @@ class LeaderboardService {
         };
       });
 
-      // Load tournament configuration for tie-breaker rules
-      await TournamentConfigurationService.load(tournamentId);
-      const tieBreakerConfig = TournamentConfigurationService.getTieBreakerConfiguration();
-
-      // Rank entries with tie-breakers
-      const rankedEntries = LeaderboardDomain.rankEntriesWithTieBreakers(entries, tieBreakerConfig);
+      const rankedEntries = LeaderboardDomain.rankEntriesByStandings(entries);
 
       // Calculate movement
       const entriesWithMovement = rankedEntries.map((entry) => ({
@@ -199,6 +200,7 @@ class LeaderboardService {
           accuracy: 0,
           predictionsSubmitted: 0,
           predictionsRemaining: 0,
+          averageResponseTimeMs: null,
           movement: 'new',
         };
       }
@@ -217,6 +219,7 @@ class LeaderboardService {
         accuracy: userEntry.accuracy,
         predictionsSubmitted: userEntry.matchesPredicted,
         predictionsRemaining: userEntry.matchesRemaining,
+        averageResponseTimeMs: userEntry.averageResponseTimeMs,
         movement: userEntry.movement,
       };
     } catch (error) {
@@ -313,6 +316,13 @@ class LeaderboardService {
    */
   async refreshLeaderboard(tournamentId, currentUserId = null, options = {}) {
     this.clearCache();
+
+    try {
+      await ScoringEngine.rebuildLeaderboardCache(tournamentId);
+    } catch (error) {
+      Logger.error('[LeaderboardService] rebuildLeaderboardCache failed:', error);
+    }
+
     const entries = await this.getTournamentLeaderboard(tournamentId, currentUserId, false, options);
     emitLeaderboardEvent(LEADERBOARD_EVENTS.REFRESHED, { tournamentId, entries });
     return entries;

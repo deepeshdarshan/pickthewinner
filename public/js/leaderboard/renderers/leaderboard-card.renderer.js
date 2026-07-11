@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { formatDurationMs } from '../../utils/time.util.js';
 import {
   RANK_MOVEMENT,
   RANK_MOVEMENT_ICONS,
@@ -79,6 +80,12 @@ function renderLeaderboardCard(entry, options = {}) {
             <div class="ptw-leaderboard-card__stat">
               <div class="ptw-leaderboard-card__stat-label">Exact Scores</div>
               <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--info">${entry.exactScoreCount}</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Avg Response Time</div>
+              <div class="ptw-leaderboard-card__stat-value">${escapeHtml(formatDurationMs(entry.averageResponseTimeMs))}</div>
             </div>
           </div>
         </div>
