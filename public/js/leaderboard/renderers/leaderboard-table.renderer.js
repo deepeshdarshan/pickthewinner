@@ -5,6 +5,7 @@
 
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDurationMs } from '../../utils/time.util.js';
+import { getRankRowHighlightClass, renderRankBadge } from '../../shared/badges/rank-badge.component.js';
 
 /**
  * @typedef {Object} LeaderboardTableOptions
@@ -65,7 +66,7 @@ export function renderLeaderboardTable(entries, options = {}) {
  */
 function renderLeaderboardRow(entry, options = {}) {
   const { linkProfiles = false } = options;
-  const rankBadgeClass = getRankBadgeClass(entry.rank);
+  const rowHighlightClass = getRankRowHighlightClass(entry.rank);
   const nameHtml = linkProfiles
     ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link fw-semibold text-white text-decoration-none text-truncate d-block" data-route title="View profile">
         ${escapeHtml(entry.displayName)}
@@ -73,9 +74,9 @@ function renderLeaderboardRow(entry, options = {}) {
     : `<span class="fw-semibold text-truncate d-block">${escapeHtml(entry.displayName)}</span>`;
 
   return `
-    <tr data-user-id="${escapeHtml(entry.userId)}">
+    <tr data-user-id="${escapeHtml(entry.userId)}"${rowHighlightClass ? ` class="${rowHighlightClass.trim()}"` : ''}>
       <td class="ptw-leaderboard-table__rank">
-        <span class="badge ${rankBadgeClass}">${entry.rank}</span>
+        ${renderRankBadge(entry.rank, { variant: 'table' })}
       </td>
       <td class="ptw-leaderboard-table__contestant">
         <div class="d-flex align-items-center gap-2 min-w-0">
@@ -106,18 +107,6 @@ function renderLeaderboardRow(entry, options = {}) {
       </td>
     </tr>
   `;
-}
-
-/**
- * Gets badge class for rank.
- * @param {number} rank
- * @returns {string}
- */
-function getRankBadgeClass(rank) {
-  if (rank === 1) return 'bg-warning text-dark';
-  if (rank === 2) return 'bg-secondary';
-  if (rank === 3) return 'bg-info text-dark';
-  return 'bg-dark';
 }
 
 /**

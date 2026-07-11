@@ -9,6 +9,7 @@ import { ADMIN_PAGE_SHELL_CLASSES } from '../../../components/admin-page-shell.c
 import { renderEmptyState } from '../../../components/empty-state.component.js';
 import { renderPagination } from '../../../components/pagination.component.js';
 import { renderAvatar } from '../../../shared/avatar/avatar.component.js';
+import { getRankRowHighlightClass, renderRankBadge } from '../../../shared/badges/rank-badge.component.js';
 import {
   ADMIN_PREDICTION_HISTORY_MESSAGES,
   ADMIN_PREDICTION_HISTORY_SORT_FIELD,
@@ -45,7 +46,7 @@ export function renderAdminPredictionHistoryListPage(data, query) {
       ${renderListFilters(query)}
 
       ${hasFilteredRows
-    ? renderContestantTable(data.pageRows, startRecord)
+    ? renderContestantTable(data.pageRows)
     : renderEmptyState({
       title: hasRows ? 'No Matching Contestants' : 'No Contestants Yet',
       message: hasRows
@@ -131,30 +132,31 @@ function renderListFilters(query) {
 
 /**
  * @param {AdminContestantHistoryRow[]} rows
- * @param {number} startIndex
  * @returns {string}
  */
-function renderContestantTable(rows, startIndex = 1) {
+function renderContestantTable(rows) {
   return `
     <div class="card ptw-card">
       <div class="card-body p-0">
-        <div class="table-responsive">
+        <div class="d-none d-lg-block table-responsive">
           <table class="table table-hover align-middle mb-0 ptw-table ptw-admin-prediction-history-table" aria-label="Contestants with predictions">
             <thead>
               <tr>
-                <th scope="col" class="ptw-prediction-table__index">#</th>
+                <th scope="col" class="ptw-admin-prediction-history-table__rank">Rank</th>
                 <th scope="col">Contestant</th>
-                <th scope="col">Tournament(s) Joined</th>
-                <th scope="col">Predictions Submitted</th>
                 <th scope="col">Current Points</th>
-                <th scope="col">Current Rank</th>
+                <th scope="col">Predictions Submitted</th>
+                <th scope="col">Tournament(s) Joined</th>
                 <th scope="col" class="text-end">Action</th>
               </tr>
             </thead>
             <tbody>
-              ${rows.map((row, index) => renderContestantRow(row, startIndex + index)).join('')}
+              ${rows.map((row) => renderContestantRow(row)).join('')}
             </tbody>
           </table>
+        </div>
+        <div class="d-lg-none">
+          ${renderContestantCards(rows)}
         </div>
       </div>
     </div>
@@ -162,32 +164,115 @@ function renderContestantTable(rows, startIndex = 1) {
 }
 
 /**
- * @param {AdminContestantHistoryRow} row
- * @param {number} rowNumber
+ * @param {AdminContestantHistoryRow[]} rows
  * @returns {string}
  */
-function renderContestantRow(row, rowNumber) {
-  const historyRoute = adminPredictionHistoryContestantRoute(row.uid);
+export function renderContestantCards(rows) {
+  if (rows.length === 0) {
+    return '';
+  }
 
   return `
-    <tr
-      class="ptw-admin-prediction-history__row"
+    <div class="ptw-leaderboard-cards" aria-label="Contestant prediction history cards">
+      ${rows.map((row) => renderContestantCard(row)).join('')}
+    </div>
+  `;
+}
+
+/**
+ * @param {AdminContestantHistoryRow} row
+ * @returns {string}
+ */
+function renderContestantCard(row) {
+  const historyRoute = adminPredictionHistoryContestantRoute(row.uid);
+  const rowHighlightClass = getRankRowHighlightClass(row.currentRank);
+
+  return `
+    <article
+      class="card ptw-card ptw-leaderboard-card ptw-admin-prediction-history__row${rowHighlightClass}"
       data-aph-row="${escapeHtml(row.uid)}"
       tabindex="0"
       role="link"
       aria-label="View prediction history for ${escapeHtml(row.name)}"
     >
-      <td class="ptw-prediction-table__index">${rowNumber}</td>
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          ${renderRankBadge(row.currentRank, { variant: 'featured', showLabel: true })}
+          ${renderAvatar({ photoURL: row.photoURL, size: 48, className: 'ptw-avatar flex-shrink-0' })}
+          <div class="ms-3 flex-grow-1 min-w-0">
+            <h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(row.name)}</h6>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Current Points</div>
+              <div class="ptw-leaderboard-card__stat-value ptw-leaderboard-card__stat-value--primary">${formatNullableNumber(row.currentPoints)}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Predictions</div>
+              <div class="ptw-leaderboard-card__stat-value">${row.predictionsSubmitted}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="ptw-leaderboard-card__stat">
+              <div class="ptw-leaderboard-card__stat-label">Tournaments Joined</div>
+              <div class="ptw-leaderboard-card__stat-value">${row.tournamentsJoined}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ptw-leaderboard-card__footer">
+          <a
+            href="${escapeHtml(historyRoute)}"
+            class="btn btn-sm btn-outline-primary w-100"
+            data-route
+            data-aph-view="${escapeHtml(row.uid)}"
+          >
+            View History
+          </a>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+/**
+ * @param {AdminContestantHistoryRow} row
+ * @returns {string}
+ */
+function renderContestantRow(row) {
+  const historyRoute = adminPredictionHistoryContestantRoute(row.uid);
+  const rowHighlightClass = getRankRowHighlightClass(row.currentRank);
+
+  return `
+    <tr
+      class="ptw-admin-prediction-history__row${rowHighlightClass}"
+      data-aph-row="${escapeHtml(row.uid)}"
+      tabindex="0"
+      role="link"
+      aria-label="View prediction history for ${escapeHtml(row.name)}"
+    >
+      <td class="ptw-admin-prediction-history-table__rank">
+        ${renderRankBadge(row.currentRank, { variant: 'table' })}
+      </td>
       <td>
         <div class="d-flex align-items-center gap-2">
           ${renderAvatar({ photoURL: row.photoURL, size: 36 })}
           <span class="fw-semibold">${escapeHtml(row.name)}</span>
         </div>
       </td>
-      <td>${row.tournamentsJoined}</td>
+      <td>
+        <span class="badge bg-primary">${formatNullableNumber(row.currentPoints)}</span>
+      </td>
       <td>${row.predictionsSubmitted}</td>
-      <td>${formatNullableNumber(row.currentPoints)}</td>
-      <td>${formatNullableNumber(row.currentRank)}</td>
+      <td>${row.tournamentsJoined}</td>
       <td class="text-end">
         <a
           href="${escapeHtml(historyRoute)}"

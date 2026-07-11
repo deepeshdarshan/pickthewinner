@@ -5465,6 +5465,11 @@
   cursor: pointer;
 }
 
+.ptw-admin-prediction-history__row.ptw-leaderboard-card:focus-visible {
+  outline: 2px solid var(--ptw-color-primary);
+  outline-offset: 2px;
+}
+
 .ptw-admin-prediction-history__row:focus-visible {
   outline: 2px solid var(--ptw-color-primary);
   outline-offset: -2px;

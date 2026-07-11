@@ -4,6 +4,7 @@ import { AdminPredictionHistoryDomain } from '../public/js/domain/admin-predicti
 import {
   ADMIN_PREDICTION_HISTORY_SORT_FIELD,
 } from '../public/js/prediction/admin/admin-prediction-history.constants.js';
+import { renderContestantCards } from '../public/js/prediction/admin/renderers/admin-prediction-history-list.renderer.js';
 
 /** @type {import('../public/js/domain/admin-prediction-history.domain.js').AdminContestantHistoryRow[]} */
 const SAMPLE_ROWS = [
@@ -84,5 +85,18 @@ describe('admin-prediction-history.domain', () => {
     assert.equal(result.pageRows.length, 2);
     assert.equal(result.pageRows[0].name, 'Alice');
     assert.equal(result.pageRows[1].name, 'Bob');
+  });
+});
+
+describe('admin-prediction-history-list.renderer mobile cards', () => {
+  it('renders leaderboard-style cards for contestants', () => {
+    const html = renderContestantCards(SAMPLE_ROWS);
+
+    assert.match(html, /ptw-leaderboard-cards/);
+    assert.match(html, /ptw-leaderboard-card/);
+    assert.match(html, /View History/);
+    assert.match(html, /data-aph-row="u1"/);
+    assert.match(html, /ptw-rank-badge--gold/);
+    assert.match(html, /ptw-rank-badge--featured/);
   });
 });

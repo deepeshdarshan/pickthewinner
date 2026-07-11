@@ -9,6 +9,7 @@ import {
   RANK_MOVEMENT,
   RANK_MOVEMENT_ICONS,
 } from '../leaderboard.constants.js';
+import { getRankRowHighlightClass, renderRankBadge } from '../../shared/badges/rank-badge.component.js';
 
 /**
  * Renders leaderboard as card list for mobile.
@@ -38,17 +39,17 @@ export function renderLeaderboardCards(entries, options = {}) {
  */
 function renderLeaderboardCard(entry, options = {}) {
   const { linkProfiles = false } = options;
-  const rankBadgeClass = getRankBadgeClass(entry.rank);
+  const rowHighlightClass = getRankRowHighlightClass(entry.rank);
   const nameHtml = linkProfiles
     ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-leaderboard-card__name mb-0 d-inline-block text-decoration-none" data-route title="View profile">
         ${escapeHtml(entry.displayName)}
       </a>`
     : `<h6 class="ptw-leaderboard-card__name mb-0">${escapeHtml(entry.displayName)}</h6>`;
   return `
-    <div class="card ptw-card ptw-leaderboard-card mb-3" data-user-id="${escapeHtml(entry.userId)}">
+    <div class="card ptw-card ptw-leaderboard-card mb-3${rowHighlightClass}" data-user-id="${escapeHtml(entry.userId)}">
       <div class="card-body">
         <div class="d-flex align-items-center mb-3">
-          <span class="badge ptw-leaderboard-card__rank ${rankBadgeClass}">${entry.rank}</span>
+          ${renderRankBadge(entry.rank, { variant: 'featured', showLabel: true })}
           ${renderAvatar(entry.photoURL, entry.displayName)}
           <div class="ms-3 flex-grow-1 min-w-0">
             ${nameHtml}
@@ -117,18 +118,6 @@ function renderMovementIndicator(movement) {
   }
 
   return `<span class="ptw-leaderboard-card__movement ptw-leaderboard-card__movement--${movement}" aria-hidden="true">${movementIcon}</span>`;
-}
-
-/**
- * Gets badge class for rank.
- * @param {number} rank
- * @returns {string}
- */
-function getRankBadgeClass(rank) {
-  if (rank === 1) return 'ptw-leaderboard-card__rank--gold';
-  if (rank === 2) return 'ptw-leaderboard-card__rank--silver';
-  if (rank === 3) return 'ptw-leaderboard-card__rank--bronze';
-  return 'ptw-leaderboard-card__rank--default';
 }
 
 /**
