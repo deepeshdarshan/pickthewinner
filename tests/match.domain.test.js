@@ -57,6 +57,43 @@ describe('MatchDomain', () => {
     assert.equal(MatchDomain.canPublishResult(MATCH_STATUS.LIVE), false);
   });
 
+  describe('hadPredictionWindowOpened', () => {
+    it('should return true when status progressed beyond published', () => {
+      assert.equal(
+        MatchDomain.hadPredictionWindowOpened({ status: MATCH_STATUS.PREDICTION_OPEN }),
+        true,
+      );
+      assert.equal(
+        MatchDomain.hadPredictionWindowOpened({ status: MATCH_STATUS.RESULT_PUBLISHED }),
+        true,
+      );
+    });
+
+    it('should return false for upcoming published matches', () => {
+      assert.equal(
+        MatchDomain.hadPredictionWindowOpened({ status: MATCH_STATUS.PUBLISHED }),
+        false,
+      );
+    });
+
+    it('should return true when manual override opened predictions', () => {
+      assert.equal(
+        MatchDomain.hadPredictionWindowOpened({
+          status: MATCH_STATUS.PUBLISHED,
+          predictionOverride: { status: MATCH_STATUS.PREDICTION_OPEN },
+        }),
+        true,
+      );
+      assert.equal(
+        MatchDomain.hadPredictionWindowOpened({
+          status: MATCH_STATUS.PUBLISHED,
+          predictionOverride: { status: MATCH_STATUS.PREDICTION_LOCKED },
+        }),
+        true,
+      );
+    });
+  });
+
   describe('resolveMatchCountdownPhase', () => {
     const kickoff = new Date('2026-07-10T18:00:00Z');
     const openHours = 12;

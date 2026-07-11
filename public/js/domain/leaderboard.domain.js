@@ -201,6 +201,18 @@ export const LeaderboardDomain = {
   },
 
   /**
+   * Keeps only finished matches where the prediction window had opened.
+   * @param {Array<Record<string, unknown>>} matches
+   * @returns {Array<Record<string, unknown>>}
+   */
+  filterParticipationEligibleMatches(matches) {
+    return matches.filter((match) => (
+      Boolean(match.result?.published)
+      && MatchDomain.hadPredictionWindowOpened(match)
+    ));
+  },
+
+  /**
    * Calculates how many active matches a contestant has predicted vs still pending.
    * @param {Array<Record<string, unknown>>} userPredictions
    * @param {Array<Record<string, unknown>>} activeMatches

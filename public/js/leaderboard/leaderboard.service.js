@@ -104,6 +104,7 @@ class LeaderboardService {
       }
 
       const activeMatches = await listMatchesForContestant({ tournamentId });
+      const participationMatches = LeaderboardDomain.filterParticipationEligibleMatches(activeMatches);
       const pointsByUser = ScoringDomain.aggregatePointsByUser(predictions);
       const userIds = [...new Set(predictions.map((prediction) => String(prediction.userId ?? '')).filter(Boolean))];
 
@@ -122,7 +123,7 @@ class LeaderboardService {
         const stats = LeaderboardDomain.calculateContestantStats(userPredictions, matchById);
         const participation = LeaderboardDomain.calculatePredictionParticipation(
           userPredictions,
-          activeMatches,
+          participationMatches,
         );
         const averageResponseTimeMs = LeaderboardDomain.calculateAverageResponseTime(
           userPredictions,

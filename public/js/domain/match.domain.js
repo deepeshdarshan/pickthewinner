@@ -165,6 +165,30 @@ export const MatchDomain = {
   },
 
   /**
+   * Whether the prediction window was opened at some point in the match lifecycle.
+   * @param {{ status?: string, predictionOverride?: { status?: string } }} match
+   * @returns {boolean}
+   */
+  hadPredictionWindowOpened(match) {
+    const status = this.normalizeStatus(String(match.status ?? ''));
+    const postPublishedStatuses = new Set([
+      MATCH_STATUS.PREDICTION_OPEN,
+      MATCH_STATUS.PREDICTION_LOCKED,
+      MATCH_STATUS.LIVE,
+      MATCH_STATUS.COMPLETED,
+      MATCH_STATUS.RESULT_PUBLISHED,
+    ]);
+
+    if (postPublishedStatuses.has(status)) {
+      return true;
+    }
+
+    const override = match.predictionOverride?.status;
+    return override === MATCH_STATUS.PREDICTION_OPEN
+      || override === MATCH_STATUS.PREDICTION_LOCKED;
+  },
+
+  /**
    * Resolves the match countdown phase, target, and label for lifecycle-aware timers.
    * @param {{
    *   kickoffUtc: Date,

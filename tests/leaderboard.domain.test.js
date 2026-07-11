@@ -143,38 +143,91 @@ describe('LeaderboardDomain', () => {
   });
 
   describe('calculatePredictionParticipation', () => {
-    const activeMatches = [
-      { id: 'm1', status: MATCH_STATUS.PREDICTION_OPEN, visible: true },
-      { id: 'm2', status: MATCH_STATUS.RESULT_PUBLISHED, visible: true },
-      { id: 'm3', status: MATCH_STATUS.PUBLISHED, visible: true },
+    const eligibleMatches = [
+      {
+        id: 'm1',
+        status: MATCH_STATUS.RESULT_PUBLISHED,
+        result: { published: true },
+      },
+      {
+        id: 'm2',
+        status: MATCH_STATUS.RESULT_PUBLISHED,
+        result: { published: true },
+      },
     ];
 
-    it('should count only predictions on active contestant-visible matches', () => {
+    it('should count only predictions on eligible matches', () => {
       const participation = LeaderboardDomain.calculatePredictionParticipation(
         [
           { matchId: 'm1' },
           { matchId: 'm2' },
           { matchId: 'archived-match' },
         ],
-        activeMatches,
+        eligibleMatches,
       );
 
       assert.equal(participation.matchesPredicted, 2);
-      assert.equal(participation.matchesRemaining, 1);
+      assert.equal(participation.matchesRemaining, 0);
     });
 
-    it('should return zero remaining when all active matches are predicted', () => {
+    it('should return zero remaining when all eligible matches are predicted', () => {
       const participation = LeaderboardDomain.calculatePredictionParticipation(
         [
           { matchId: 'm1' },
           { matchId: 'm2' },
-          { matchId: 'm3' },
         ],
-        activeMatches,
+        eligibleMatches,
       );
 
-      assert.equal(participation.matchesPredicted, 3);
+      assert.equal(participation.matchesPredicted, 2);
       assert.equal(participation.matchesRemaining, 0);
+    });
+
+    it('should count missed eligible matches as remaining', () => {
+      const participation = LeaderboardDomain.calculatePredictionParticipation(
+        [{ matchId: 'm1' }],
+        eligibleMatches,
+      );
+
+      assert.equal(participation.matchesPredicted, 1);
+      assert.equal(participation.matchesRemaining, 1);
+    });
+  });
+
+  describe('filterParticipationEligibleMatches', () => {
+    it('should include result_published matches with published results', () => {
+      const filtered = LeaderboardDomain.filterParticipationEligibleMatches([
+        { id: 'm1', status: MATCH_STATUS.RESULT_PUBLISHED, result: { published: true } },
+        { id: 'm2', status: MATCH_STATUS.PUBLISHED, visible: true },
+        {
+          id: 'm3',
+          status: MATCH_STATUS.PREDICTION_OPEN,
+          result: { published: true },
+        },
+      ]);
+
+      assert.deepEqual(filtered.map((match) => match.id), ['m1', 'm3']);
+    });
+
+    it('should exclude upcoming published matches without published results', () => {
+      const filtered = LeaderboardDomain.filterParticipationEligibleMatches([
+        { id: 'm1', status: MATCH_STATUS.PUBLISHED, visible: true },
+        { id: 'm2', status: MATCH_STATUS.PREDICTION_OPEN, visible: true },
+      ]);
+
+      assert.equal(filtered.length, 0);
+    });
+
+    it('should exclude finished matches where prediction window never opened', () => {
+      const filtered = LeaderboardDomain.filterParticipationEligibleMatches([
+        {
+          id: 'm1',
+          status: MATCH_STATUS.PUBLISHED,
+          result: { published: true },
+        },
+      ]);
+
+      assert.equal(filtered.length, 0);
     });
   });
 
