@@ -2882,12 +2882,8 @@
   }
 
   .ptw-prediction-form__match-hero-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: var(--ptw-space-3);
-  }
-
-  .ptw-prediction-form__match-center {
-    order: -1;
   }
 
   .ptw-prediction-form__points-grid,
