@@ -49,6 +49,48 @@ class PredictionHistoryRepository extends BaseFirestoreService {
   }
 
   /**
+   * Aggregates prediction counts and tournament participation by user.
+   * @returns {Promise<Map<string, { predictionsSubmitted: number, tournamentIds: Set<string> }>>}
+   */
+  async aggregateByUser() {
+    try {
+      await ensureFirestoreOnline();
+
+      const snapshot = await getDocs(collection(db, this.collectionName));
+      /** @type {Map<string, { predictionsSubmitted: number, tournamentIds: Set<string> }>} */
+      const aggregates = new Map();
+
+      for (const item of snapshot.docs) {
+        const data = item.data();
+        const userId = String(data.userId ?? '').trim();
+
+        if (!userId) {
+          continue;
+        }
+
+        const existing = aggregates.get(userId) ?? {
+          predictionsSubmitted: 0,
+          tournamentIds: new Set(),
+        };
+
+        existing.predictionsSubmitted += 1;
+
+        const tournamentId = String(data.tournamentId ?? '').trim();
+        if (tournamentId) {
+          existing.tournamentIds.add(tournamentId);
+        }
+
+        aggregates.set(userId, existing);
+      }
+
+      return aggregates;
+    } catch (error) {
+      Logger.error('[PredictionHistoryRepository] aggregateByUser failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Gets a single prediction by ID.
    * @param {string} predictionId
    * @returns {Promise<Record<string, unknown>|null>}

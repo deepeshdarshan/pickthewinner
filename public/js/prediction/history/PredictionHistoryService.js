@@ -50,6 +50,10 @@ import { Logger } from '../../utils/logger.util.js';
  * @property {import('../../domain/prediction-history.domain.js').LifecycleStep[]} lifecycle
  */
 
+/**
+ * @typedef {import('./prediction-history.validator.js').PredictionHistoryAccessOptions} PredictionHistoryAccessOptions
+ */
+
 export class PredictionHistoryService {
   constructor() {
     /** @type {Map<string, Record<string, unknown>>} */
@@ -71,10 +75,11 @@ export class PredictionHistoryService {
    * @param {string} userId
    * @param {string} authUserId
    * @param {PredictionHistoryQueryParams} queryParams
+   * @param {PredictionHistoryAccessOptions} [accessOptions]
    * @returns {Promise<HistoryPageData>}
    */
-  async getHistoryPageData(userId, authUserId, queryParams) {
-    const access = validateUserAccess(authUserId, userId);
+  async getHistoryPageData(userId, authUserId, queryParams, accessOptions = {}) {
+    const access = validateUserAccess(authUserId, userId, accessOptions);
     if (!access.valid) {
       throw createHistoryError(access.error ?? PREDICTION_HISTORY_MESSAGES.PERMISSION_DENIED, 'permission');
     }
@@ -140,10 +145,11 @@ export class PredictionHistoryService {
    * @param {string} userId
    * @param {string} authUserId
    * @param {string} predictionId
+   * @param {PredictionHistoryAccessOptions} [accessOptions]
    * @returns {Promise<PredictionDetailData>}
    */
-  async getPredictionDetail(userId, authUserId, predictionId) {
-    const access = validateUserAccess(authUserId, userId);
+  async getPredictionDetail(userId, authUserId, predictionId, accessOptions = {}) {
+    const access = validateUserAccess(authUserId, userId, accessOptions);
     if (!access.valid) {
       throw createHistoryError(access.error ?? PREDICTION_HISTORY_MESSAGES.PERMISSION_DENIED, 'permission');
     }
@@ -153,7 +159,7 @@ export class PredictionHistoryService {
     }
 
     const prediction = await predictionHistoryRepository.getById(predictionId);
-    const ownership = validatePredictionOwnership(prediction, userId);
+    const ownership = validatePredictionOwnership(prediction, userId, accessOptions);
 
     if (!ownership.valid) {
       throw createHistoryError(ownership.error ?? PREDICTION_HISTORY_MESSAGES.NOT_FOUND, 'not_found');

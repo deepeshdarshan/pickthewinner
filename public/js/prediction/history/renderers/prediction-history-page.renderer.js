@@ -29,14 +29,49 @@ import { renderHistoryTable } from './prediction-history-table.renderer.js';
  */
 
 /**
+ * @typedef {Object} PredictionHistoryPageContext
+ * @property {string} shellClasses
+ * @property {string} baseRoute
+ * @property {string} listTitle
+ * @property {string} listSubtitle
+ * @property {string} detailTitle
+ * @property {string} detailSubtitle
+ * @property {string} backHref
+ * @property {string} backLabel
+ */
+
+/** @type {PredictionHistoryPageContext} */
+const DEFAULT_PAGE_CONTEXT = {
+  shellClasses: CONTESTANT_PAGE_SHELL_CLASSES,
+  baseRoute: PREDICTION_HISTORY_ROUTES.LIST,
+  listTitle: 'Prediction History',
+  listSubtitle: 'Review your predictions and track your performance',
+  detailTitle: 'Prediction Details',
+  detailSubtitle: 'Review your prediction and scoring breakdown',
+  backHref: PREDICTION_HISTORY_ROUTES.LIST,
+  backLabel: 'Back to History',
+};
+
+/**
+ * @param {Partial<PredictionHistoryPageContext>} [overrides]
+ * @returns {PredictionHistoryPageContext}
+ */
+function resolvePageContext(overrides = {}) {
+  return { ...DEFAULT_PAGE_CONTEXT, ...overrides };
+}
+
+/**
+ * @param {Partial<PredictionHistoryPageContext>} [context]
  * @returns {string}
  */
-export function renderHistoryLoadingState() {
+export function renderHistoryLoadingState(context) {
+  const resolved = resolvePageContext(context);
+
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+    <div class="${resolved.shellClasses}">
       ${renderContestantPageHeader({
-        title: 'Prediction History',
-        subtitle: 'Review your predictions and track your performance',
+        title: resolved.listTitle,
+        subtitle: resolved.listSubtitle,
       })}
       ${renderSkeletonCardGrid(3)}
     </div>
@@ -46,9 +81,11 @@ export function renderHistoryLoadingState() {
 /**
  * @param {HistoryPageData} data
  * @param {PredictionHistoryQueryParams} params
+ * @param {Partial<PredictionHistoryPageContext>} [context]
  * @returns {string}
  */
-export function renderHistoryPage(data, params) {
+export function renderHistoryPage(data, params, context) {
+  const resolved = resolvePageContext(context);
   const hasAnyPredictions = data.allItems.length > 0;
   const hasFilteredResults = data.pageItems.length > 0;
   const isArchivedScope = params.scope === PREDICTION_HISTORY_SCOPE.ARCHIVED;
@@ -56,8 +93,13 @@ export function renderHistoryPage(data, params) {
     ? PREDICTION_HISTORY_MESSAGES.NO_PREDICTIONS_ARCHIVED
     : PREDICTION_HISTORY_MESSAGES.NO_PREDICTIONS_ACTIVE;
 
+  const startRecord = data.totalRecords === 0 ? 0 : ((data.currentPage - 1) * data.pageSize) + 1;
+  const endRecord = Math.min(data.currentPage * data.pageSize, data.totalRecords);
+
   const listContent = hasFilteredResults
-    ? renderHistoryListContent(data.pageItems, params.view)
+    ? renderHistoryListContent(data.pageItems, params.view, {
+      startIndex: data.totalRecords === 0 ? 0 : startRecord,
+    })
     : renderEmptyState({
       title: hasAnyPredictions ? 'No Matching Predictions' : 'No Predictions Yet',
       message: hasAnyPredictions
@@ -66,18 +108,16 @@ export function renderHistoryPage(data, params) {
       icon: hasAnyPredictions ? 'bi-funnel' : 'bi-bullseye',
     });
 
-  const startRecord = data.totalRecords === 0 ? 0 : ((data.currentPage - 1) * data.pageSize) + 1;
-  const endRecord = Math.min(data.currentPage * data.pageSize, data.totalRecords);
-  const basePath = `${PREDICTION_HISTORY_ROUTES.LIST}${buildHistoryQueryString({ ...params, page: undefined })}`;
+  const basePath = `${resolved.baseRoute}${buildHistoryQueryString({ ...params, page: undefined })}`;
   const pageSizeOptions = PREDICTION_HISTORY_PAGE_SIZE_OPTIONS.map((size) => `
     <option value="${size}"${data.pageSize === size ? ' selected' : ''}>${size} / page</option>
   `).join('');
 
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-prediction-history">
+    <div class="${resolved.shellClasses} ptw-prediction-history">
       ${renderContestantPageHeader({
-        title: 'Prediction History',
-        subtitle: 'Review your predictions and track your performance',
+        title: resolved.listTitle,
+        subtitle: resolved.listSubtitle,
       })}
 
       ${renderHistoryScopeTabs(params.scope, data.scopeCounts)}
@@ -168,14 +208,15 @@ export function renderHistoryScopeTabs(activeScope, scopeCounts) {
 /**
  * @param {import('../../../domain/prediction-history.domain.js').HistoryItem[]} items
  * @param {string} view
+ * @param {{ startIndex?: number }} [options]
  * @returns {string}
  */
-export function renderHistoryListContent(items, view) {
+export function renderHistoryListContent(items, view, options = {}) {
   switch (view) {
     case PREDICTION_HISTORY_VIEW.CARD:
       return renderHistoryCardList(items);
     case PREDICTION_HISTORY_VIEW.TABLE:
-      return renderHistoryTable(items);
+      return renderHistoryTable(items, options);
     case PREDICTION_HISTORY_VIEW.TIMELINE:
     default:
       return renderHistoryTimeline(items);
@@ -184,14 +225,17 @@ export function renderHistoryListContent(items, view) {
 
 /**
  * @param {string} message
+ * @param {Partial<PredictionHistoryPageContext>} [context]
  * @returns {string}
  */
-export function renderHistoryErrorState(message) {
+export function renderHistoryErrorState(message, context) {
+  const resolved = resolvePageContext(context);
+
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
+    <div class="${resolved.shellClasses}">
       ${renderContestantPageHeader({
-        title: 'Prediction History',
-        subtitle: 'Review your predictions and track your performance',
+        title: resolved.listTitle,
+        subtitle: resolved.listSubtitle,
       })}
       ${renderEmptyState({
         title: 'Unable to Load History',

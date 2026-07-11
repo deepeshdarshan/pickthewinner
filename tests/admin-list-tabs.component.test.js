@@ -86,10 +86,10 @@ describe('sidebar-nav.config admin sections', () => {
     ));
 
     assert.ok(matchGroup && matchGroup.type === 'group');
-    assert.equal(matchGroup.children.length, 2);
+    assert.equal(matchGroup.children.length, 3);
     assert.deepEqual(
       matchGroup.children.map((child) => child.path),
-      ['/admin/matches', '/admin/predictions'],
+      ['/admin/matches', '/admin/predictions', '/admin/prediction-history'],
     );
     assert.ok(!matchGroup.children.some((child) => child.path.includes('archived')));
   });
@@ -119,5 +119,6 @@ describe('sidebar-nav.config active path matching', () => {
 
     assert.equal(isNavPathActive('/admin/tournaments/t1', '/admin/tournaments', '/admin', adminNavPaths), true);
     assert.equal(isNavPathActive('/admin/matches/m1', '/admin/matches', '/admin', adminNavPaths), true);
+    assert.equal(isNavPathActive('/admin/prediction-history/u1', '/admin/prediction-history', '/admin', adminNavPaths), true);
   });
 });

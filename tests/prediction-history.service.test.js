@@ -41,10 +41,20 @@ describe('prediction-history.validator', () => {
     assert.equal(validateUserAccess('u1', 'u1').valid, true);
   });
 
+  it('allows admin access to another user history', () => {
+    assert.equal(validateUserAccess('admin1', 'u1', { isAdmin: true }).valid, true);
+    assert.equal(validateUserAccess(null, 'u1', { isAdmin: true }).valid, false);
+  });
+
   it('validates prediction ownership without leaking existence', () => {
     assert.equal(validatePredictionOwnership(null, 'u1').valid, false);
     assert.equal(validatePredictionOwnership({ userId: 'u2' }, 'u1').valid, false);
     assert.equal(validatePredictionOwnership({ userId: 'u1' }, 'u1').valid, true);
+  });
+
+  it('allows admin prediction ownership bypass', () => {
+    assert.equal(validatePredictionOwnership({ userId: 'u2' }, 'u1', { isAdmin: true }).valid, true);
+    assert.equal(validatePredictionOwnership(null, 'u1', { isAdmin: true }).valid, false);
   });
 
   it('builds query strings', () => {

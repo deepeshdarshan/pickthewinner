@@ -65,7 +65,16 @@ export const PREDICTION_HISTORY_DEFAULT_LOCK_MINUTES = 15;
 /** @enum {string} */
 export const PREDICTION_HISTORY_ROUTES = Object.freeze({
   LIST: '/predictions/history',
+  ADMIN_LIST: '/admin/prediction-history',
 });
+
+/**
+ * @param {string} uid
+ * @returns {string}
+ */
+export function adminPredictionHistoryContestantRoute(uid) {
+  return `${PREDICTION_HISTORY_ROUTES.ADMIN_LIST}/${encodeURIComponent(uid)}`;
+}
 
 /** @type {Readonly<Record<string, string>>} */
 export const PREDICTION_HISTORY_MESSAGES = Object.freeze({

@@ -19,9 +19,12 @@ import { resolveLockMinutes, resolvePredictionLockState } from '../../../domain/
 /**
  * @param {HistoryItem} item
  * @param {LifecycleStep[]} lifecycle
+ * @param {{ backHref?: string, backLabel?: string }} [context]
  * @returns {string}
  */
-export function renderPredictionDetail(item, lifecycle) {
+export function renderPredictionDetail(item, lifecycle, context = {}) {
+  const backHref = context.backHref ?? PREDICTION_HISTORY_ROUTES.LIST;
+  const backLabel = context.backLabel ?? 'Back to History';
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const kickoffDate = toDate(match.kickoffUtc);
@@ -34,8 +37,8 @@ export function renderPredictionDetail(item, lifecycle) {
   return `
     <div class="ptw-prediction-detail">
       <div class="mb-3">
-        <a href="${PREDICTION_HISTORY_ROUTES.LIST}" class="btn btn-sm btn-link ps-0" data-ph-back>
-          <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to History
+        <a href="${escapeHtml(backHref)}" class="btn btn-sm btn-link ps-0" data-ph-back>
+          <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>${escapeHtml(backLabel)}
         </a>
       </div>
 

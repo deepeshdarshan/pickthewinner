@@ -16,33 +16,40 @@ import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
  * @param {HistoryItem[]} items
+ * @param {{ startIndex?: number }} [options]
  * @returns {string}
  */
-export function renderHistoryTable(items) {
+export function renderHistoryTable(items, options = {}) {
   if (items.length === 0) {
     return '';
   }
 
-  const rows = items.map((item, index) => renderHistoryTableRow(item, index)).join('');
+  const startIndex = options.startIndex ?? 1;
+  const rows = items.map((item, index) => renderHistoryTableRow(item, index, startIndex + index)).join('');
 
   return `
-    <div class="table-responsive">
-      <table class="table table-hover ptw-table ptw-prediction-history-table mb-0" aria-label="Prediction history">
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Tournament</th>
-            <th scope="col">Match</th>
-            <th scope="col">Prediction</th>
-            <th scope="col">Result</th>
-            <th scope="col">Winner</th>
-            <th scope="col">Exact</th>
-            <th scope="col">Points</th>
-            <th scope="col"><span class="visually-hidden">Actions</span></th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+    <div class="card ptw-card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover ptw-table ptw-prediction-history-table mb-0" aria-label="Prediction history">
+            <thead>
+              <tr>
+                <th scope="col" class="ptw-prediction-table__index">#</th>
+                <th scope="col">Date</th>
+                <th scope="col">Tournament</th>
+                <th scope="col">Match</th>
+                <th scope="col">Prediction</th>
+                <th scope="col">Result</th>
+                <th scope="col">Winner</th>
+                <th scope="col">Exact</th>
+                <th scope="col">Points</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -50,9 +57,10 @@ export function renderHistoryTable(items) {
 /**
  * @param {HistoryItem} item
  * @param {number} index
+ * @param {number} rowNumber
  * @returns {string}
  */
-function renderHistoryTableRow(item, index) {
+function renderHistoryTableRow(item, index, rowNumber) {
   const match = item.match ?? {};
   const tournament = item.tournament ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
@@ -74,6 +82,7 @@ function renderHistoryTableRow(item, index) {
 
   return `
     <tr class="ptw-prediction-history-table__row" data-prediction-id="${escapeHtml(String(item.id))}" tabindex="0" data-ph-detail-row="${escapeHtml(String(item.id))}">
+      <td class="ptw-prediction-table__index">${rowNumber}</td>
       <td>${escapeHtml(kickoffLabel)}</td>
       <td>${escapeHtml(tournamentName)}</td>
       <td>
@@ -110,7 +119,7 @@ function renderHistoryTableRow(item, index) {
       </td>
     </tr>
     <tr class="d-md-none">
-      <td colspan="9" class="p-0 border-0">
+      <td colspan="10" class="p-0 border-0">
         <div class="collapse" id="${collapseId}">
           <div class="p-3 bg-dark-subtle">
             <p class="small mb-1"><strong>Stage:</strong> ${escapeHtml(String(match.stage ?? match.round ?? '—'))}</p>

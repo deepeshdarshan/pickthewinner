@@ -107,14 +107,24 @@ export function validateHistoryQueryParams(queryParams) {
 }
 
 /**
+ * @typedef {Object} PredictionHistoryAccessOptions
+ * @property {boolean} [isAdmin]
+ */
+
+/**
  * Ensures the authenticated user matches the requested userId.
  * @param {string|null|undefined} authUserId
  * @param {string} requestedUserId
+ * @param {PredictionHistoryAccessOptions} [options]
  * @returns {{ valid: boolean, error?: string }}
  */
-export function validateUserAccess(authUserId, requestedUserId) {
+export function validateUserAccess(authUserId, requestedUserId, options = {}) {
   if (!authUserId) {
     return { valid: false, error: 'Authentication required.' };
+  }
+
+  if (options.isAdmin) {
+    return { valid: true };
   }
 
   if (authUserId !== requestedUserId) {
@@ -127,11 +137,16 @@ export function validateUserAccess(authUserId, requestedUserId) {
 /**
  * @param {Record<string, unknown>|null} prediction
  * @param {string} userId
+ * @param {PredictionHistoryAccessOptions} [options]
  * @returns {{ valid: boolean, error?: string }}
  */
-export function validatePredictionOwnership(prediction, userId) {
+export function validatePredictionOwnership(prediction, userId, options = {}) {
   if (!prediction) {
     return { valid: false, error: 'Prediction not found.' };
+  }
+
+  if (options.isAdmin) {
+    return { valid: true };
   }
 
   if (String(prediction.userId) !== userId) {
