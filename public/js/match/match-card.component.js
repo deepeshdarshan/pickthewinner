@@ -22,6 +22,7 @@ import { ScoringDomain } from '../scoring/scoring.domain.js';
 import { renderResultBadge } from '../prediction/admin/renderers/prediction-status-badge.renderer.js';
 import {
   renderCustomScoringSourceBadge,
+  renderMatchScoringPointsHtml,
 } from './renderers/match-scoring-points.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 import {
@@ -93,8 +94,10 @@ export function renderMatchCard(options) {
   const pointsValue = showPoints && showResult && match.result?.published
     ? String(resolvedPointsEarned)
     : '';
-  const stakePoints = match.effectiveScoringConfig?.correctMatchScorePoints ?? '—';
-  const statusStat = resolveStatusStatLabel(predictionStatus);
+  const scoringPointsHtml = renderMatchScoringPointsHtml(match.effectiveScoringConfig, {
+    compact: true,
+    variant: 'dashboard',
+  });
 
   return `
     <div class="card ptw-card ptw-match-card ptw-performance-card ${themeClass} ${performanceThemeClass} mb-3">
@@ -102,7 +105,6 @@ export function renderMatchCard(options) {
       <div class="card-body">
         ${renderPerformanceCardHeader({
           indicatorHtml: renderStatusIndicator(predictionStatus),
-          avatarHtml: renderTeamPairAvatar(match),
           title: escapeHtml(tournamentName || 'Match'),
           subtitle: stageLabel ? escapeHtml(stageLabel) : '',
           badgeHtml: customPointsBadge,
@@ -119,7 +121,6 @@ export function renderMatchCard(options) {
       ? `<div class="ptw-performance-card__matchup-score mt-2">${escapeHtml(String(match.result.homeScore ?? '-'))}</div>`
       : '',
   })}
-            <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.homeTeam?.name ?? 'TBD'))}</span>
           </div>
           <div class="ptw-performance-card__matchup-vs">
             ${countdownHtml || '<span>VS</span>'}
@@ -131,9 +132,10 @@ export function renderMatchCard(options) {
       ? `<div class="ptw-performance-card__matchup-score mt-2">${escapeHtml(String(match.result.awayScore ?? '-'))}</div>`
       : '',
   })}
-            <span class="ptw-performance-card__matchup-name">${escapeHtml(String(match.awayTeam?.name ?? 'TBD'))}</span>
           </div>
         </div>
+
+        ${scoringPointsHtml ? `<div class="ptw-match-card__scoring mb-3">${scoringPointsHtml}</div>` : ''}
 
         ${renderPerformanceCardStats([
           {
@@ -148,18 +150,11 @@ export function renderMatchCard(options) {
             label: 'Official Result',
             tone: showResult && match.result?.published ? 'default' : 'warning',
           },
-          {
-            icon: 'bi-trophy',
-            value: escapeHtml(String(stakePoints)),
-            label: 'Points at Stake',
-            tone: 'info',
-          },
         ])}
 
         ${renderPerformanceCardFooter({
           leftIcon: 'bi-clock',
           leftValue: kickoff ? escapeHtml(formatDateTime(kickoff)) : '—',
-          leftLabel: statusStat,
           rightHtml: `
             <div>${statusBadge}</div>
             ${renderActionButtons(match, prediction, predictionStatus)}
@@ -190,38 +185,6 @@ function renderStatusIndicator(predictionStatus) {
       <i class="bi ${config.icon} ptw-rank-badge__icon" aria-hidden="true"></i>
     </div>
   `;
-}
-
-/**
- * @param {import('./match.service.js').EnrichedMatch} match
- * @returns {string}
- */
-function renderTeamPairAvatar(match) {
-  return `
-    <div class="d-flex align-items-center gap-1 flex-shrink-0">
-      ${renderTeamInlineHtml(match.homeTeam, { fallback: 'H', className: 'ptw-team-flag ptw-team-flag--sm' })}
-      ${renderTeamInlineHtml(match.awayTeam, { fallback: 'A', className: 'ptw-team-flag ptw-team-flag--sm' })}
-    </div>
-  `;
-}
-
-/**
- * @param {string} predictionStatus
- * @returns {string}
- */
-function resolveStatusStatLabel(predictionStatus) {
-  switch (predictionStatus) {
-    case CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED:
-      return 'Prediction Submitted';
-    case CONTESTANT_PREDICTION_UI_STATUS.PENDING:
-      return 'Prediction Pending';
-    case CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON:
-      return 'Opens Soon';
-    case CONTESTANT_PREDICTION_UI_STATUS.LOCKED:
-      return 'Prediction Locked';
-    default:
-      return 'Match Status';
-  }
 }
 
 /**

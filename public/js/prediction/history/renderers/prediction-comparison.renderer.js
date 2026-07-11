@@ -158,8 +158,6 @@ export function renderPredictionComparisonPanel(item) {
 function renderDetailedScoreBox(match, data, side) {
   const homeTeam = match.homeTeam ?? {};
   const awayTeam = match.awayTeam ?? {};
-  const homeName = String(homeTeam.name ?? 'Home');
-  const awayName = String(awayTeam.name ?? 'Away');
   const homeScore = side === 'prediction'
     ? String(data.homeScore ?? '')
     : String(data.homeScore ?? '');
@@ -174,11 +172,9 @@ function renderDetailedScoreBox(match, data, side) {
     <div class="ptw-prediction-comparison__matchup">
       <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--home">
         ${renderTeamInlineHtml(homeTeam, { fallback: 'Home' })}
-        <span class="ptw-prediction-comparison__team-name">${escapeHtml(homeName)}</span>
       </div>
       <span class="${scoreClass}">${escapeHtml(homeScore)} - ${escapeHtml(awayScore)}</span>
       <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--away">
-        <span class="ptw-prediction-comparison__team-name">${escapeHtml(awayName)}</span>
         ${renderTeamInlineHtml(awayTeam, { fallback: 'Away' })}
       </div>
     </div>

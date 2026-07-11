@@ -134,11 +134,9 @@ function renderMatchSummaryCard(item) {
           <div class="ptw-prediction-detail__matchup">
             <div class="ptw-prediction-detail__matchup-team">
               ${renderTeamInlineHtml(homeTeam, { fallback: 'Home' })}
-              <span class="ptw-prediction-detail__matchup-name">${escapeHtml(String(homeTeam.name ?? 'Home'))}</span>
             </div>
             <span class="ptw-prediction-detail__vs" aria-hidden="true">VS</span>
             <div class="ptw-prediction-detail__matchup-team">
-              <span class="ptw-prediction-detail__matchup-name">${escapeHtml(String(awayTeam.name ?? 'Away'))}</span>
               ${renderTeamInlineHtml(awayTeam, { fallback: 'Away' })}
             </div>
           </div>

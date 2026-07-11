@@ -27,7 +27,7 @@ export function renderHistoryTimeline(items) {
       ${groups.map((group) => `
         <section class="ptw-prediction-timeline__group mb-4" aria-label="${escapeHtml(group.label)}">
           <h2 class="h6 text-uppercase mb-3 ptw-prediction-timeline__group-label">${escapeHtml(group.label)}</h2>
-          <ol class="list-unstyled mb-0 ptw-prediction-timeline__list ptw-performance-card-list">
+          <ol class="list-unstyled mb-0 ptw-prediction-timeline__list">
             ${group.items.map((item) => renderTimelineItem(item)).join('')}
           </ol>
         </section>
@@ -41,9 +41,28 @@ export function renderHistoryTimeline(items) {
  * @returns {string}
  */
 function renderTimelineItem(item) {
+  const markerTone = resolveTimelineMarkerTone(item);
+
   return `
     <li class="ptw-prediction-timeline__item">
+      <div class="ptw-prediction-timeline__marker" aria-hidden="true">
+        <span class="ptw-prediction-timeline__marker-dot ptw-prediction-timeline__marker-dot--${markerTone}"></span>
+      </div>
       ${renderHistoryCard(item, { asTimelineContent: true })}
     </li>
   `;
+}
+
+/**
+ * @param {HistoryItem} item
+ * @returns {'success'|'failed'|'pending'}
+ */
+function resolveTimelineMarkerTone(item) {
+  const hasResult = Boolean(item.match?.result?.published);
+
+  if (!hasResult) {
+    return 'pending';
+  }
+
+  return Number(item.calculatedPoints ?? 0) > 0 ? 'success' : 'failed';
 }
