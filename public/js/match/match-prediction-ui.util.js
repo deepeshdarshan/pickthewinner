@@ -102,6 +102,7 @@ export function getContestantPredictionUiStatus(match, prediction) {
  * @property {string} [viewDetailsButtonClass]
  * @property {string} [predictLabel='Make Prediction']
  * @property {string} [wrapperClass='']
+ * @property {boolean} [showEditButton=true]
  */
 
 /**
@@ -189,6 +190,7 @@ function renderContestantPredictionActionButtonsInner(options) {
     editButtonClass = enabledButtonClass,
     viewDetailsButtonClass = enabledButtonClass,
     predictLabel = 'Make Prediction',
+    showEditButton = true,
   } = options;
 
   if (resultPublished) {
@@ -207,6 +209,10 @@ function renderContestantPredictionActionButtonsInner(options) {
   }
 
   if (predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED) {
+    if (!showEditButton) {
+      return '';
+    }
+
     return `
       <a href="/predictions?action=edit&matchId=${encodeURIComponent(matchId)}" class="${editButtonClass}" data-route>
         <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
@@ -239,6 +245,7 @@ export function renderContestantPredictionActionButtons(options) {
     viewDetailsButtonClass = enabledButtonClass,
     predictLabel = 'Make Prediction',
     wrapperClass = '',
+    showEditButton = true,
   } = options;
 
   const innerHtml = renderContestantPredictionActionButtonsInner({
@@ -250,7 +257,12 @@ export function renderContestantPredictionActionButtons(options) {
     editButtonClass,
     viewDetailsButtonClass,
     predictLabel,
+    showEditButton,
   });
+
+  if (!innerHtml) {
+    return '';
+  }
 
   const wrapperClassAttr = wrapperClass ? ` class="${escapeHtml(wrapperClass)}"` : '';
 
@@ -266,6 +278,7 @@ export function renderContestantPredictionActionButtons(options) {
       data-edit-button-class="${escapeHtml(editButtonClass)}"
       data-view-details-button-class="${escapeHtml(viewDetailsButtonClass)}"
       data-predict-label="${escapeHtml(predictLabel)}"
+      data-show-edit-button="${showEditButton ? 'true' : 'false'}"
     >
       ${innerHtml}
     </div>
@@ -308,6 +321,7 @@ export function syncContestantPredictionUiFromCountdownPhase(countdownContainer,
     editButtonClass: actionsEl.dataset.editButtonClass ?? actionsEl.dataset.enabledButtonClass ?? 'btn btn-primary w-100',
     viewDetailsButtonClass: actionsEl.dataset.viewDetailsButtonClass ?? actionsEl.dataset.enabledButtonClass ?? 'btn btn-ptw-primary w-100',
     predictLabel: actionsEl.dataset.predictLabel ?? 'Make Prediction',
+    showEditButton: actionsEl.dataset.showEditButton !== 'false',
   });
 
   const badgeEl = card.querySelector('[data-ptw-prediction-status-badge]');

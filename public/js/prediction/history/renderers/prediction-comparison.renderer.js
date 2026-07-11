@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../../utils/html.util.js';
+import { PredictionDomain } from '../../../domain/prediction.domain.js';
 import { renderResultBadges } from '../../admin/renderers/prediction-status-badge.renderer.js';
 import {
   renderPredictedWinnerHtml,
@@ -121,8 +122,11 @@ export function renderPredictionComparisonPanel(item) {
   const hasResult = Boolean(result.published);
   const showPenaltyWinner = hasResult
     && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
-  const predictedWinnerHtml = renderPredictedWinnerHtml(match, item, { result });
-  const actualWinnerHtml = hasResult ? renderActualWinnerHtml(match, result) : '';
+  const hasPredictedWinner = Boolean(PredictionDomain.resolvePredictedWinnerSide(item));
+  const predictedWinnerHtml = hasPredictedWinner
+    ? renderPredictedWinnerHtml(match, item, { result })
+    : '—';
+  const actualWinnerHtml = hasResult ? renderActualWinnerHtml(match, result) : 'Pending';
 
   return `
     <div class="ptw-prediction-comparison ptw-prediction-comparison--detail">
@@ -131,14 +135,17 @@ export function renderPredictionComparisonPanel(item) {
           <div class="ptw-prediction-comparison__box">
             <p class="ptw-prediction-comparison__box-label">Your Prediction</p>
             ${renderDetailedScoreBox(match, item, 'prediction')}
-            ${showPenaltyWinner ? renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml) : ''}
+            ${renderWinnerComparisonRow('Predicted Winner', predictedWinnerHtml, { centered: true, showDivider: true })}
           </div>
           <div class="ptw-prediction-comparison__box">
             <p class="ptw-prediction-comparison__box-label">Official Result</p>
             ${hasResult
-    ? renderDetailedScoreBox(match, result, 'result')
-    : '<p class="ptw-text-muted mb-0 small">Not published yet</p>'}
-            ${showPenaltyWinner ? renderWinnerComparisonRow('Penalty Winner', actualWinnerHtml) : ''}
+    ? `
+              ${renderDetailedScoreBox(match, result, 'result')}
+              ${renderWinnerComparisonRow('Official Winner', actualWinnerHtml, { centered: true, showDivider: true })}
+              ${showPenaltyWinner ? '<p class="small text-center ptw-text-muted mb-0 mt-2">Penalty winner included in result</p>' : ''}
+            `
+    : '<p class="ptw-text-muted mb-0 small text-center">Not published yet</p>'}
           </div>
         </div>
         ${renderComparisonVerdict(item)}
@@ -158,24 +165,26 @@ export function renderPredictionComparisonPanel(item) {
 function renderDetailedScoreBox(match, data, side) {
   const homeTeam = match.homeTeam ?? {};
   const awayTeam = match.awayTeam ?? {};
-  const homeScore = side === 'prediction'
-    ? String(data.homeScore ?? '')
-    : String(data.homeScore ?? '');
-  const awayScore = side === 'prediction'
-    ? String(data.awayScore ?? '')
-    : String(data.awayScore ?? '');
+  const homeScore = String(data.homeScore ?? '');
+  const awayScore = String(data.awayScore ?? '');
   const scoreClass = side === 'result'
     ? 'ptw-prediction-comparison__score-value ptw-prediction-comparison__score-value--result'
     : 'ptw-prediction-comparison__score-value';
 
   return `
-    <div class="ptw-prediction-comparison__matchup">
-      <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--home">
-        ${renderTeamInlineHtml(homeTeam, { fallback: 'Home' })}
-      </div>
-      <span class="${scoreClass}">${escapeHtml(homeScore)} - ${escapeHtml(awayScore)}</span>
-      <div class="ptw-prediction-comparison__team ptw-prediction-comparison__team--away">
-        ${renderTeamInlineHtml(awayTeam, { fallback: 'Away' })}
+    <div class="ptw-prediction-comparison__scoreline">
+      <div class="ptw-prediction-comparison__scoreline-inner">
+        ${renderTeamInlineHtml(homeTeam, {
+    fallback: 'Home',
+    marginClass: 'me-0',
+    className: 'ptw-team-flag ptw-team-flag--sm',
+  })}
+        <span class="${scoreClass}">${escapeHtml(homeScore)} - ${escapeHtml(awayScore)}</span>
+        ${renderTeamInlineHtml(awayTeam, {
+    fallback: 'Away',
+    marginClass: 'me-0',
+    className: 'ptw-team-flag ptw-team-flag--sm',
+  })}
       </div>
     </div>
   `;
@@ -244,9 +253,24 @@ function renderTotalPointsEarned(totalPoints) {
 /**
  * @param {string} label
  * @param {string} valueHtml
+ * @param {{ centered?: boolean, showDivider?: boolean }} [options]
  * @returns {string}
  */
-function renderWinnerComparisonRow(label, valueHtml) {
+function renderWinnerComparisonRow(label, valueHtml, options = {}) {
+  const { centered = false, showDivider = false } = options;
+
+  if (centered) {
+    return `
+      <div class="ptw-prediction-comparison__winner-row ptw-prediction-comparison__winner-row--centered">
+        ${showDivider ? '<hr class="ptw-prediction-comparison__winner-divider">' : ''}
+        <p class="ptw-prediction-comparison__winner-inline mb-0">
+          <span class="ptw-prediction-comparison__winner-label">${escapeHtml(label.toUpperCase())}:</span>
+          <span class="ptw-prediction-comparison__winner-value">${valueHtml}</span>
+        </p>
+      </div>
+    `;
+  }
+
   return `
     <div class="ptw-prediction-comparison__winner-row">
       <span class="ptw-prediction-comparison__winner-label">${escapeHtml(label)}</span>

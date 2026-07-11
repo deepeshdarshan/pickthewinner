@@ -16,6 +16,8 @@ import {
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 import { renderMatchCardBgIcons } from '../../components/match-card-bg-icons.component.js';
+import { PredictionDomain, PENALTY_WINNER } from '../../domain/prediction.domain.js';
+import { renderMatchPredictionStatsRow } from '../../match/renderers/match-prediction-stats.renderer.js';
 
 /**
  * @param {'live'|'upcoming'|'empty'} variant
@@ -116,6 +118,9 @@ function renderMatchSpotlightCard(options) {
   const homeName = match.homeTeam?.name ?? 'Home';
   const awayName = match.awayTeam?.name ?? 'Away';
   const flagClass = 'ptw-team-flag ptw-team-flag--stacked ptw-team-flag--dashboard';
+  const predictedWinnerSide = prediction && !showLiveIndicator
+    ? PredictionDomain.resolvePredictedWinnerSide(prediction)
+    : null;
   const homeFlag = renderTeamFlagHtml(getTeamFlagUrl(match.homeTeam), { marginClass: 'me-0', className: flagClass });
   const awayFlag = renderTeamFlagHtml(getTeamFlagUrl(match.awayTeam), { marginClass: 'me-0', className: flagClass });
 
@@ -167,12 +172,12 @@ function renderMatchSpotlightCard(options) {
         </div>
 
         <div class="ptw-featured-match__teams d-flex align-items-center justify-content-center gap-4 flex-wrap mb-3">
-          <div class="ptw-featured-match__team text-center">
+          <div class="ptw-featured-match__team text-center${predictedWinnerSide === PENALTY_WINNER.HOME ? ' ptw-featured-match__team--predicted-winner' : ''}">
             ${homeFlag}
             <div class="ptw-featured-match__team-name mt-3">${escapeHtml(homeName)}</div>
           </div>
           <div class="ptw-featured-match__vs">VS</div>
-          <div class="ptw-featured-match__team text-center">
+          <div class="ptw-featured-match__team text-center${predictedWinnerSide === PENALTY_WINNER.AWAY ? ' ptw-featured-match__team--predicted-winner' : ''}">
             ${awayFlag}
             <div class="ptw-featured-match__team-name mt-3">${escapeHtml(awayName)}</div>
           </div>
@@ -182,7 +187,7 @@ function renderMatchSpotlightCard(options) {
 
         ${scoringPointsHtml ? `<div class="ptw-featured-match__scoring mb-3">${scoringPointsHtml}</div>` : ''}
 
-        ${prediction && !showLiveIndicator ? renderPredictionSummary(prediction) : ''}
+        ${prediction && !showLiveIndicator ? renderMatchPredictionStatsRow(match, prediction) : ''}
 
         ${actionButtons ? `
           <div class="d-flex flex-wrap gap-2 justify-content-center mt-auto pt-3 w-100">
@@ -195,23 +200,22 @@ function renderMatchSpotlightCard(options) {
 }
 
 /**
+ * @param {import('../../match/match.service.js').EnrichedMatch} match
  * @param {Record<string, unknown>} prediction
- * @returns {string}
+ * @returns {{ name?: string, flagUrl?: string, flag?: string }|null}
  */
-function renderPredictionSummary(prediction) {
-  const homeScore = prediction.homeScore ?? '-';
-  const awayScore = prediction.awayScore ?? '-';
+function resolvePredictedWinnerTeam(match, prediction) {
+  const side = PredictionDomain.resolvePredictedWinnerSide(prediction);
 
-  return `
-    <div class="ptw-featured-match__prediction">
-      <p class="ptw-featured-match__prediction-label mb-2">Your Prediction</p>
-      <div class="ptw-featured-match__score-box">
-        <span class="ptw-featured-match__score">${escapeHtml(String(homeScore))}</span>
-        <span class="ptw-featured-match__score-sep">-</span>
-        <span class="ptw-featured-match__score">${escapeHtml(String(awayScore))}</span>
-      </div>
-    </div>
-  `;
+  if (side === PENALTY_WINNER.HOME) {
+    return match.homeTeam ?? null;
+  }
+
+  if (side === PENALTY_WINNER.AWAY) {
+    return match.awayTeam ?? null;
+  }
+
+  return null;
 }
 
 /**
@@ -231,6 +235,7 @@ function renderUpcomingActionButtons(match, prediction, predictionStatus) {
     enabledButtonClass: 'btn btn-ptw-primary ptw-featured-match__action-btn',
     editButtonClass: 'btn btn-ptw-primary ptw-featured-match__action-btn',
     predictLabel: 'Predict Match',
+    showEditButton: false,
   });
 }
 

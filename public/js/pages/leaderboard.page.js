@@ -29,6 +29,7 @@ let allEntries = [];
 let currentTournamentId = null;
 let currentUserId = null;
 let canLinkContestantProfiles = false;
+let showLeaderboardFilters = false;
 /** @type {number|null} */
 let maxVisibleRank = null;
 
@@ -72,6 +73,7 @@ async function initLeaderboardPage(outlet) {
     await PlatformSettingsService.load();
     maxVisibleRank = isAdmin ? null : PlatformSettingsService.getContestantLeaderboardLimit();
     canLinkContestantProfiles = isAdmin;
+    showLeaderboardFilters = isAdmin;
 
     const leaderboardOptions = maxVisibleRank === null ? {} : { maxVisibleRank };
 
@@ -142,16 +144,18 @@ function renderLeaderboardView(entries, tournamentStats, contestantStats) {
         ${renderTournamentStats(tournamentStats)}
       </div>
 
-      <div class="mt-3">
-        ${renderLeaderboardFilters({
-          currentFilter,
-          searchTerm: currentSearchTerm,
-          showMyPosition,
-          maxVisibleRank,
-        })}
-      </div>
+      ${showLeaderboardFilters ? `
+        <div class="mt-3">
+          ${renderLeaderboardFilters({
+            currentFilter,
+            searchTerm: currentSearchTerm,
+            showMyPosition,
+            maxVisibleRank,
+          })}
+        </div>
+      ` : ''}
 
-      <div class="card ptw-card">
+      <div class="card ptw-card${showLeaderboardFilters ? '' : ' mt-3'}">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">
             <i class="bi bi-trophy me-2"></i>
@@ -184,12 +188,14 @@ function initializeEventHandlers(outlet) {
     refreshBtn.addEventListener('click', () => void handleRefresh(outlet));
   }
 
-  // Filters
-  initializeFilters(
-    outlet,
-    (filterValue) => void handleFilterChange(filterValue, outlet),
-    (searchValue) => void handleSearchChange(searchValue, outlet),
-  );
+  // Filters (admin only)
+  if (showLeaderboardFilters) {
+    initializeFilters(
+      outlet,
+      (filterValue) => void handleFilterChange(filterValue, outlet),
+      (searchValue) => void handleSearchChange(searchValue, outlet),
+    );
+  }
 
   // Responsive view switching
   window.addEventListener('resize', () => void handleResize(outlet));

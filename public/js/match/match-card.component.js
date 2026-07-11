@@ -24,6 +24,7 @@ import {
   renderCustomScoringSourceBadge,
   renderMatchScoringPointsHtml,
 } from './renderers/match-scoring-points.renderer.js';
+import { renderMatchPredictionStatsRow } from './renderers/match-prediction-stats.renderer.js';
 import { getRoundLabel } from './match.constants.js';
 import {
   getContestantPredictionUiStatus,
@@ -34,7 +35,6 @@ import {
 import {
   renderPerformanceCardFooter,
   renderPerformanceCardHeader,
-  renderPerformanceCardStats,
 } from '../shared/cards/performance-card.component.js';
 
 /**
@@ -45,6 +45,7 @@ import {
  * @property {boolean} [showResult]
  * @property {boolean} [showPoints]
  * @property {number} [pointsEarned] Fallback when prediction has no calculatedPoints
+ * @property {boolean} [showEditButton] Show edit button when prediction is submitted
  */
 
 /**
@@ -60,6 +61,7 @@ export function renderMatchCard(options) {
     showResult = false,
     showPoints = false,
     pointsEarned,
+    showEditButton = false,
   } = options;
 
   const resolvedPointsEarned = Number(prediction?.calculatedPoints ?? pointsEarned ?? 0);
@@ -85,12 +87,6 @@ export function renderMatchCard(options) {
   const performanceThemeClass = themeClass.includes('live')
     ? 'ptw-performance-card--live'
     : 'ptw-performance-card--pending';
-  const predictedScore = prediction
-    ? `${prediction.homeScore} - ${prediction.awayScore}`
-    : '—';
-  const officialScore = showResult && match.result?.published
-    ? `${match.result.homeScore} - ${match.result.awayScore}`
-    : 'Pending';
   const pointsValue = showPoints && showResult && match.result?.published
     ? String(resolvedPointsEarned)
     : '';
@@ -137,27 +133,14 @@ export function renderMatchCard(options) {
 
         ${scoringPointsHtml ? `<div class="ptw-match-card__scoring mb-3">${scoringPointsHtml}</div>` : ''}
 
-        ${renderPerformanceCardStats([
-          {
-            icon: 'bi-bullseye',
-            value: escapeHtml(String(predictedScore)),
-            label: 'My Prediction',
-            tone: prediction ? 'primary' : 'warning',
-          },
-          {
-            icon: 'bi-flag-fill',
-            value: escapeHtml(String(officialScore)),
-            label: 'Official Result',
-            tone: showResult && match.result?.published ? 'default' : 'warning',
-          },
-        ])}
+        ${renderMatchPredictionStatsRow(match, prediction, { showResult })}
 
         ${renderPerformanceCardFooter({
           leftIcon: 'bi-clock',
           leftValue: kickoff ? escapeHtml(formatDateTime(kickoff)) : '—',
           rightHtml: `
             <div>${statusBadge}</div>
-            ${renderActionButtons(match, prediction, predictionStatus)}
+            ${renderActionButtons(match, prediction, predictionStatus, showEditButton)}
           `,
         })}
 
@@ -365,9 +348,10 @@ function checkExactScore(prediction, match) {
  * @param {import('./match.service.js').EnrichedMatch} match
  * @param {Record<string, unknown>|null} prediction
  * @param {string} predictionStatus
+ * @param {boolean} [showEditButton=false]
  * @returns {string}
  */
-function renderActionButtons(match, prediction, predictionStatus) {
+function renderActionButtons(match, prediction, predictionStatus, showEditButton = false) {
   return renderContestantPredictionActionButtons({
     matchId: match.id,
     predictionStatus,
@@ -380,6 +364,7 @@ function renderActionButtons(match, prediction, predictionStatus) {
     viewDetailsButtonClass: 'btn btn-outline-primary w-100',
     predictLabel: 'Make Prediction',
     wrapperClass: 'mt-2',
+    showEditButton,
   });
 }
 

@@ -3799,8 +3799,33 @@
   justify-content: center;
 }
 
-.ptw-match-card .ptw-performance-card__stats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.ptw-match-card .ptw-performance-card__stats,
+.ptw-featured-match .ptw-performance-card__stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 575.98px) {
+  .ptw-match-card .ptw-performance-card__stats,
+  .ptw-featured-match .ptw-performance-card__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ptw-space-1);
+  }
+
+  .ptw-match-card .ptw-performance-card__stat,
+  .ptw-featured-match .ptw-performance-card__stat {
+    padding: var(--ptw-space-2) var(--ptw-space-1);
+  }
+
+  .ptw-match-card .ptw-performance-card__stat-label,
+  .ptw-featured-match .ptw-performance-card__stat-label {
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+  }
+
+  .ptw-match-card .ptw-performance-card__stat-value,
+  .ptw-featured-match .ptw-performance-card__stat-value {
+    font-size: var(--ptw-font-size-sm);
+  }
 }
 
 .ptw-featured-match__prediction {
@@ -3839,6 +3864,21 @@
   color: var(--ptw-color-text-muted);
   font-size: var(--ptw-font-size-lg);
   font-weight: var(--ptw-font-weight-bold);
+}
+
+.ptw-featured-match__winner-box {
+  padding: var(--ptw-space-3) var(--ptw-space-4);
+  border-radius: var(--ptw-radius-md);
+  background: color-mix(in srgb, var(--ptw-color-accent-gold) 8%, var(--ptw-color-bg-tertiary));
+  border: 1px solid color-mix(in srgb, var(--ptw-color-accent-gold) 28%, var(--ptw-color-border));
+}
+
+.ptw-featured-match__team--predicted-winner {
+  padding: var(--ptw-space-2) var(--ptw-space-3);
+  border-radius: var(--ptw-radius-md);
+  background: color-mix(in srgb, var(--ptw-color-accent-gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ptw-color-accent-gold) 35%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--ptw-color-accent-gold) 12%, transparent);
 }
 
 .ptw-featured-match__action-btn {
@@ -4667,14 +4707,82 @@
   transform: translateX(2px);
 }
 
+.ptw-prediction-history-card .ptw-performance-card__stats--winners {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: calc(-1 * var(--ptw-space-1));
+}
+
+.ptw-prediction-detail__stats .ptw-performance-card__stats--winners {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: calc(-1 * var(--ptw-space-1));
+}
+
+.ptw-prediction-detail__stats .ptw-performance-card__stats {
+  margin-bottom: 0;
+}
+
+.ptw-prediction-detail__winner-divider,
+.ptw-prediction-comparison__winner-divider {
+  margin: var(--ptw-space-3) 0;
+  border: 0;
+  border-top: 1px solid var(--ptw-color-border);
+  opacity: 1;
+}
+
+.ptw-prediction-detail__winner-line,
+.ptw-prediction-comparison__winner-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.ptw-prediction-detail__winner-line-label,
+.ptw-prediction-comparison__winner-row--centered .ptw-prediction-comparison__winner-label {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ptw-prediction-detail__winner-line-value,
+.ptw-prediction-comparison__winner-row--centered .ptw-prediction-comparison__winner-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.2;
+}
+
+.ptw-prediction-history-card .ptw-performance-card__stats--winners .ptw-performance-card__stat-value,
+.ptw-prediction-detail__stats .ptw-performance-card__stats--winners .ptw-performance-card__stat-value,
+.ptw-match-card .ptw-performance-card__stat-value .d-inline-flex,
+.ptw-featured-match .ptw-performance-card__stat-value .d-inline-flex {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.2;
+  text-align: center;
+}
+
 /* Prediction history performance stats — center on mobile */
 @media (max-width: 991.98px) {
   .ptw-prediction-history-card .ptw-performance-card__stat,
+  .ptw-prediction-detail__stats .ptw-performance-card__stat,
   .ptw-admin-prediction-history__row .ptw-performance-card__stat {
     text-align: center;
   }
 
   .ptw-prediction-history-card .ptw-performance-card__stat-head,
+  .ptw-prediction-detail__stats .ptw-performance-card__stat-head,
   .ptw-admin-prediction-history__row .ptw-performance-card__stat-head {
     flex-direction: column;
     align-items: center;
@@ -4683,6 +4791,7 @@
   }
 
   .ptw-prediction-history-card .ptw-performance-card__stat-label,
+  .ptw-prediction-detail__stats .ptw-performance-card__stat-label,
   .ptw-admin-prediction-history__row .ptw-performance-card__stat-label {
     text-align: center;
   }
@@ -4892,6 +5001,17 @@
   column-gap: var(--ptw-space-2);
 }
 
+.ptw-prediction-comparison__winner-row.ptw-prediction-comparison__winner-row--centered {
+  display: block;
+  margin-top: var(--ptw-space-2);
+  text-align: center;
+  width: 100%;
+}
+
+.ptw-prediction-comparison__winner-row--centered .ptw-prediction-comparison__winner-divider {
+  width: 100%;
+}
+
 .ptw-prediction-comparison__winner-label {
   color: var(--ptw-color-text-muted);
   font-size: var(--ptw-font-size-sm);
@@ -4907,7 +5027,7 @@
 }
 
 @media (max-width: 767.98px) {
-  .ptw-prediction-comparison__winner-row {
+  .ptw-prediction-comparison__winner-row:not(.ptw-prediction-comparison__winner-row--centered) {
     grid-template-columns: 1fr;
     row-gap: var(--ptw-space-1);
   }
@@ -5115,6 +5235,29 @@
   color: var(--ptw-color-text-muted);
   margin: 0 0 var(--ptw-space-2);
   line-height: 1.2;
+  text-align: center;
+}
+
+.ptw-prediction-comparison__scoreline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+.ptw-prediction-comparison__scoreline-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--ptw-space-2);
+  max-width: 100%;
+}
+
+.ptw-prediction-comparison__scoreline-inner .d-inline-flex {
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-semibold);
 }
 
 .ptw-prediction-comparison__matchup {
@@ -5520,6 +5663,18 @@
     font-size: 0.625rem;
   }
 
+  .ptw-prediction-comparison__scoreline-inner {
+    gap: var(--ptw-space-1);
+  }
+
+  .ptw-prediction-comparison__scoreline-inner .d-inline-flex {
+    font-size: var(--ptw-font-size-xs);
+    max-width: 42%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .ptw-prediction-comparison__matchup {
     flex-wrap: nowrap;
     justify-content: center;
@@ -5552,7 +5707,7 @@
     line-height: 1;
   }
 
-  .ptw-prediction-comparison__winner-row {
+  .ptw-prediction-comparison__winner-row:not(.ptw-prediction-comparison__winner-row--centered) {
     grid-template-columns: minmax(0, auto) minmax(0, 1fr);
     margin-top: var(--ptw-space-1);
     column-gap: var(--ptw-space-1);

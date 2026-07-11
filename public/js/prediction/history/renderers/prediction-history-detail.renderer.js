@@ -9,6 +9,7 @@ import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.
 import { renderMatchStatusBadge } from '../../../match/renderers/status-badge.renderer.js';
 import { renderMatchCardBgIcons } from '../../../components/match-card-bg-icons.component.js';
 import { renderPredictionComparisonPanel } from './prediction-comparison.renderer.js';
+import { renderHistoryPredictionStatsRows } from './prediction-history-stats.renderer.js';
 import { PREDICTION_HISTORY_ROUTES, PREDICTION_LIFECYCLE_STEP } from '../prediction-history.constants.js';
 import { resolveLockMinutes, resolvePredictionLockState } from '../../../domain/prediction-history.domain.js';
 
@@ -46,6 +47,12 @@ export function renderPredictionDetail(item, lifecycle, context = {}) {
       ${context.headerHtml ?? ''}
 
       ${renderMatchSummaryCard(item)}
+
+      <div class="card ptw-card ptw-prediction-detail__section ptw-prediction-detail__stats mb-3">
+        <div class="card-body py-3">
+          ${renderHistoryPredictionStatsRows(item, { variant: 'detail' })}
+        </div>
+      </div>
 
       <div class="card ptw-card ptw-prediction-detail__section mb-3">
         <div class="card-header"><h2 class="h5 mb-0">Prediction vs Result</h2></div>

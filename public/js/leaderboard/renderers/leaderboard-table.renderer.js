@@ -38,7 +38,7 @@ export function renderLeaderboardTable(entries, options = {}) {
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
         </colgroup>
-        <thead class="sticky-top">
+        <thead>
           <tr>
             <th scope="col" class="ptw-leaderboard-table__rank">${renderLeaderboardTableHeader('Rank')}</th>
             <th scope="col" class="ptw-leaderboard-table__contestant">${renderLeaderboardTableHeader('Contestant')}</th>

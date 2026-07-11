@@ -84,15 +84,20 @@ export function renderPerformanceCardHeader(options) {
 
 /**
  * @param {PerformanceCardStat[]} stats
+ * @param {{ className?: string, ariaLabel?: string }} [options]
  * @returns {string}
  */
-export function renderPerformanceCardStats(stats) {
+export function renderPerformanceCardStats(stats, options = {}) {
+  const { className = '', ariaLabel = 'Match statistics' } = options;
+
   if (!stats.length) {
     return '';
   }
 
+  const classAttr = className ? ` ${className}` : '';
+
   return `
-    <div class="ptw-performance-card__stats" role="group" aria-label="Match statistics">
+    <div class="ptw-performance-card__stats${classAttr}" role="group" aria-label="${escapeHtml(ariaLabel)}">
       ${stats.map((stat) => `
         <div class="ptw-performance-card__stat">
           <div class="ptw-performance-card__stat-head">

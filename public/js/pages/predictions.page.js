@@ -30,7 +30,7 @@ import { TournamentConfigurationService } from '../tournament/configuration/Tour
 import { Logger } from '../utils/logger.util.js';
 import { MATCH_ROUTES } from '../match/match.constants.js';
 import { filterMyPredictionMatches } from '../domain/contestant-match-view.domain.js';
-import { filterLiveMatches, filterUpcomingMatches, groupMatchesByRoundLabel } from '../match/match-list.util.js';
+import { filterLiveMatches, filterUpcomingMatches, getContestantMatchCardsGridClass, groupMatchesByRoundLabel } from '../match/match-list.util.js';
 
 /** @type {import('../match/match.service.js').EnrichedMatch|null} */
 let currentMatch = null;
@@ -302,20 +302,24 @@ function renderPredictionsPage(matches, predictionsMap) {
       </div>
 
       <!-- Matches by Round -->
-      ${orderedRounds.map((round) => `
+      ${orderedRounds.map((round) => {
+    const roundMatches = grouped[round];
+    return `
         <div class="mb-4">
           <h3 class="h5 mb-3">${round}</h3>
-          <div class="ptw-match-cards">
-            ${grouped[round].map((match) => renderMatchCard({
+          <div class="${getContestantMatchCardsGridClass(roundMatches.length)}">
+            ${roundMatches.map((match) => renderMatchCard({
             match,
             showPrediction: true,
             prediction: predictionsMap.get(String(match.id)) || null,
             showResult: match.result?.published || false,
             showPoints: match.result?.published || false,
+            showEditButton: true,
           })).join('')}
           </div>
         </div>
-      `).join('')}
+      `;
+  }).join('')}
     </div>
   `;
 }

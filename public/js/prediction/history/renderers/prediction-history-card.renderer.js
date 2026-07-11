@@ -8,10 +8,10 @@ import { formatDateDisplay, formatDateTime, toDate } from '../../../utils/date.u
 import { renderTeamStackHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
+import { renderHistoryPredictionStatsRows } from './prediction-history-stats.renderer.js';
 import {
   renderPerformanceCardFooter,
   renderPerformanceCardHeader,
-  renderPerformanceCardStats,
 } from '../../../shared/cards/performance-card.component.js';
 
 /** @type {string} */
@@ -72,11 +72,6 @@ export function buildHistoryCardSections(item, options = {}) {
   const detailUrl = `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(String(item.id))}`;
   const hasResult = Boolean(result.published);
   const points = Number(item.calculatedPoints ?? 0);
-  const predictedScore = `${item.homeScore} - ${item.awayScore}`;
-  const officialScore = hasResult
-    ? `${result.homeScore} - ${result.awayScore}`
-    : 'Pending';
-  const winnerStat = resolveWinnerStatLabel(item, hasResult);
   const exactStat = resolveExactStatLabel(item, hasResult);
   const pointsTone = hasResult && points > 0 ? 'gold' : hasResult ? 'default' : 'primary';
   const themeClass = hasResult && points > 0
@@ -97,26 +92,7 @@ export function buildHistoryCardSections(item, options = {}) {
       pointsTone,
     }),
     matchup: renderMatchup(match, item, result, hasResult),
-    stats: renderPerformanceCardStats([
-      {
-        icon: 'bi-bullseye',
-        value: escapeHtml(predictedScore),
-        label: 'My Prediction',
-        tone: 'primary',
-      },
-      {
-        icon: 'bi-flag-fill',
-        value: escapeHtml(String(officialScore)),
-        label: 'Official Result',
-        tone: hasResult ? 'default' : 'warning',
-      },
-      {
-        icon: 'bi-trophy',
-        value: escapeHtml(winnerStat),
-        label: 'Winner',
-        tone: item.winnerPredictionCorrect === true ? 'success' : item.winnerPredictionCorrect === false ? 'danger' : 'default',
-      },
-    ]),
+    stats: renderHistoryPredictionStatsRows(item),
     footer: renderPerformanceCardFooter({
       leftIcon: 'bi-clock',
       leftValue: asTimelineContent
@@ -138,27 +114,6 @@ export function buildHistoryCardSections(item, options = {}) {
       `,
     }),
   };
-}
-
-/**
- * @param {HistoryItem} item
- * @param {boolean} hasResult
- * @returns {string}
- */
-function resolveWinnerStatLabel(item, hasResult) {
-  if (!hasResult) {
-    return '—';
-  }
-
-  if (item.winnerPredictionCorrect === true) {
-    return 'Correct';
-  }
-
-  if (item.winnerPredictionCorrect === false) {
-    return 'Incorrect';
-  }
-
-  return '—';
 }
 
 /**

@@ -67,9 +67,6 @@
 
 .ptw-leaderboard-table thead {
   background-color: var(--ptw-bg-secondary, #172033);
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .ptw-leaderboard-table tbody tr {
