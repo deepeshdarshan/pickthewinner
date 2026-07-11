@@ -8,6 +8,10 @@ import { formatDateDisplay, toDate } from '../../../utils/date.util.js';
 import { renderTeamInlineHtml } from '../../../master-data/teams/team-flag.util.js';
 import { PredictionHistoryDomain } from '../../../domain/prediction-history.domain.js';
 import { renderComparisonBadges } from './prediction-comparison.renderer.js';
+import {
+  PREDICTION_HISTORY_CARD_CLASS,
+  renderPredictionHistoryCardDecorations,
+} from './prediction-history-card.renderer.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
 
 /**
@@ -71,7 +75,8 @@ function renderTimelineItem(item) {
       <div class="ptw-prediction-timeline__marker" aria-hidden="true">
         <i class="bi ${iconClass}"></i>
       </div>
-      <div class="ptw-prediction-timeline__content card ptw-card">
+      <div class="ptw-prediction-timeline__content card ptw-card ${PREDICTION_HISTORY_CARD_CLASS}">
+        ${renderPredictionHistoryCardDecorations()}
         <div class="card-body">
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
             <div>

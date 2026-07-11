@@ -24,6 +24,11 @@ const MATCH_CARD_BG_ICONS = Object.freeze({
     { icon: 'bi-bullseye', modifier: '--secondary' },
     { icon: 'bi-trophy', modifier: '--tertiary' },
   ],
+  history: [
+    { icon: 'bi-dribbble', modifier: '--primary' },
+    { icon: 'bi-bullseye', modifier: '--secondary' },
+    { icon: 'bi-trophy', modifier: '--tertiary' },
+  ],
   empty: [
     { icon: 'bi-dribbble', modifier: '--primary' },
     { icon: 'bi-clock', modifier: '--secondary' },
@@ -32,7 +37,7 @@ const MATCH_CARD_BG_ICONS = Object.freeze({
 });
 
 /**
- * @param {'live'|'upcoming'|'empty'} variant
+ * @param {'live'|'upcoming'|'history'|'empty'} variant
  * @returns {string}
  */
 export function renderMatchCardBgIcons(variant) {

@@ -4514,6 +4514,97 @@
   position: static;
 }
 
+.ptw-prediction-history-card.ptw-card {
+  background-color: transparent;
+}
+
+.ptw-prediction-history-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ptw-color-primary-blue) 14%, var(--ptw-color-bg-secondary)) 0%,
+      var(--ptw-color-bg-secondary) 52%,
+      color-mix(in srgb, var(--ptw-color-accent-gold) 6%, var(--ptw-color-bg-secondary)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--ptw-color-primary-blue) 28%, var(--ptw-color-border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ptw-color-primary-blue) 6%, transparent);
+}
+
+.ptw-prediction-history-card > .card-body,
+.ptw-prediction-history-card > .ptw-prediction-history-card__banner {
+  position: relative;
+  z-index: 1;
+  background-color: transparent;
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icons {
+  z-index: 0;
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--primary {
+  color: color-mix(in srgb, var(--ptw-color-primary-blue) 14%, transparent);
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--secondary {
+  color: color-mix(in srgb, var(--ptw-color-accent-gold) 12%, transparent);
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--tertiary {
+  color: color-mix(in srgb, var(--ptw-color-primary-green) 10%, transparent);
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--secondary {
+  top: -1rem;
+  left: -0.85rem;
+  font-size: clamp(4.5rem, 13vw, 6.5rem);
+  transform: rotate(-12deg);
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--primary {
+  right: -1.5rem;
+  bottom: -2rem;
+  font-size: clamp(6rem, 17vw, 9rem);
+}
+
+.ptw-prediction-history-card .ptw-decorated-card__bg-icon--tertiary {
+  top: 30%;
+  right: 2%;
+  bottom: auto;
+  font-size: clamp(3.75rem, 11vw, 6rem);
+  transform: rotate(18deg);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card {
+  margin-bottom: 0;
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--primary {
+  color: color-mix(in srgb, var(--ptw-color-primary-blue) 5%, transparent);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--secondary {
+  color: color-mix(in srgb, var(--ptw-color-accent-gold) 4%, transparent);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--tertiary {
+  color: color-mix(in srgb, var(--ptw-color-primary-green) 4%, transparent);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--secondary {
+  font-size: clamp(3.5rem, 10vw, 5rem);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--primary {
+  font-size: clamp(4.5rem, 13vw, 7rem);
+}
+
+.ptw-prediction-timeline__content.ptw-prediction-history-card .ptw-decorated-card__bg-icon--tertiary {
+  font-size: clamp(3rem, 9vw, 4.5rem);
+}
+
 .ptw-prediction-history-card__banner {
   min-height: 72px;
   background: linear-gradient(135deg, var(--ptw-color-primary-blue), var(--ptw-color-bg-tertiary));

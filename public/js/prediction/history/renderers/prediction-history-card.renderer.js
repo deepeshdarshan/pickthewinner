@@ -16,7 +16,18 @@ import {
 import { renderComparisonBadges } from './prediction-comparison.renderer.js';
 import { PredictionManagementDomain } from '../../../domain/prediction-management.domain.js';
 import { renderMatchScoringPointsHtml } from '../../../match/renderers/match-scoring-points.renderer.js';
+import { renderMatchCardBgIcons } from '../../../components/match-card-bg-icons.component.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction-history.constants.js';
+
+/** @type {string} */
+export const PREDICTION_HISTORY_CARD_CLASS = 'ptw-prediction-history-card';
+
+/**
+ * @returns {string}
+ */
+export function renderPredictionHistoryCardDecorations() {
+  return renderMatchCardBgIcons('history');
+}
 
 /**
  * @typedef {import('../../../domain/prediction-history.domain.js').HistoryItem} HistoryItem
@@ -42,7 +53,8 @@ export function renderHistoryCard(item) {
     && PredictionManagementDomain.shouldShowPenaltyWinnerForPublishedResult(result);
 
   return `
-    <article class="card ptw-card ptw-prediction-history-card mb-3" data-prediction-id="${escapeHtml(String(item.id))}">
+    <article class="card ptw-card ${PREDICTION_HISTORY_CARD_CLASS} mb-3" data-prediction-id="${escapeHtml(String(item.id))}">
+      ${renderPredictionHistoryCardDecorations()}
       <div class="ptw-prediction-history-card__banner" style="${tournament.bannerUrl ? `background-image:url('${escapeHtml(String(tournament.bannerUrl))}')` : ''}">
         <div class="ptw-prediction-history-card__banner-overlay">
           <p class="mb-0 small">${escapeHtml(tournamentName)}</p>
