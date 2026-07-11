@@ -25,7 +25,19 @@ The architecture must never be tournament-specific.
 
 Everything should be configurable.
 
-## 2. Technology Stack
+## 2. Canonical Reference (Mandatory)
+
+**Always read and follow `APP_REFERENCE.md` at the project root.**
+
+Before implementing, reviewing, or answering questions about PickTheWinner:
+
+1. Treat `APP_REFERENCE.md` as the **single source of truth** for app behavior, UI, permissions, data model, routes, design tokens, modules, and coding standards.
+2. Consult it first — do not rely on memory, scattered docs, or assumptions.
+3. If `APP_REFERENCE.md` and another file disagree, **code wins**; then update `APP_REFERENCE.md` to match.
+
+Do not use deprecated or removed docs under `design/`, `docs/`, or `prompts/` when `APP_REFERENCE.md` covers the topic.
+
+## 3. Technology Stack
 
 ## Technology
 
@@ -48,7 +60,7 @@ Never introduce
 
 unless explicitly requested.
 
-## 3. Architecture
+## 4. Architecture
 
 This is the biggest difference.
 
@@ -86,7 +98,7 @@ Then write
 - Renderers should not perform Firestore operations.
 - Business logic must remain independent of rendering.
 
-## 4. Folder Structure
+## 5. Folder Structure
 
 ```text
 public/
@@ -119,22 +131,14 @@ renderers/
 
 assets/
 
-design/
-
-docs/
-
-prompts/
+APP_REFERENCE.md
 ```
 
 Never let Cursor invent folders.
 
-## 5. Design System
+## 6. Design System
 
-This is where your Design System file comes in.
-
-Always read
-
-`design/DESIGN_SYSTEM.md`
+See **`APP_REFERENCE.md`** — sections on Design System, Bootstrap/CSS classes, and Icons.
 
 Never introduce new colors.
 
@@ -148,7 +152,7 @@ Bootstrap First.
 
 Mobile First.
 
-## 6. Authentication
+## 7. Authentication
 
 Cursor should always remember
 
@@ -168,7 +172,7 @@ Firebase Email Password
 
 Never the opposite.
 
-## 7. Firestore
+## 8. Firestore
 
 Collections
 
@@ -181,7 +185,7 @@ Collections
 
 Never create new collections unless documented.
 
-## 8. Prediction Rules
+## 9. Prediction Rules
 
 Cursor should know
 
@@ -203,7 +207,7 @@ Penalty Winner
 
 No penalty score.
 
-## 9. Match States
+## 10. Match States
 
 ```text
 Hidden
@@ -231,7 +235,7 @@ Archived
 
 Never invent new states.
 
-## 10. Coding Standards
+## 11. Coding Standards
 
 Keep everything from your previous skill.
 
@@ -245,7 +249,7 @@ Keep everything from your previous skill.
 - Validation
 - Error Handling
 
-## 11. Bootstrap
+## 12. Bootstrap
 
 Very important.
 
@@ -256,7 +260,7 @@ Very important.
 - Use Bootstrap Icons.
 - Never reinvent existing Bootstrap components.
 
-## 12. Firebase
+## 13. Firebase
 
 Initialize Firebase only once.
 
@@ -272,7 +276,7 @@ Never hardcode Firebase configuration.
 
 Use a dedicated firebase.js module.
 
-## 13. Routing
+## 14. Routing
 
 I would now add this because I think we should build a SPA.
 
@@ -290,7 +294,7 @@ Pages
 
 No multiple HTML pages.
 
-## 14. Performance
+## 15. Performance
 
 Cursor should know
 
@@ -301,7 +305,7 @@ Cursor should know
 - Lazy loading.
 - Virtual rendering if necessary.
 
-## 15. UI
+## 16. UI
 
 Cursor should remember
 
