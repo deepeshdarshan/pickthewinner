@@ -173,15 +173,14 @@ export function renderMatchCard(options) {
  */
 function renderStatusIndicator(predictionStatus) {
   const config = {
-    [CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED]: { icon: 'bi-check-circle-fill', label: 'Status', tone: 'success' },
-    [CONTESTANT_PREDICTION_UI_STATUS.PENDING]: { icon: 'bi-exclamation-circle-fill', label: 'Status', tone: 'warning' },
-    [CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON]: { icon: 'bi-clock-fill', label: 'Status', tone: 'primary' },
-    [CONTESTANT_PREDICTION_UI_STATUS.LOCKED]: { icon: 'bi-lock-fill', label: 'Status', tone: 'default' },
-  }[predictionStatus] ?? { icon: 'bi-circle-fill', label: 'Status', tone: 'default' };
+    [CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED]: { icon: 'bi-check-circle-fill', tone: 'success' },
+    [CONTESTANT_PREDICTION_UI_STATUS.PENDING]: { icon: 'bi-exclamation-circle-fill', tone: 'warning' },
+    [CONTESTANT_PREDICTION_UI_STATUS.OPENS_SOON]: { icon: 'bi-clock-fill', tone: 'primary' },
+    [CONTESTANT_PREDICTION_UI_STATUS.LOCKED]: { icon: 'bi-lock-fill', tone: 'default' },
+  }[predictionStatus] ?? { icon: 'bi-circle-fill', tone: 'default' };
 
   return `
     <div class="ptw-rank-badge ptw-rank-badge--${config.tone} ptw-rank-badge--featured" aria-hidden="true">
-      <span class="ptw-rank-badge__label">${config.label}</span>
       <i class="bi ${config.icon} ptw-rank-badge__icon" aria-hidden="true"></i>
     </div>
   `;
