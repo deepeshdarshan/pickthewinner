@@ -4,10 +4,7 @@
  */
 
 import { RANK_MOVEMENT } from '../leaderboard/leaderboard.constants.js';
-import {
-  CONTESTANT_LEADERBOARD_LIMIT_MAX,
-  DEFAULT_CONTESTANT_LEADERBOARD_LIMIT,
-} from '../settings/settings.constants.js';
+import { resolveContestantLeaderboardLimit } from '../settings/settings.constants.js';
 import { MatchDomain } from './match.domain.js';
 import { PredictionManagementDomain } from './prediction-management.domain.js';
 
@@ -22,27 +19,11 @@ export const LeaderboardDomain = {
   },
 
   /**
-   * Resolves contestant leaderboard visibility limit (1–10, default 10).
+   * Resolves contestant leaderboard visibility limit (3, 5, 10, 20, 30, or 50; default 10).
    * @param {unknown} value
    * @returns {number}
    */
-  resolveContestantLeaderboardLimit(value) {
-    const numeric = typeof value === 'number' ? value : Number(value);
-
-    if (!Number.isInteger(numeric)) {
-      return DEFAULT_CONTESTANT_LEADERBOARD_LIMIT;
-    }
-
-    if (numeric < 1) {
-      return 1;
-    }
-
-    if (numeric > CONTESTANT_LEADERBOARD_LIMIT_MAX) {
-      return CONTESTANT_LEADERBOARD_LIMIT_MAX;
-    }
-
-    return numeric;
-  },
+  resolveContestantLeaderboardLimit,
 
   /**
    * Returns entries visible to contestants within the configured top-N limit.

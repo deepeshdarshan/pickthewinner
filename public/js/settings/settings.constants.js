@@ -13,14 +13,49 @@ export const SETTINGS_DOCUMENTS = Object.freeze({
   GENERAL: 'general',
 });
 
-/** @type {Readonly<number>} */
-export const CONTESTANT_LEADERBOARD_LIMIT_MIN = 1;
+/** @type {ReadonlyArray<number>} */
+export const CONTESTANT_LEADERBOARD_LIMIT_OPTIONS = Object.freeze([3, 5, 10, 20, 30, 50]);
 
 /** @type {Readonly<number>} */
-export const CONTESTANT_LEADERBOARD_LIMIT_MAX = 10;
+export const CONTESTANT_LEADERBOARD_LIMIT_MIN = CONTESTANT_LEADERBOARD_LIMIT_OPTIONS[0];
+
+/** @type {Readonly<number>} */
+export const CONTESTANT_LEADERBOARD_LIMIT_MAX = CONTESTANT_LEADERBOARD_LIMIT_OPTIONS[
+  CONTESTANT_LEADERBOARD_LIMIT_OPTIONS.length - 1
+];
 
 /** @type {Readonly<number>} */
 export const DEFAULT_CONTESTANT_LEADERBOARD_LIMIT = 10;
+
+/**
+ * Resolves a contestant leaderboard limit to one of the allowed options.
+ * Legacy values snap to the nearest allowed option.
+ * @param {unknown} value
+ * @returns {number}
+ */
+export function resolveContestantLeaderboardLimit(value) {
+  const numeric = typeof value === 'number' ? value : Number(value);
+
+  if (!Number.isInteger(numeric)) {
+    return DEFAULT_CONTESTANT_LEADERBOARD_LIMIT;
+  }
+
+  if (CONTESTANT_LEADERBOARD_LIMIT_OPTIONS.includes(numeric)) {
+    return numeric;
+  }
+
+  if (numeric <= CONTESTANT_LEADERBOARD_LIMIT_MIN) {
+    return CONTESTANT_LEADERBOARD_LIMIT_MIN;
+  }
+
+  if (numeric >= CONTESTANT_LEADERBOARD_LIMIT_MAX) {
+    return CONTESTANT_LEADERBOARD_LIMIT_MAX;
+  }
+
+  return CONTESTANT_LEADERBOARD_LIMIT_OPTIONS.reduce((nearest, option) => (
+    Math.abs(option - numeric) < Math.abs(nearest - numeric) ? option : nearest
+  ));
+}
 
 /** @type {Readonly<Record<string, unknown>>} */
 export const DEFAULT_PLATFORM_SETTINGS = Object.freeze({

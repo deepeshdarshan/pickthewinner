@@ -18,9 +18,7 @@ import {
   SETTINGS_COLLECTIONS,
   SETTINGS_DOCUMENTS,
   DEFAULT_PLATFORM_SETTINGS,
-  DEFAULT_CONTESTANT_LEADERBOARD_LIMIT,
-  CONTESTANT_LEADERBOARD_LIMIT_MIN,
-  CONTESTANT_LEADERBOARD_LIMIT_MAX,
+  resolveContestantLeaderboardLimit,
   SETTINGS_MESSAGES,
 } from './settings.constants.js';
 import { SETTINGS_EVENTS, emitSettingsEvent } from './settings.events.js';
@@ -50,28 +48,6 @@ function getGeneralSettingsDocRef() {
  */
 function resolveLeaderboardVisible(value) {
   return Boolean(value);
-}
-
-/**
- * @param {unknown} value
- * @returns {number}
- */
-function resolveContestantLeaderboardLimit(value) {
-  const numeric = typeof value === 'number' ? value : Number(value);
-
-  if (!Number.isInteger(numeric)) {
-    return DEFAULT_CONTESTANT_LEADERBOARD_LIMIT;
-  }
-
-  if (numeric < CONTESTANT_LEADERBOARD_LIMIT_MIN) {
-    return CONTESTANT_LEADERBOARD_LIMIT_MIN;
-  }
-
-  if (numeric > CONTESTANT_LEADERBOARD_LIMIT_MAX) {
-    return CONTESTANT_LEADERBOARD_LIMIT_MAX;
-  }
-
-  return numeric;
 }
 
 /**

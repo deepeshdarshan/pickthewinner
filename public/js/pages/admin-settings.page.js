@@ -11,7 +11,7 @@ import { getCurrentUser } from '../auth/auth.service.js';
 import { PlatformSettingsService } from '../settings/settings.service.js';
 import {
   SETTINGS_MESSAGES,
-  CONTESTANT_LEADERBOARD_LIMIT_MAX,
+  CONTESTANT_LEADERBOARD_LIMIT_OPTIONS,
 } from '../settings/settings.constants.js';
 import { Logger } from '../utils/logger.util.js';
 
@@ -49,8 +49,7 @@ async function initAdminSettingsPage(outlet) {
  */
 function renderAdminSettingsMarkup(settings) {
   const { leaderboardVisible, contestantLeaderboardLimit } = settings;
-  const limitOptions = Array.from({ length: CONTESTANT_LEADERBOARD_LIMIT_MAX }, (_, index) => {
-    const value = index + 1;
+  const limitOptions = CONTESTANT_LEADERBOARD_LIMIT_OPTIONS.map((value) => {
     const selected = value === contestantLeaderboardLimit ? ' selected' : '';
     return `<option value="${value}"${selected}>Top ${value}</option>`;
   }).join('');

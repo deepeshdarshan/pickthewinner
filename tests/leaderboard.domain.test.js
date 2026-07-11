@@ -32,10 +32,12 @@ describe('LeaderboardDomain', () => {
       assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit('invalid'), 10);
     });
 
-    it('should clamp values to 1 through 10', () => {
-      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(0), 1);
+    it('should clamp values to allowed options', () => {
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(0), 3);
       assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(15), 10);
       assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(5), 5);
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(20), 20);
+      assert.equal(LeaderboardDomain.resolveContestantLeaderboardLimit(60), 50);
     });
   });
 
