@@ -1869,6 +1869,7 @@
 .ptw-match-card {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   transition: transform var(--ptw-transition-base), box-shadow var(--ptw-transition-base);
 }
 
@@ -1958,7 +1959,21 @@
   grid-template-columns: 1fr;
 }
 
+/* Contestant browse: 1 card = full width, 2+ cards = max 2 per row */
+.ptw-match-cards--contestant-browse {
+  grid-template-columns: 1fr;
+}
+
 @media (min-width: 768px) {
+  .ptw-match-cards--contestant-browse:not(.ptw-match-cards--single) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ptw-match-cards--contestant-browse.ptw-match-cards--single,
+  .ptw-match-cards--contestant-browse:has(> .ptw-match-card:only-child) {
+    grid-template-columns: 1fr;
+  }
+
   .ptw-match-cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--ptw-space-3);
@@ -2089,6 +2104,46 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--ptw-space-2);
+}
+
+.ptw-match-card--upcoming .card-header,
+.ptw-match-card--live .card-header {
+  background-color: color-mix(in srgb, var(--ptw-color-bg-secondary) 55%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--ptw-color-border) 55%, transparent);
+}
+
+/* Browse grid cards: keep all three watermark icons visible without spanning the full card */
+.ptw-match-cards--contestant-browse .ptw-match-card .ptw-decorated-card__bg-icon--secondary {
+  top: -1rem;
+  left: -0.85rem;
+  font-size: clamp(4.5rem, 13vw, 6.5rem);
+  transform: rotate(-12deg);
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card .ptw-decorated-card__bg-icon--primary {
+  right: -1.5rem;
+  bottom: -2rem;
+  font-size: clamp(6rem, 17vw, 9rem);
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card .ptw-decorated-card__bg-icon--tertiary {
+  top: 30%;
+  right: 2%;
+  bottom: auto;
+  font-size: clamp(3.75rem, 11vw, 6rem);
+  transform: rotate(18deg);
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card--upcoming .ptw-decorated-card__bg-icon--secondary {
+  color: color-mix(in srgb, var(--ptw-color-accent-gold) 9%, transparent);
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card--upcoming .ptw-decorated-card__bg-icon--primary {
+  color: color-mix(in srgb, var(--ptw-color-primary-blue) 11%, transparent);
+}
+
+.ptw-match-cards--contestant-browse .ptw-match-card--upcoming .ptw-decorated-card__bg-icon--tertiary {
+  color: color-mix(in srgb, var(--ptw-color-primary-green) 8%, transparent);
 }
 
 .ptw-match-card .badge {
@@ -3522,6 +3577,10 @@
   z-index: 1;
 }
 
+.ptw-match-card .ptw-decorated-card__bg-icons {
+  z-index: 0;
+}
+
 .ptw-decorated-card__bg-icons {
   position: absolute;
   inset: 0;
@@ -3880,17 +3939,18 @@
   padding: 0;
 }
 
-.ptw-tournament-detail-banner {
-  height: 220px;
-  background-size: cover;
-  background-position: center;
+.ptw-tournament-detail-hero {
+  min-height: 15rem;
 }
 
-.ptw-tournament-detail-logo {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  flex-shrink: 0;
+.ptw-tournament-detail-hero__content {
+  max-width: 48rem;
+}
+
+.ptw-tournament-detail-hero__description {
+  color: var(--ptw-color-text-secondary);
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.5;
 }
 
 .ptw-round-filters .btn.active {

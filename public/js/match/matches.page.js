@@ -13,7 +13,12 @@ import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { MATCH_MESSAGES, MATCH_ROUTES } from './match.constants.js';
 import { getMatchById, getMatchErrorMessage, listMatchesForContestant } from './match.service.js';
-import { filterUpcomingMatches, groupMatchesByRoundLabel, sortMatchesByKickoff } from './match-list.util.js';
+import {
+  filterUpcomingMatches,
+  getContestantMatchCardsGridClass,
+  groupMatchesByRoundLabel,
+  sortMatchesByKickoff,
+} from './match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
@@ -105,11 +110,14 @@ async function renderListView(outlet) {
 function renderUpcomingMatchSections(matches, predictions) {
   const { grouped, orderedRounds } = groupMatchesByRoundLabel(matches);
 
-  return orderedRounds.map((round) => `
+  return orderedRounds.map((round) => {
+    const roundMatches = grouped[round];
+
+    return `
     <div class="mb-4">
       <h3 class="h5 mb-3">${escapeHtml(round)}</h3>
-      <div class="ptw-match-cards">
-        ${grouped[round].map((match) => renderMatchCard({
+      <div class="${getContestantMatchCardsGridClass(roundMatches.length)}">
+        ${roundMatches.map((match) => renderMatchCard({
     match,
     showPrediction: true,
     prediction: predictions[match.id] ?? null,
@@ -118,7 +126,8 @@ function renderUpcomingMatchSections(matches, predictions) {
   })).join('')}
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 /**

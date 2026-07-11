@@ -203,6 +203,20 @@ export function groupMatchesByRoundLabel(matches) {
 }
 
 /**
+ * Grid class for contestant browse views (upcoming matches, tournament detail).
+ * One match spans full width; multiple matches show at most two per row.
+ * @param {number} matchCount
+ * @returns {string}
+ */
+export function getContestantMatchCardsGridClass(matchCount) {
+  const classes = ['ptw-match-cards', 'ptw-match-cards--contestant-browse'];
+  if (matchCount === 1) {
+    classes.push('ptw-match-cards--single');
+  }
+  return classes.join(' ');
+}
+
+/**
  * @param {unknown} value
  * @returns {number}
  */

@@ -4,7 +4,6 @@
  */
 
 import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
-import { renderContestantPageHeader } from '../components/page-header.component.js';
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderStatisticCard } from '../components/statistic-card.component.js';
@@ -13,12 +12,13 @@ import { initializeCountdowns } from '../components/countdown.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getTournamentById } from '../tournament/tournament.service.js';
+import { renderTournamentDetailHero } from '../tournament/renderers/tournament-detail.renderer.js';
 import { listMatchesForContestant } from '../match/match.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
 import { shouldShowOnTournamentDetail } from '../domain/contestant-match-view.domain.js';
-import { groupMatchesByRoundLabel } from '../match/match-list.util.js';
+import { getContestantMatchCardsGridClass, groupMatchesByRoundLabel } from '../match/match-list.util.js';
 
 /**
  * Renders the tournament detail page.
@@ -111,7 +111,6 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
   const submittedPredictions = matches.filter((match) => predictionsMap.has(match.id)).length;
   const pendingPredictions = Math.max(totalMatches - submittedPredictions, 0);
   const completedMatches = matches.filter((m) => m.result?.published).length;
-  const completionPercentage = totalMatches > 0 ? Math.round((submittedPredictions / totalMatches) * 100) : 0;
 
   const filterChips = availableRounds.length > 1 ? `
     <div class="ptw-round-filters d-flex flex-wrap gap-2 mb-4" role="toolbar" aria-label="Filter matches by round">
@@ -124,14 +123,17 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
     </div>
   ` : '';
 
-  const matchSections = availableRounds.map((round) => `
+  const matchSections = availableRounds.map((round) => {
+    const roundMatches = grouped[round];
+
+    return `
     <section class="mb-4 ptw-round-section" data-round-section="${escapeHtml(round)}">
       <h3 class="h5 mb-3">
         <i class="bi bi-trophy me-2" aria-hidden="true"></i>
         ${escapeHtml(round)}
       </h3>
-      <div class="ptw-match-cards">
-        ${grouped[round].map((match) => renderMatchCard({
+      <div class="${getContestantMatchCardsGridClass(roundMatches.length)}">
+        ${roundMatches.map((match) => renderMatchCard({
     match,
     showPrediction: true,
     prediction: predictionsMap.get(match.id) || null,
@@ -140,7 +142,8 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
   })).join('')}
       </div>
     </section>
-  `).join('');
+  `;
+  }).join('');
 
   const matchesBody = matches.length === 0
     ? renderEmptyState({
@@ -156,37 +159,10 @@ function renderTournamentDetailPage(tournament, matches, predictionsMap) {
         <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to Tournaments
       </a>
 
-      ${renderContestantPageHeader({
-    title: tournament.name,
-    subtitle: tournament.season || 'Tournament details and matches',
+      ${renderTournamentDetailHero(tournament, {
+    totalMatches,
+    submittedPredictions,
   })}
-
-      <div class="card ptw-card mb-4 overflow-hidden">
-        ${tournament.banner ? `
-          <div class="ptw-tournament-detail-banner" style="background-image: url('${escapeHtml(tournament.banner)}');"></div>
-        ` : ''}
-        <div class="card-body">
-          <div class="d-flex align-items-start mb-3 gap-3">
-            ${tournament.logo ? `
-              <img src="${escapeHtml(tournament.logo)}" alt="" class="ptw-tournament-detail-logo">
-            ` : ''}
-            <div class="flex-grow-1">
-              <p class="ptw-text-muted mb-0">${escapeHtml(tournament.description ?? '')}</p>
-            </div>
-          </div>
-          ${totalMatches > 0 ? `
-            <div class="mt-3">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="ptw-text-muted">Prediction Progress</small>
-                <small class="text-primary fw-bold">${submittedPredictions} / ${totalMatches}</small>
-              </div>
-              <div class="progress" style="height: 8px;">
-                <div class="progress-bar bg-primary" role="progressbar" style="width: ${completionPercentage}%;" aria-valuenow="${completionPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
 
       <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">

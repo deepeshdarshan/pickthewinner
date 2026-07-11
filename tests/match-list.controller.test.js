@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { filterMatches, paginateMatches, sortMatchesByKickoff } from '../public/js/match/match-list.util.js';
+import {
+  filterMatches,
+  getContestantMatchCardsGridClass,
+  paginateMatches,
+  sortMatchesByKickoff,
+} from '../public/js/match/match-list.util.js';
 import { MATCH_STATUS } from '../public/js/domain/match.domain.js';
 
 describe('match-list.util', () => {
@@ -55,5 +60,16 @@ describe('match-list.util', () => {
     assert.equal(page.pageMatches.length, 2);
     assert.equal(page.totalPages, 2);
     assert.equal(page.currentPage, 1);
+  });
+
+  it('builds contestant browse grid classes for single and multiple matches', () => {
+    assert.equal(
+      getContestantMatchCardsGridClass(1),
+      'ptw-match-cards ptw-match-cards--contestant-browse ptw-match-cards--single',
+    );
+    assert.equal(
+      getContestantMatchCardsGridClass(3),
+      'ptw-match-cards ptw-match-cards--contestant-browse',
+    );
   });
 });
