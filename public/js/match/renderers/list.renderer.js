@@ -332,7 +332,7 @@ export function renderMatchFilters(tournaments, options = {}) {
     }),
   ].join('');
 
-  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-match-filters' });
+  return renderFilterBar({ fieldsHtml, extraClass: 'ptw-match-filters ptw-filter-bar--scrollable' });
 }
 
 /**

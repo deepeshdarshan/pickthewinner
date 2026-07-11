@@ -1841,12 +1841,6 @@
   }
 }
 
-.ptw-match-filters {
-  position: sticky;
-  top: var(--ptw-space-3);
-  z-index: 5;
-}
-
 .ptw-match-fab {
   position: fixed;
   right: var(--ptw-space-4);
@@ -4541,7 +4535,8 @@
    -------------------------------------------------------------------------- */
 
 .ptw-prediction-history__filters,
-.ptw-admin-predictions__filters {
+.ptw-admin-predictions__filters,
+.ptw-match-filters {
   position: static;
 }
 

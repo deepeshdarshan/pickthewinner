@@ -12,6 +12,7 @@ import {
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDateTime } from '../../utils/date.util.js';
 import { renderFeaturedMatchBgIcons } from './featured-match.renderer.js';
+import { MatchDomain } from '../../domain/match.domain.js';
 
 /**
  * @param {import('../AdminDashboardService.js').AdminDashboardDto} data
@@ -123,6 +124,7 @@ function renderAdminMatchSpotlightCard(options) {
     : '';
 
   const manageUrl = `${data.matchesPath}?id=${encodeURIComponent(match.id)}`;
+  const viewPredictionsButtonHtml = renderViewPredictionsButton(data, match);
 
   const bgVariant = showLiveIndicator ? 'live' : 'upcoming';
 
@@ -158,12 +160,27 @@ function renderAdminMatchSpotlightCard(options) {
           <a href="${escapeHtml(manageUrl)}" class="btn btn-ptw-primary ptw-featured-match__action-btn flex-fill" data-route>
             <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Manage Match
           </a>
-          <a href="${escapeHtml(data.predictionsPath)}" class="btn btn-outline-light ptw-featured-match__action-btn flex-fill" data-route>
-            <i class="bi bi-list-check me-2" aria-hidden="true"></i>View Predictions
-          </a>
+          ${viewPredictionsButtonHtml}
         </div>
       </div>
     </section>
+  `;
+}
+
+/**
+ * @param {import('../AdminDashboardService.js').AdminDashboardDto} data
+ * @param {import('../../match/match.service.js').EnrichedMatch} match
+ * @returns {string}
+ */
+function renderViewPredictionsButton(data, match) {
+  if (!MatchDomain.hadPredictionWindowOpened(match)) {
+    return '';
+  }
+
+  return `
+    <a href="${escapeHtml(data.predictionsPath)}" class="btn btn-outline-light ptw-featured-match__action-btn flex-fill" data-route>
+      <i class="bi bi-list-check me-2" aria-hidden="true"></i>View Predictions
+    </a>
   `;
 }
 
