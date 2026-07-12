@@ -6,8 +6,10 @@
 import { renderMatchCountdownFromDto } from '../../components/countdown.component.js';
 import { getTeamFlagUrl, renderTeamFlagHtml } from '../../master-data/teams/team-flag.util.js';
 import {
+  CONTESTANT_PREDICTION_UI_STATUS,
   getContestantPredictionUiStatus,
   renderContestantPredictionActionButtons,
+  renderContestantPredictionEditInline,
 } from '../../match/match-prediction-ui.util.js';
 import {
   renderCustomScoringSourceBadge,
@@ -43,6 +45,7 @@ export function renderLiveMatchSection(data) {
   return renderMatchSpotlightCard({
     match,
     prediction,
+    predictionStatus: getContestantPredictionUiStatus(match, prediction),
     headingId: 'ptw-live-match-heading',
     heading: 'Live Now',
     sectionClass: 'ptw-featured-match ptw-featured-match--live ptw-live-match',
@@ -80,6 +83,7 @@ export function renderFeaturedMatchSection(data) {
   return renderMatchSpotlightCard({
     match,
     prediction,
+    predictionStatus,
     headingId: 'ptw-featured-match-heading',
     heading: 'Upcoming Match',
     sectionClass: 'ptw-featured-match ptw-upcoming-match',
@@ -93,6 +97,7 @@ export function renderFeaturedMatchSection(data) {
  * @param {{
  *   match: import('../../match/match.service.js').EnrichedMatch,
  *   prediction: Record<string, unknown>|null,
+ *   predictionStatus: string,
  *   headingId: string,
  *   heading: string,
  *   sectionClass: string,
@@ -106,6 +111,7 @@ function renderMatchSpotlightCard(options) {
   const {
     match,
     prediction,
+    predictionStatus,
     headingId,
     heading,
     sectionClass,
@@ -187,13 +193,19 @@ function renderMatchSpotlightCard(options) {
 
         ${scoringPointsHtml ? `<div class="ptw-featured-match__scoring mb-3">${scoringPointsHtml}</div>` : ''}
 
-        ${prediction && !showLiveIndicator ? renderMatchPredictionStatsRow(match, prediction) : ''}
+        ${prediction && !showLiveIndicator ? renderFeaturedMatchPredictionStats(match, prediction, predictionStatus) : ''}
 
-        ${actionButtons ? `
+        ${!showLiveIndicator ? `
+          <div class="d-flex flex-wrap gap-2 justify-content-center w-100${shouldShowFeaturedActionFooter(predictionStatus) ? ' mt-auto pt-3' : ''}"
+            data-ptw-prediction-actions-footer
+          >
+            ${actionButtons}
+          </div>
+        ` : (actionButtons ? `
           <div class="d-flex flex-wrap gap-2 justify-content-center mt-auto pt-3 w-100">
             ${actionButtons}
           </div>
-        ` : ''}
+        ` : '')}
       </div>
     </section>
   `;
@@ -236,7 +248,41 @@ function renderUpcomingActionButtons(match, prediction, predictionStatus) {
     editButtonClass: 'btn btn-ptw-primary ptw-featured-match__action-btn',
     predictLabel: 'Predict Match',
     showEditButton: false,
+    syncable: true,
   });
+}
+
+/**
+ * @param {string} predictionStatus
+ * @returns {boolean}
+ */
+function shouldShowFeaturedActionFooter(predictionStatus) {
+  return predictionStatus !== CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED;
+}
+
+/**
+ * @param {import('../../match/match.service.js').EnrichedMatch} match
+ * @param {Record<string, unknown>} prediction
+ * @param {string} predictionStatus
+ * @returns {string}
+ */
+function renderFeaturedMatchPredictionStats(match, prediction, predictionStatus) {
+  const showEditPrediction = shouldShowFeaturedEditPrediction(predictionStatus);
+  const editLabelHtml = showEditPrediction
+    ? renderContestantPredictionEditInline(match.id, { visible: true })
+    : '';
+
+  return renderMatchPredictionStatsRow(match, prediction, {
+    myPredictionLabelExtraHtml: editLabelHtml,
+  });
+}
+
+/**
+ * @param {string} predictionStatus
+ * @returns {boolean}
+ */
+function shouldShowFeaturedEditPrediction(predictionStatus) {
+  return predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED;
 }
 
 /**

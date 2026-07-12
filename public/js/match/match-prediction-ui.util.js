@@ -103,6 +103,7 @@ export function getContestantPredictionUiStatus(match, prediction) {
  * @property {string} [predictLabel='Make Prediction']
  * @property {string} [wrapperClass='']
  * @property {boolean} [showEditButton=true]
+ * @property {boolean} [syncable=false]
  */
 
 /**
@@ -177,6 +178,46 @@ export function renderContestantPredictionDisabledButton(status, buttonClass = '
 }
 
 /**
+ * @param {string} matchId
+ * @param {{ buttonClass?: string, compact?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderContestantPredictionEditLink(matchId, options = {}) {
+  const {
+    buttonClass = 'btn btn-ptw-primary',
+    compact = false,
+  } = options;
+  const label = compact ? 'Edit' : 'Edit Prediction';
+  const iconMargin = compact ? 'me-1' : 'me-2';
+
+  return `
+    <a href="/predictions?action=edit&matchId=${encodeURIComponent(matchId)}" class="${buttonClass}" data-route>
+      <i class="bi bi-pencil ${iconMargin}" aria-hidden="true"></i>${label}
+    </a>
+  `;
+}
+
+/**
+ * @param {string} matchId
+ * @param {{ buttonClass?: string, visible?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderContestantPredictionEditInline(matchId, options = {}) {
+  const {
+    buttonClass = 'btn btn-link btn-sm ptw-prediction-edit-inline-btn p-0 align-baseline',
+    visible = true,
+  } = options;
+
+  return `
+    <span class="ptw-performance-card__stat-label-action"
+      data-ptw-prediction-edit-inline
+      data-match-id="${escapeHtml(matchId)}"
+      data-edit-button-class="${escapeHtml(buttonClass)}"
+    >${visible ? renderContestantPredictionEditLink(matchId, { buttonClass, compact: true }) : ''}</span>
+  `;
+}
+
+/**
  * @param {ContestantPredictionActionButtonsOptions} options
  * @returns {string}
  */
@@ -213,11 +254,7 @@ function renderContestantPredictionActionButtonsInner(options) {
       return '';
     }
 
-    return `
-      <a href="/predictions?action=edit&matchId=${encodeURIComponent(matchId)}" class="${editButtonClass}" data-route>
-        <i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit Prediction
-      </a>
-    `;
+    return renderContestantPredictionEditLink(matchId, { buttonClass: editButtonClass });
   }
 
   return `
@@ -246,6 +283,7 @@ export function renderContestantPredictionActionButtons(options) {
     predictLabel = 'Make Prediction',
     wrapperClass = '',
     showEditButton = true,
+    syncable = false,
   } = options;
 
   const innerHtml = renderContestantPredictionActionButtonsInner({
@@ -260,15 +298,17 @@ export function renderContestantPredictionActionButtons(options) {
     showEditButton,
   });
 
-  if (!innerHtml) {
+  if (!innerHtml && !syncable) {
     return '';
   }
 
   const wrapperClassAttr = wrapperClass ? ` class="${escapeHtml(wrapperClass)}"` : '';
+  const hiddenClass = !innerHtml && syncable ? ' visually-hidden' : '';
 
   return `
-    <div${wrapperClassAttr}
+    <div${wrapperClassAttr}${hiddenClass}
       data-ptw-prediction-actions
+      data-syncable="${syncable ? 'true' : 'false'}"
       data-match-id="${escapeHtml(matchId)}"
       data-prediction-exists="${predictionExists ? 'true' : 'false'}"
       data-prediction-locked="${predictionLocked ? 'true' : 'false'}"
@@ -323,6 +363,36 @@ export function syncContestantPredictionUiFromCountdownPhase(countdownContainer,
     predictLabel: actionsEl.dataset.predictLabel ?? 'Make Prediction',
     showEditButton: actionsEl.dataset.showEditButton !== 'false',
   });
+
+  if (actionsEl.dataset.syncable === 'true') {
+    actionsEl.classList.toggle('visually-hidden', actionsEl.innerHTML.trim() === '');
+  }
+
+  const actionsFooterEl = card.querySelector('[data-ptw-prediction-actions-footer]');
+  if (actionsFooterEl) {
+    actionsFooterEl.classList.toggle(
+      'mt-auto',
+      predictionStatus !== CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED,
+    );
+    actionsFooterEl.classList.toggle(
+      'pt-3',
+      predictionStatus !== CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED,
+    );
+  }
+
+  const editInlineEl = card.querySelector('[data-ptw-prediction-edit-inline]');
+  if (editInlineEl) {
+    const showEditInline = predictionStatus === CONTESTANT_PREDICTION_UI_STATUS.SUBMITTED
+      && actionsEl.dataset.showEditButton === 'false';
+    const matchId = editInlineEl.dataset.matchId ?? actionsEl.dataset.matchId ?? '';
+    const editButtonClass = editInlineEl.dataset.editButtonClass
+      ?? actionsEl.dataset.editButtonClass
+      ?? 'btn btn-link btn-sm ptw-prediction-edit-inline-btn p-0 align-baseline';
+
+    editInlineEl.innerHTML = showEditInline
+      ? renderContestantPredictionEditLink(matchId, { buttonClass: editButtonClass, compact: true })
+      : '';
+  }
 
   const badgeEl = card.querySelector('[data-ptw-prediction-status-badge]');
   if (badgeEl) {

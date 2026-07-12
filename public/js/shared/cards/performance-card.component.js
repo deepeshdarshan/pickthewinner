@@ -10,6 +10,7 @@ import { escapeHtml } from '../../utils/html.util.js';
  * @property {string} icon
  * @property {string} value
  * @property {string} label
+ * @property {string} [labelExtraHtml]
  * @property {'primary'|'success'|'info'|'warning'|'danger'|'default'} [tone]
  */
 
@@ -104,7 +105,11 @@ export function renderPerformanceCardStats(stats, options = {}) {
             <i class="bi ${escapeHtml(stat.icon)} ptw-performance-card__stat-icon ptw-performance-card__stat-icon--${escapeHtml(stat.tone ?? 'default')}" aria-hidden="true"></i>
             <span class="ptw-performance-card__stat-value ptw-performance-card__stat-value--${escapeHtml(stat.tone ?? 'default')}">${stat.value}</span>
           </div>
-          <span class="ptw-performance-card__stat-label">${escapeHtml(stat.label)}</span>
+          <div class="ptw-performance-card__stat-label${stat.labelExtraHtml ? ' ptw-performance-card__stat-label--with-action' : ''}">
+            ${stat.labelExtraHtml
+    ? `<span class="ptw-performance-card__stat-label-row"><span>${escapeHtml(stat.label)}</span>${stat.labelExtraHtml}</span>`
+    : escapeHtml(stat.label)}
+          </div>
         </div>
       `).join('')}
     </div>

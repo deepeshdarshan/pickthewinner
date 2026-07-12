@@ -11,6 +11,7 @@ import { renderPerformanceCardStats } from '../../shared/cards/performance-card.
 /**
  * @typedef {Object} MatchPredictionStatsOptions
  * @property {boolean} [showResult=false]
+ * @property {string} [myPredictionLabelExtraHtml]
  */
 
 /**
@@ -20,7 +21,7 @@ import { renderPerformanceCardStats } from '../../shared/cards/performance-card.
  * @returns {import('../../shared/cards/performance-card.component.js').PerformanceCardStat[]}
  */
 export function buildMatchPredictionStats(match, prediction, options = {}) {
-  const { showResult = false } = options;
+  const { showResult = false, myPredictionLabelExtraHtml = '' } = options;
   const predictedScore = prediction
     ? `${prediction.homeScore} - ${prediction.awayScore}`
     : '—';
@@ -38,6 +39,7 @@ export function buildMatchPredictionStats(match, prediction, options = {}) {
       value: escapeHtml(String(predictedScore)),
       label: 'My Prediction',
       tone: prediction ? 'primary' : 'warning',
+      labelExtraHtml: myPredictionLabelExtraHtml,
     },
     {
       icon: 'bi-trophy-fill',

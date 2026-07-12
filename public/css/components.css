@@ -3931,6 +3931,34 @@
   padding: 0.625rem 1.25rem;
 }
 
+.ptw-performance-card__stat-label--with-action {
+  display: block;
+}
+
+.ptw-performance-card__stat-label-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+
+.ptw-featured-match .ptw-prediction-edit-inline-btn {
+  font-size: 0.625rem;
+  font-weight: var(--ptw-font-weight-semibold);
+  color: var(--ptw-color-primary-green);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.ptw-featured-match .ptw-prediction-edit-inline-btn:hover,
+.ptw-featured-match .ptw-prediction-edit-inline-btn:focus-visible {
+  color: var(--ptw-badge-success-text);
+  text-decoration: underline;
+}
+
 .ptw-featured-match--live .ptw-team-flag--lg,
 .ptw-featured-match--live .fi.ptw-team-flag--lg {
   width: 5rem;
