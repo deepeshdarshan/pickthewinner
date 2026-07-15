@@ -391,6 +391,43 @@ describe('LeaderboardDomain', () => {
     });
   });
 
+  describe('calculateBetterThanPercent', () => {
+    it('should calculate percentage of contestants ranked below the user', () => {
+      assert.equal(LeaderboardDomain.calculateBetterThanPercent(7, 142), 95);
+    });
+
+    it('should return 0 for last place', () => {
+      assert.equal(LeaderboardDomain.calculateBetterThanPercent(142, 142), 0);
+    });
+
+    it('should return 0 for sole contestant', () => {
+      assert.equal(LeaderboardDomain.calculateBetterThanPercent(1, 1), 0);
+    });
+
+    it('should return null for invalid rank', () => {
+      assert.equal(LeaderboardDomain.calculateBetterThanPercent(null, 142), null);
+      assert.equal(LeaderboardDomain.calculateBetterThanPercent(0, 142), null);
+    });
+  });
+
+  describe('formatTopPercentLabel', () => {
+    it('should return Top 5% when rank is within top 5%', () => {
+      assert.equal(LeaderboardDomain.formatTopPercentLabel(7, 142), 'Top 5%');
+    });
+
+    it('should return Top 10% when rank is within top 10%', () => {
+      assert.equal(LeaderboardDomain.formatTopPercentLabel(10, 142), 'Top 10%');
+    });
+
+    it('should return null when rank is outside top 50%', () => {
+      assert.equal(LeaderboardDomain.formatTopPercentLabel(80, 142), null);
+    });
+
+    it('should return null for invalid rank', () => {
+      assert.equal(LeaderboardDomain.formatTopPercentLabel(null, 142), null);
+    });
+  });
+
   describe('isTopRank', () => {
     it('should return true for top 3 ranks', () => {
       assert.equal(LeaderboardDomain.isTopRank(1, 10), true);

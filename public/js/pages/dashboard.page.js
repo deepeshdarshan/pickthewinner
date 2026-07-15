@@ -69,16 +69,7 @@ async function initDashboard(outlet) {
       upcomingMatches: [],
       upcomingPredictions: {},
       predictionStats: { total: 0, submitted: 0, pending: 0 },
-      quickStats: {
-        tournamentsJoined: 0,
-        predictionsSubmitted: 0,
-        correctWinners: 0,
-        exactScores: 0,
-        accuracy: null,
-        currentPoints: 0,
-        currentRank: null,
-        lifetimePoints: 0,
-      },
+      myRank: null,
       recentActivity: [],
     });
   }

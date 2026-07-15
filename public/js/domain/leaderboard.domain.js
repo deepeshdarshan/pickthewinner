@@ -294,6 +294,50 @@ export const LeaderboardDomain = {
   },
 
   /**
+   * Percentage of contestants ranked below the user.
+   * @param {number|null|undefined} rank
+   * @param {number} totalContestants
+   * @returns {number|null}
+   */
+  calculateBetterThanPercent(rank, totalContestants) {
+    const numericRank = typeof rank === 'number' ? rank : Number(rank);
+    const total = typeof totalContestants === 'number' ? totalContestants : Number(totalContestants);
+
+    if (!Number.isInteger(numericRank) || numericRank < 1 || !Number.isFinite(total) || total < 1) {
+      return null;
+    }
+
+    const percent = Math.round(((total - numericRank) / total) * 100);
+    return Math.min(100, Math.max(0, percent));
+  },
+
+  /**
+   * Returns a top-percentile label (e.g. "Top 5%") when the rank qualifies.
+   * @param {number|null|undefined} rank
+   * @param {number} totalContestants
+   * @returns {string|null}
+   */
+  formatTopPercentLabel(rank, totalContestants) {
+    const numericRank = typeof rank === 'number' ? rank : Number(rank);
+    const total = typeof totalContestants === 'number' ? totalContestants : Number(totalContestants);
+
+    if (!Number.isInteger(numericRank) || numericRank < 1 || !Number.isFinite(total) || total < 1) {
+      return null;
+    }
+
+    const ratio = numericRank / total;
+    const thresholds = [
+      { max: 0.05, label: 'Top 5%' },
+      { max: 0.10, label: 'Top 10%' },
+      { max: 0.25, label: 'Top 25%' },
+      { max: 0.50, label: 'Top 50%' },
+    ];
+
+    const match = thresholds.find((threshold) => ratio <= threshold.max);
+    return match?.label ?? null;
+  },
+
+  /**
    * @param {number} rank
    * @param {number} totalPlayers
    * @returns {boolean}

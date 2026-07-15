@@ -9,7 +9,7 @@ import { renderEmptyState } from '../../components/empty-state.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
 import { renderActiveTournamentHero } from './active-tournament.renderer.js';
 import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
-import { renderQuickStatsSection } from './quick-stats.renderer.js';
+import { renderMyRankSection } from './my-rank.renderer.js';
 import { renderRecentActivitySection } from './recent-activity.renderer.js';
 import { renderDashboardInfoCardsSection } from './info-cards.renderer.js';
 
@@ -46,10 +46,10 @@ export function renderContestantDashboardLoading() {
       </div>
       <div class="row g-3 mb-4">
         <div class="col-12 col-lg-6">
-          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;"></div>
+          <div class="ptw-my-rank-card ptw-my-rank-card--skeleton ptw-skeleton-card h-100" aria-hidden="true"></div>
         </div>
         <div class="col-12 col-lg-6">
-          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;"></div>
+          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@ export function renderContestantDashboard(data) {
       </div>
 
       <div class="ptw-dashboard-secondary-sections">
-        ${renderQuickStatsSection(data)}
+        ${renderMyRankSection(data)}
         ${renderRecentActivitySection(data)}
       </div>
 

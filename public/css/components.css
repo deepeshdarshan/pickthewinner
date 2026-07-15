@@ -3483,6 +3483,263 @@
   white-space: nowrap;
 }
 
+/* My Rank card */
+.ptw-my-rank-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-4);
+  padding: var(--ptw-space-5);
+  border-radius: var(--ptw-radius-lg);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ptw-color-accent-gold) 5%, var(--ptw-color-bg-secondary)) 0%,
+      var(--ptw-color-bg-secondary) 45%,
+      color-mix(in srgb, var(--ptw-color-primary-blue) 4%, var(--ptw-color-bg-secondary)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--ptw-color-border) 75%, transparent);
+  box-shadow:
+    inset 1px 1px 0 color-mix(in srgb, var(--ptw-color-accent-gold) 35%, transparent),
+    0 0 24px color-mix(in srgb, var(--ptw-color-accent-gold) 8%, transparent),
+    0 10px 28px rgba(2, 6, 23, 0.35);
+  overflow: hidden;
+}
+
+.ptw-my-rank-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ptw-space-3);
+}
+
+.ptw-my-rank-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ptw-space-2);
+  font-family: var(--ptw-font-heading);
+  font-size: var(--ptw-font-size-sm);
+  font-weight: var(--ptw-font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ptw-color-text-primary);
+}
+
+.ptw-my-rank-card__title-icon {
+  color: var(--ptw-color-accent-gold);
+  font-size: 1rem;
+}
+
+.ptw-my-rank-card__top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--ptw-radius-full, 999px);
+  background: color-mix(in srgb, var(--ptw-color-accent-gold) 14%, var(--ptw-color-bg-tertiary));
+  border: 1px solid color-mix(in srgb, var(--ptw-color-accent-gold) 35%, transparent);
+  color: var(--ptw-color-accent-gold);
+  font-size: var(--ptw-font-size-xs);
+  font-weight: var(--ptw-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.ptw-my-rank-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptw-space-4);
+}
+
+.ptw-my-rank-card__pending {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.5;
+}
+
+.ptw-my-rank-card__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ptw-space-4);
+}
+
+.ptw-my-rank-card__rank-block {
+  min-width: 0;
+}
+
+.ptw-my-rank-card__rank-value {
+  font-family: var(--ptw-font-heading);
+  font-size: clamp(2.5rem, 6vw, 3.25rem);
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-text-primary);
+  line-height: 1;
+}
+
+.ptw-my-rank-card__rank-meta {
+  margin-top: var(--ptw-space-2);
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-sm);
+  line-height: 1.4;
+}
+
+.ptw-my-rank-card__gauge {
+  flex-shrink: 0;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ptw-color-primary-blue) 25%, transparent);
+}
+
+.ptw-my-rank-card__gauge-inner {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: var(--ptw-color-bg-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.35rem;
+}
+
+.ptw-my-rank-card__gauge-value {
+  font-family: var(--ptw-font-heading);
+  font-size: var(--ptw-font-size-lg);
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-text-primary);
+  line-height: 1.1;
+}
+
+.ptw-my-rank-card__gauge-label {
+  color: var(--ptw-color-text-muted);
+  font-size: 0.625rem;
+  line-height: 1.2;
+}
+
+.ptw-my-rank-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ptw-space-2);
+  padding-top: var(--ptw-space-3);
+  border-top: 1px solid color-mix(in srgb, var(--ptw-color-border) 80%, transparent);
+}
+
+.ptw-my-rank-card__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.2rem;
+  padding: 0 var(--ptw-space-2);
+  border-right: 1px solid color-mix(in srgb, var(--ptw-color-border) 70%, transparent);
+}
+
+.ptw-my-rank-card__stat:last-child {
+  border-right: none;
+}
+
+.ptw-my-rank-card__stat-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ptw-my-rank-card__stat-icon {
+  font-size: 0.85rem;
+}
+
+.ptw-my-rank-card__stat-icon--gold {
+  color: var(--ptw-color-accent-gold);
+}
+
+.ptw-my-rank-card__stat-icon--danger {
+  color: var(--ptw-color-danger);
+}
+
+.ptw-my-rank-card__stat-icon--purple {
+  color: #c084fc;
+}
+
+.ptw-my-rank-card__stat-value {
+  font-family: var(--ptw-font-heading);
+  font-size: var(--ptw-font-size-lg);
+  font-weight: var(--ptw-font-weight-bold);
+  color: var(--ptw-color-text-primary);
+  line-height: 1.1;
+}
+
+.ptw-my-rank-card__stat-label {
+  color: var(--ptw-color-text-muted);
+  font-size: var(--ptw-font-size-xs);
+}
+
+.ptw-my-rank-card__footer {
+  margin-top: auto;
+}
+
+.ptw-my-rank-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ptw-space-2);
+  padding: 0.7rem 1rem;
+  border-radius: var(--ptw-radius-md);
+  background: color-mix(in srgb, var(--ptw-color-bg-tertiary) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ptw-color-primary-blue) 55%, transparent);
+  color: var(--ptw-color-text-primary);
+  font-weight: var(--ptw-font-weight-semibold);
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(21, 101, 255, 0.2);
+  transition:
+    background-color var(--ptw-transition-fast),
+    border-color var(--ptw-transition-fast),
+    box-shadow var(--ptw-transition-fast),
+    transform var(--ptw-transition-fast);
+}
+
+.ptw-my-rank-card__cta:hover,
+.ptw-my-rank-card__cta:focus,
+.ptw-my-rank-card__cta:focus-visible {
+  color: var(--ptw-color-text-primary);
+  border-color: color-mix(in srgb, var(--ptw-color-primary-blue) 75%, white);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ptw-color-primary-blue) 70%, white),
+    0 0 22px rgba(21, 101, 255, 0.45),
+    0 6px 18px rgba(21, 101, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.ptw-my-rank-card__cta.disabled,
+.ptw-my-rank-card__cta[aria-disabled='true'] {
+  opacity: 0.55;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.ptw-my-rank-card--skeleton {
+  min-height: 18rem;
+}
+
+@media (max-width: 575.98px) {
+  .ptw-my-rank-card {
+    padding: var(--ptw-space-4);
+  }
+
+  .ptw-my-rank-card__main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ptw-my-rank-card__gauge {
+    align-self: center;
+  }
+}
+
 /* Secondary sections (stats + activity) */
 .ptw-dashboard-secondary-sections {
   display: flex;
@@ -3490,7 +3747,7 @@
   gap: var(--ptw-space-5);
 }
 
-.ptw-dashboard-secondary-sections .ptw-quick-stats-card,
+.ptw-dashboard-secondary-sections .ptw-my-rank-card,
 .ptw-dashboard-secondary-sections .ptw-activity-timeline {
   border-color: color-mix(in srgb, var(--ptw-color-border) 80%, transparent);
 }
@@ -4049,10 +4306,6 @@
 }
 
 .ptw-activity-timeline__item + .ptw-activity-timeline__item {
-  border-top: 1px solid var(--ptw-color-border);
-}
-
-.ptw-quick-stats-card__row + .ptw-quick-stats-card__row {
   border-top: 1px solid var(--ptw-color-border);
 }
 

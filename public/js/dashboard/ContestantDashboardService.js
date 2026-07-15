@@ -16,7 +16,10 @@ import { getPredictionSummary } from '../prediction/prediction-submission.servic
 import { getCurrentUser } from '../auth/auth.service.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { TournamentDomain } from '../domain/tournament.domain.js';
+import { LeaderboardDomain } from '../domain/leaderboard.domain.js';
+import { leaderboardService } from '../leaderboard/leaderboard.service.js';
 import { buildRecentActivity } from './contestant-dashboard-activity.util.js';
+import { Logger } from '../utils/logger.util.js';
 
 /**
  * @typedef {Object} ContestantActivityItem
@@ -27,15 +30,17 @@ import { buildRecentActivity } from './contestant-dashboard-activity.util.js';
  */
 
 /**
- * @typedef {Object} ContestantQuickStats
- * @property {number} tournamentsJoined
+ * @typedef {Object} MyRankSummary
+ * @property {boolean} isAvailable
+ * @property {number|null} rank
+ * @property {number} totalContestants
+ * @property {number|null} betterThanPercent
+ * @property {string|null} topPercentLabel
+ * @property {number} points
+ * @property {number} accuracy
  * @property {number} predictionsSubmitted
- * @property {number} correctWinners
- * @property {number} exactScores
- * @property {number|null} accuracy
- * @property {number} currentPoints
- * @property {number|null} currentRank
- * @property {number} lifetimePoints
+ * @property {number} predictionsTotal
+ * @property {boolean} hasLeaderboardEntry
  */
 
 /**
@@ -73,7 +78,7 @@ import { buildRecentActivity } from './contestant-dashboard-activity.util.js';
  * @property {import('../match/match.service.js').EnrichedMatch[]} upcomingMatches
  * @property {Record<string, Record<string, unknown>|null>} upcomingPredictions
  * @property {{ total: number, submitted: number, pending: number }} predictionStats
- * @property {ContestantQuickStats} quickStats
+ * @property {MyRankSummary|null} myRank
  * @property {ContestantActivityItem[]} recentActivity
  */
 
@@ -214,11 +219,11 @@ export const ContestantDashboardService = {
         },
       }));
 
-    const quickStats = buildQuickStats({
-      tournamentsJoined: activeTournamentCount,
-      predictionStats,
-      allMatches,
+    const myRank = await buildMyRankSummary({
+      activeTournament,
       userId: user?.uid ?? null,
+      leaderboardVisible,
+      predictionStats,
     });
 
     const recentActivity = buildRecentActivity(allMatches, user?.uid ?? null);
@@ -248,7 +253,7 @@ export const ContestantDashboardService = {
       upcomingMatches,
       upcomingPredictions,
       predictionStats,
-      quickStats,
+      myRank,
       recentActivity,
     };
   },
@@ -344,24 +349,65 @@ function toDate(value) {
 
 /**
  * @param {{
- *   tournamentsJoined: number,
- *   predictionStats: { submitted: number },
- *   allMatches: import('../match/match.service.js').EnrichedMatch[],
+ *   activeTournament: import('../tournament/tournament.service.js').Tournament|null,
  *   userId: string|null,
+ *   leaderboardVisible: boolean,
+ *   predictionStats: { total: number, submitted: number, pending: number },
  * }} input
- * @returns {ContestantQuickStats}
+ * @returns {Promise<MyRankSummary|null>}
  */
-function buildQuickStats(input) {
-  const completedMatches = input.allMatches.filter((match) => match.result?.published);
+async function buildMyRankSummary(input) {
+  if (!input.activeTournament || !input.userId) {
+    return null;
+  }
 
-  return {
-    tournamentsJoined: input.tournamentsJoined,
+  const baseSummary = {
+    isAvailable: input.leaderboardVisible,
+    rank: null,
+    totalContestants: 0,
+    betterThanPercent: null,
+    topPercentLabel: null,
+    points: 0,
+    accuracy: 0,
     predictionsSubmitted: input.predictionStats.submitted,
-    correctWinners: 0,
-    exactScores: 0,
-    accuracy: completedMatches.length > 0 ? null : null,
-    currentPoints: 0,
-    currentRank: null,
-    lifetimePoints: 0,
+    predictionsTotal: input.predictionStats.total,
+    hasLeaderboardEntry: false,
   };
+
+  if (!input.leaderboardVisible) {
+    return baseSummary;
+  }
+
+  try {
+    const tournamentId = input.activeTournament.id;
+    const tournamentName = input.activeTournament.name ?? '';
+
+    const [contestantStats, tournamentStats] = await Promise.all([
+      leaderboardService.getContestantStatistics(tournamentId, input.userId, { maxVisibleRank: null }),
+      leaderboardService.getTournamentStatistics(tournamentId, tournamentName),
+    ]);
+
+    const totalContestants = tournamentStats.totalContestants;
+    const rank = contestantStats.currentRank > 0 ? contestantStats.currentRank : null;
+
+    return {
+      isAvailable: true,
+      rank,
+      totalContestants,
+      betterThanPercent: rank !== null
+        ? LeaderboardDomain.calculateBetterThanPercent(rank, totalContestants)
+        : null,
+      topPercentLabel: rank !== null
+        ? LeaderboardDomain.formatTopPercentLabel(rank, totalContestants)
+        : null,
+      points: contestantStats.totalPoints,
+      accuracy: contestantStats.accuracy,
+      predictionsSubmitted: input.predictionStats.submitted,
+      predictionsTotal: input.predictionStats.total,
+      hasLeaderboardEntry: rank !== null,
+    };
+  } catch (error) {
+    Logger.warn('[ContestantDashboardService] Failed to load my rank summary:', error);
+    return baseSummary;
+  }
 }
