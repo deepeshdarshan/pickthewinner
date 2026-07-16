@@ -16,11 +16,9 @@ import { getMatchById, getMatchErrorMessage, listMatchesForContestant } from './
 import {
   filterUpcomingMatches,
   getContestantMatchCardsGridClass,
-  groupMatchesByRoundLabel,
   sortMatchesByKickoff,
 } from './match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
-import { escapeHtml } from '../utils/html.util.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -108,26 +106,17 @@ async function renderListView(outlet) {
  * @returns {string}
  */
 function renderUpcomingMatchSections(matches, predictions) {
-  const { grouped, orderedRounds } = groupMatchesByRoundLabel(matches);
-
-  return orderedRounds.map((round) => {
-    const roundMatches = grouped[round];
-
-    return `
-    <div class="mb-4">
-      <h3 class="h5 mb-3">${escapeHtml(round)}</h3>
-      <div class="${getContestantMatchCardsGridClass(roundMatches.length)}">
-        ${roundMatches.map((match) => renderMatchCard({
+  return `
+    <div class="${getContestantMatchCardsGridClass(matches.length)}">
+      ${matches.map((match) => renderMatchCard({
     match,
     showPrediction: true,
     prediction: predictions[match.id] ?? null,
     showResult: Boolean(match.result?.published),
     showPoints: Boolean(match.result?.published),
   })).join('')}
-      </div>
     </div>
   `;
-  }).join('');
 }
 
 /**
