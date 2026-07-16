@@ -5,7 +5,7 @@
 
 import { renderStatusBadge } from '../components/status-badge.component.js';
 import { MATCH_COUNTDOWN_PHASE, MATCH_STATUS } from '../domain/match.domain.js';
-import { PREDICTION_HISTORY_ROUTES } from '../prediction/history/prediction-history.constants.js';
+import { MATCH_ROUTES } from './match.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
 
 /** @enum {string} */
@@ -253,12 +253,8 @@ export function renderContestantPredictionEditInline(matchId, options = {}) {
  * @param {string} [predictionId]
  * @returns {string}
  */
-export function resolveContestantViewDetailsHref(matchId, predictionId) {
-  if (predictionId) {
-    return `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(predictionId)}`;
-  }
-
-  return `/matches?id=${encodeURIComponent(matchId)}`;
+export function resolveContestantViewDetailsHref(matchId) {
+  return `${MATCH_ROUTES.DETAILS}?id=${encodeURIComponent(matchId)}`;
 }
 
 /**

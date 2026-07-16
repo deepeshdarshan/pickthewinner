@@ -118,23 +118,16 @@ describe('resolvePredictionUiStatusFromCountdownPhase', () => {
 });
 
 describe('resolveContestantViewDetailsHref', () => {
-  it('links to prediction history detail when prediction id is available', () => {
-    assert.equal(
-      resolveContestantViewDetailsHref('match-1', 'pred-abc'),
-      '/predictions/history?id=pred-abc',
-    );
-  });
-
-  it('falls back to match detail when prediction id is missing', () => {
+  it('links to match details page using match id', () => {
     assert.equal(
       resolveContestantViewDetailsHref('match-1'),
-      '/matches?id=match-1',
+      '/matches/details?id=match-1',
     );
   });
 });
 
 describe('renderContestantPredictionActionButtons', () => {
-  it('renders View Details linking to prediction history for published results', () => {
+  it('renders View Details linking to match details for published results', () => {
     const html = renderContestantPredictionActionButtons({
       matchId: 'match-1',
       predictionId: 'pred-abc',
@@ -142,7 +135,7 @@ describe('renderContestantPredictionActionButtons', () => {
       resultPublished: true,
     });
 
-    assert.match(html, /href="\/predictions\/history\?id=pred-abc"/);
+    assert.match(html, /href="\/matches\/details\?id=match-1"/);
     assert.match(html, /View Details/);
   });
 });

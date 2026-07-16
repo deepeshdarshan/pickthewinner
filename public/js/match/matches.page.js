@@ -18,7 +18,6 @@ import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
 import { MATCH_MESSAGES, MATCH_ROUTES } from './match.constants.js';
 import {
-  getMatchById,
   getMatchErrorMessage,
   listArchivedMatchesForContestant,
   listMatchesForContestant,
@@ -29,6 +28,7 @@ import {
   sortMatchesByKickoff,
 } from './match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
+import { navigateTo } from '../services/router.service.js';
 import { Logger } from '../utils/logger.util.js';
 
 /** @type {Readonly<string>} */
@@ -53,7 +53,7 @@ async function initMatchesPage(outlet) {
   const matchId = params.get('id');
 
   if (matchId) {
-    await renderDetailView(outlet, matchId);
+    await navigateTo(`${MATCH_ROUTES.DETAILS}?id=${encodeURIComponent(matchId)}`, true);
     return;
   }
 
@@ -282,51 +282,6 @@ function renderMatchTabBody(matches, predictions, emptyState) {
       })).join('')}
     </div>
   `;
-}
-
-/**
- * @param {HTMLElement} outlet
- * @param {string} matchId
- * @returns {Promise<void>}
- */
-async function renderDetailView(outlet, matchId) {
-  outlet.innerHTML = renderLoadingState();
-  showLoadingOverlay(MATCH_MESSAGES.LOADING_MATCH);
-
-  try {
-    const match = await getMatchById(matchId);
-    const user = getCurrentUser();
-
-    if (!match) {
-      outlet.innerHTML = renderErrorState(MATCH_MESSAGES.NOT_FOUND);
-      return;
-    }
-
-    const prediction = user ? await getPredictionForUser(matchId, user.uid) : null;
-
-    outlet.innerHTML = `
-      <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
-        <a class="btn btn-outline-light mb-3" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Back to Matches</a>
-        ${renderContestantPageHeader({
-          title: 'Match Details',
-          subtitle: match.tournamentName ?? '',
-        })}
-        ${renderMatchCard({
-          match,
-          showPrediction: true,
-          prediction,
-          showResult: Boolean(match.result?.published),
-          showPoints: Boolean(match.result?.published),
-        })}
-      </div>
-    `;
-    initializeCountdowns(outlet);
-  } catch (error) {
-    outlet.innerHTML = renderErrorState(getMatchErrorMessage(error));
-    showErrorToast(getMatchErrorMessage(error));
-  } finally {
-    hideLoadingOverlay();
-  }
 }
 
 /**

@@ -8,8 +8,9 @@ import { PredictionHistoryDomain } from '../../domain/prediction-history.domain.
 import { filterHistoryItems } from '../../domain/contestant-match-view.domain.js';
 import { predictionHistoryRepository } from './PredictionHistoryRepository.js';
 import { matchRepository } from '../../match/match.repository.js';
-import { normalizeMatchDocument, enrichMatch } from '../../match/match.service.js';
+import { normalizeMatchDocument, enrichMatch, getMatchById } from '../../match/match.service.js';
 import { getTournamentById } from '../../tournament/tournament.service.js';
+import { getPredictionForUser } from '../prediction.service.js';
 import { leaderboardService } from '../../leaderboard/leaderboard.service.js';
 import { PlatformSettingsService } from '../../settings/settings.service.js';
 import {
@@ -18,6 +19,7 @@ import {
   validateHistoryQueryParams,
 } from './prediction-history.validator.js';
 import { PREDICTION_HISTORY_MESSAGES } from './prediction-history.constants.js';
+import { MATCH_MESSAGES } from '../../match/match.constants.js';
 import { Logger } from '../../utils/logger.util.js';
 
 /**
@@ -175,6 +177,53 @@ export class PredictionHistoryService {
   }
 
   /**
+   * @param {string} userId
+   * @param {string} authUserId
+   * @param {string} matchId
+   * @param {PredictionHistoryAccessOptions} [accessOptions]
+   * @returns {Promise<PredictionDetailData>}
+   */
+  async getMatchDetailForContestant(userId, authUserId, matchId, accessOptions = {}) {
+    const access = validateUserAccess(authUserId, userId, accessOptions);
+    if (!access.valid) {
+      throw createHistoryError(access.error ?? PREDICTION_HISTORY_MESSAGES.PERMISSION_DENIED, 'permission');
+    }
+
+    if (!matchId) {
+      throw createHistoryError(MATCH_MESSAGES.NOT_FOUND, 'not_found');
+    }
+
+    this.clearCaches();
+
+    const match = await getMatchById(matchId);
+    if (!match) {
+      throw createHistoryError(MATCH_MESSAGES.NOT_FOUND, 'not_found');
+    }
+
+    const prediction = await getPredictionForUser(matchId, userId);
+
+    if (prediction) {
+      const [enriched] = await this.enrichPredictions([prediction]);
+      const enrichedMatch = enriched.match ?? match;
+
+      return {
+        item: enriched,
+        lifecycle: PredictionHistoryDomain.buildPredictionLifecycle(enriched, enrichedMatch),
+      };
+    }
+
+    const tournamentId = String(match.tournamentId ?? '');
+    await this.loadTournaments(tournamentId ? [tournamentId] : []);
+    const tournament = this.tournamentCache.get(tournamentId) ?? {};
+    const item = buildMatchOnlyHistoryItem(match, tournament, userId);
+
+    return {
+      item,
+      lifecycle: PredictionHistoryDomain.buildPredictionLifecycle(item, match),
+    };
+  }
+
+  /**
    * @param {Array<Record<string, unknown>>} predictions
    * @returns {Promise<HistoryItem[]>}
    */
@@ -315,6 +364,28 @@ function createHistoryError(message, type) {
   const error = new Error(message);
   Object.assign(error, { type });
   return /** @type {Error & { type: string }} */ (error);
+}
+
+/**
+ * @param {Record<string, unknown>} match
+ * @param {Record<string, unknown>} tournament
+ * @param {string} userId
+ * @returns {HistoryItem}
+ */
+function buildMatchOnlyHistoryItem(match, tournament, userId) {
+  return {
+    id: '',
+    matchId: String(match.id ?? ''),
+    tournamentId: String(match.tournamentId ?? ''),
+    userId,
+    homeScore: null,
+    awayScore: null,
+    match,
+    tournament,
+    calculatedPoints: 0,
+    scoringBreakdown: [],
+    scored: false,
+  };
 }
 
 /**

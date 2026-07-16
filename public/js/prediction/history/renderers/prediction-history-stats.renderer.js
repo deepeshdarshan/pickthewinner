@@ -30,7 +30,10 @@ export function renderHistoryPredictionStatsRows(item, options = {}) {
   const match = item.match ?? {};
   const result = /** @type {Record<string, unknown>} */ (match.result ?? {});
   const hasResult = Boolean(result.published);
-  const predictedScore = `${item.homeScore} - ${item.awayScore}`;
+  const hasPrediction = item.homeScore != null && item.awayScore != null;
+  const predictedScore = hasPrediction
+    ? `${item.homeScore} - ${item.awayScore}`
+    : '—';
   const officialScore = hasResult
     ? `${result.homeScore} - ${result.awayScore}`
     : 'Pending';

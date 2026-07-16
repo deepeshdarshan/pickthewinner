@@ -22,6 +22,7 @@ export const MATCH_ROUTES = Object.freeze({
   CONTESTANT_UPCOMING_LIST: '/matches',
   CONTESTANT_COMPLETED_LIST: '/matches',
   CONTESTANT_ARCHIVED_LIST: '/matches',
+  DETAILS: '/matches/details',
 });
 
 /** @enum {string} */

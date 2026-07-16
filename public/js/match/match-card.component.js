@@ -25,7 +25,7 @@ import {
   renderMatchScoringPointsHtml,
 } from './renderers/match-scoring-points.renderer.js';
 import { renderMatchPredictionStatsRow } from './renderers/match-prediction-stats.renderer.js';
-import { getRoundLabel } from './match.constants.js';
+import { getRoundLabel, MATCH_ROUTES } from './match.constants.js';
 import {
   getContestantPredictionUiStatus,
   renderContestantPredictionActionButtons,
@@ -413,7 +413,7 @@ export function renderCompactMatchCard(match, prediction = null) {
             ${kickoff ? `<small class="ptw-text-muted">${escapeHtml(formatDateTime(kickoff))}</small>` : ''}
           </div>
           <div>
-            <a href="/matches?id=${encodeURIComponent(match.id)}" class="btn btn-sm btn-outline-primary" data-route>
+            <a href="${MATCH_ROUTES.DETAILS}?id=${encodeURIComponent(match.id)}" class="btn btn-sm btn-outline-primary" data-route>
               View
             </a>
           </div>
