@@ -3532,11 +3532,11 @@
 }
 
 .ptw-my-rank-card .ptw-decorated-card__bg-icon--secondary {
-  top: -1rem;
+  top: -0.5rem;
   right: auto;
   bottom: auto;
-  left: -0.85rem;
-  font-size: clamp(4rem, 12vw, 6rem);
+  left: -0.75rem;
+  font-size: clamp(4.25rem, 11vw, 5.75rem);
   transform: rotate(-12deg);
   color: color-mix(in srgb, var(--ptw-color-accent-gold) 6%, transparent);
 }
@@ -3544,9 +3544,9 @@
 .ptw-my-rank-card .ptw-decorated-card__bg-icon--primary {
   top: auto;
   right: auto;
-  left: -1rem;
-  bottom: -1.5rem;
-  font-size: clamp(4.75rem, 13vw, 7rem);
+  left: -0.75rem;
+  bottom: 4.75rem;
+  font-size: clamp(4rem, 10vw, 5.25rem);
   transform: rotate(-10deg);
   color: color-mix(in srgb, var(--ptw-color-primary-blue) 8%, transparent);
 }

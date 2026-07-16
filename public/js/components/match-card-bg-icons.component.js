@@ -35,8 +35,8 @@ const MATCH_CARD_BG_ICONS = Object.freeze({
     { icon: 'bi-bullseye', modifier: '--tertiary' },
   ],
   rank: [
-    { icon: 'bi-award-fill', modifier: '--secondary' },
-    { icon: 'bi-trophy-fill', modifier: '--primary' },
+    { icon: 'bi-trophy-fill', modifier: '--secondary' },
+    { icon: 'bi-award-fill', modifier: '--primary' },
   ],
 });
 
