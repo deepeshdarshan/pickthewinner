@@ -7,6 +7,7 @@ import { USER_ROLES } from '../users/user.constants.js';
 import { AUTH_ROUTES } from '../auth/authentication.constants.js';
 import { AuthorizationService } from '../authorization/authorization.service.js';
 import { navigateTo } from '../services/router.service.js';
+import { showLoadingOverlay, hideLoadingOverlay } from '../components/loading-overlay.component.js';
 import { ContestantDashboardService } from '../dashboard/ContestantDashboardService.js';
 import {
   renderContestantDashboard,
@@ -14,6 +15,9 @@ import {
 } from '../dashboard/renderers/contestant-dashboard.renderer.js';
 import { initializeCountdowns } from '../components/countdown.component.js';
 import { Logger } from '../utils/logger.util.js';
+
+/** @type {Readonly<string>} */
+const DASHBOARD_LOADING_MESSAGE = 'Loading your dashboard…';
 
 /**
  * Renders the dashboard page.
@@ -37,12 +41,15 @@ async function initDashboard(outlet) {
     return;
   }
 
+  showLoadingOverlay(DASHBOARD_LOADING_MESSAGE);
   outlet.innerHTML = renderContestantDashboardLoading();
+  outlet.setAttribute('aria-busy', 'true');
 
   try {
     const contestantData = await ContestantDashboardService.getDashboardData();
     outlet.innerHTML = renderContestantDashboard(contestantData);
     initializeCountdowns(outlet);
+    await waitForDashboardContentReady(outlet);
   } catch (error) {
     Logger.error('[Dashboard] Failed to load contestant dashboard:', error);
     outlet.innerHTML = renderContestantDashboard({
@@ -73,5 +80,35 @@ async function initDashboard(outlet) {
       myRank: null,
       recentActivity: [],
     });
+  } finally {
+    outlet.removeAttribute('aria-busy');
+    hideLoadingOverlay();
   }
+}
+
+/**
+ * Waits for dashboard markup to paint and embedded images to finish loading.
+ * @param {HTMLElement} outlet
+ * @returns {Promise<void>}
+ */
+async function waitForDashboardContentReady(outlet) {
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+
+  const images = Array.from(outlet.querySelectorAll('img'));
+
+  if (images.length === 0) {
+    return;
+  }
+
+  await Promise.all(images.map((image) => new Promise((resolve) => {
+    if (image.complete) {
+      resolve();
+      return;
+    }
+
+    image.addEventListener('load', resolve, { once: true });
+    image.addEventListener('error', resolve, { once: true });
+  })));
 }

@@ -1591,6 +1591,20 @@
   }
 }
 
+.ptw-skeleton-card {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--ptw-color-border) 65%, transparent);
+}
+
+.ptw-dashboard-skeleton-block {
+  border-radius: var(--ptw-radius-lg);
+  border: 1px solid color-mix(in srgb, var(--ptw-color-border) 65%, transparent);
+}
+
+.ptw-contestant-dashboard--loading {
+  pointer-events: none;
+}
+
 .ptw-skeleton-table .table {
   --bs-table-bg: transparent;
   --bs-table-color: var(--ptw-color-text-primary);

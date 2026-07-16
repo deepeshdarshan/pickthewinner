@@ -7,6 +7,7 @@ import { appSettings } from '../../config/app.config.js';
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../../components/empty-state.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderSkeletonCard } from '../../components/skeleton.component.js';
 import { renderActiveTournamentHero } from './active-tournament.renderer.js';
 import { renderFeaturedMatchSection, renderLiveMatchSection } from './featured-match.renderer.js';
 import { renderMyRankSection } from './my-rank.renderer.js';
@@ -34,24 +35,55 @@ function renderDashboardWelcomeHeader(data) {
 /**
  * @returns {string}
  */
+function renderDashboardInfoCardsSkeleton() {
+  return `
+    <section class="ptw-dashboard-info-cards mt-4 mb-4" aria-hidden="true">
+      <div class="row g-3">
+        ${Array.from({ length: 4 }, () => `
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="ptw-dashboard-info-card ptw-skeleton ptw-dashboard-skeleton-block" style="min-height: 9rem;"></div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+/**
+ * @returns {string}
+ */
 export function renderContestantDashboardLoading() {
   return `
-    <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard">
+    <div class="${CONTESTANT_PAGE_SHELL_CLASSES} ptw-contestant-dashboard ptw-contestant-dashboard--loading" aria-busy="true">
       <header class="ptw-dashboard-welcome-header mb-4">
-        <h1 class="ptw-dashboard-welcome-header__title mb-0">Dashboard</h1>
-        <p class="ptw-text-muted mb-0 mt-2">Loading your tournaments and matches…</p>
+        <div class="ptw-skeleton ptw-skeleton--title" style="max-width: 20rem;"></div>
+        <div class="ptw-skeleton ptw-skeleton--text ptw-skeleton--short mt-3" style="max-width: 14rem;"></div>
       </header>
-      <div class="mb-4">
-        <div class="card ptw-card ptw-skeleton-card" style="height: 200px;"></div>
-      </div>
+
+      <div class="mb-4 ptw-skeleton ptw-dashboard-skeleton-block" style="min-height: 12rem; border-radius: var(--ptw-radius-lg);" aria-hidden="true"></div>
+
+      <div class="ptw-skeleton ptw-skeleton--title mb-3" style="max-width: 8rem;" aria-hidden="true"></div>
+
       <div class="row g-3 mb-4 ptw-dashboard-spotlight-row">
         <div class="col-12 col-lg-8">
-          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;" aria-hidden="true"></div>
+          <div class="card ptw-card ptw-skeleton-card h-100" style="min-height: 280px;" aria-hidden="true">
+            <div class="card-body">
+              <div class="ptw-skeleton ptw-skeleton--title"></div>
+              <div class="ptw-skeleton ptw-skeleton--text mt-4"></div>
+              <div class="ptw-skeleton ptw-skeleton--text ptw-skeleton--short"></div>
+            </div>
+          </div>
         </div>
         <div class="col-12 col-lg-4">
           <div class="ptw-my-rank-card ptw-my-rank-card--skeleton ptw-skeleton-card h-100" aria-hidden="true"></div>
         </div>
       </div>
+
+      <div class="mb-4">
+        ${renderSkeletonCard()}
+      </div>
+
+      ${renderDashboardInfoCardsSkeleton()}
     </div>
   `;
 }
