@@ -4,7 +4,7 @@
  */
 
 import { renderStatusBadge } from '../components/status-badge.component.js';
-import { MATCH_COUNTDOWN_PHASE } from '../domain/match.domain.js';
+import { MATCH_COUNTDOWN_PHASE, MATCH_STATUS } from '../domain/match.domain.js';
 import { PREDICTION_HISTORY_ROUTES } from '../prediction/history/prediction-history.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
 
@@ -57,8 +57,28 @@ const DISABLED_BUTTON_CONFIG = Object.freeze({
  * @returns {boolean}
  */
 export function isPredictionNotYetOpen(match) {
-  return match.predictionStatus === 'Closed'
-    || match.matchCountdown?.phase === MATCH_COUNTDOWN_PHASE.PRE_OPEN;
+  return match.matchCountdown?.phase === MATCH_COUNTDOWN_PHASE.PRE_OPEN;
+}
+
+/**
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {boolean}
+ */
+export function isMatchResultPublished(match) {
+  return Boolean(match.result?.published);
+}
+
+/**
+ * @param {import('./match.service.js').EnrichedMatch} match
+ * @returns {boolean}
+ */
+export function shouldShowContestantPredictionStatusBadge(match) {
+  if (isMatchResultPublished(match)) {
+    return false;
+  }
+
+  const status = String(match.status ?? '');
+  return status !== MATCH_STATUS.COMPLETED && status !== MATCH_STATUS.RESULT_PUBLISHED;
 }
 
 /**
@@ -67,6 +87,15 @@ export function isPredictionNotYetOpen(match) {
  * @returns {string}
  */
 export function getContestantPredictionUiStatus(match, prediction) {
+  if (isMatchResultPublished(match)) {
+    return CONTESTANT_PREDICTION_UI_STATUS.LOCKED;
+  }
+
+  const status = String(match.status ?? '');
+  if (status === MATCH_STATUS.COMPLETED || status === MATCH_STATUS.RESULT_PUBLISHED) {
+    return CONTESTANT_PREDICTION_UI_STATUS.LOCKED;
+  }
+
   if (!prediction) {
     if (match.predictionStatus === 'Open') {
       return CONTESTANT_PREDICTION_UI_STATUS.PENDING;

@@ -30,6 +30,7 @@ import {
   getContestantPredictionUiStatus,
   renderContestantPredictionActionButtons,
   renderContestantPredictionStatusBadge,
+  shouldShowContestantPredictionStatusBadge,
   CONTESTANT_PREDICTION_UI_STATUS,
 } from './match-prediction-ui.util.js';
 import {
@@ -69,7 +70,9 @@ export function renderMatchCard(options) {
   const kickoff = match.kickoffUtc instanceof Date ? match.kickoffUtc : match.kickoffUtc?.toDate?.() ?? null;
 
   const predictionStatus = getContestantPredictionUiStatus(match, prediction);
-  const statusBadge = renderContestantPredictionStatusBadge(predictionStatus, { syncable: true });
+  const statusBadge = shouldShowContestantPredictionStatusBadge(match)
+    ? renderContestantPredictionStatusBadge(predictionStatus, { syncable: true })
+    : '';
   const customPointsBadge = renderCustomScoringSourceBadge(match.effectiveScoringConfig);
   const countdownHtml = match.matchCountdown
     ? renderMatchCountdownFromDto(match.matchCountdown, {
@@ -100,7 +103,9 @@ export function renderMatchCard(options) {
       ${renderMatchCardBgIcons(bgVariant)}
       <div class="card-body">
         ${renderPerformanceCardHeader({
-          indicatorHtml: renderStatusIndicator(predictionStatus),
+          indicatorHtml: shouldShowContestantPredictionStatusBadge(match)
+            ? renderStatusIndicator(predictionStatus)
+            : renderPublishedResultIndicator(),
           title: escapeHtml(tournamentName || 'Match'),
           subtitle: stageLabel ? escapeHtml(stageLabel) : '',
           badgeHtml: customPointsBadge,
@@ -146,6 +151,17 @@ export function renderMatchCard(options) {
 
         ${showResult && match.result?.published ? renderOfficialResultDisplay(match) : ''}
       </div>
+    </div>
+  `;
+}
+
+/**
+ * @returns {string}
+ */
+function renderPublishedResultIndicator() {
+  return `
+    <div class="ptw-rank-badge ptw-rank-badge--success ptw-rank-badge--featured" aria-hidden="true">
+      <i class="bi bi-flag-fill ptw-rank-badge__icon" aria-hidden="true"></i>
     </div>
   `;
 }
@@ -362,7 +378,7 @@ function renderActionButtons(match, prediction, predictionStatus, showEditButton
     disabledButtonClass: 'btn btn-secondary w-100',
     enabledButtonClass: 'btn btn-ptw-primary w-100',
     editButtonClass: 'btn btn-primary w-100',
-    viewDetailsButtonClass: 'btn btn-outline-primary w-100',
+    viewDetailsButtonClass: 'btn btn-ptw-primary ptw-active-tournament-hero__cta',
     predictLabel: 'Make Prediction',
     wrapperClass: 'mt-2',
     showEditButton,

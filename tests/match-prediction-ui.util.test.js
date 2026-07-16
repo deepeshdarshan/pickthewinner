@@ -8,6 +8,7 @@ import {
   resolveContestantViewDetailsHref,
   resolvePredictionUiStatusFromCountdownPhase,
 } from '../public/js/match/match-prediction-ui.util.js';
+import { MATCH_STATUS } from '../public/js/domain/match.domain.js';
 import { MATCH_COUNTDOWN_PHASE } from '../public/js/domain/match.domain.js';
 
 describe('match-prediction-ui.util', () => {
@@ -33,6 +34,21 @@ describe('match-prediction-ui.util', () => {
     assert.equal(isPredictionNotYetOpen(match), false);
     assert.equal(
       getContestantPredictionUiStatus(match, null),
+      CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
+    );
+  });
+
+  it('does not treat Closed prediction status as pre-open without PRE_OPEN countdown phase', () => {
+    const match = {
+      predictionStatus: 'Closed',
+      status: MATCH_STATUS.COMPLETED,
+      matchCountdown: null,
+      result: { published: true },
+    };
+
+    assert.equal(isPredictionNotYetOpen(match), false);
+    assert.equal(
+      getContestantPredictionUiStatus(match, { locked: false }),
       CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
     );
   });
