@@ -24,6 +24,28 @@ function withAppTimezone(options = {}) {
 }
 
 /**
+ * Formats a time value as HH:mm for HTML time inputs in the app timezone.
+ * @param {Date|string|number} value
+ * @returns {string}
+ */
+export function formatTimeInput(value) {
+  const date = toDate(value);
+  if (!date) {
+    return '';
+  }
+
+  const parts = new Intl.DateTimeFormat('en-GB', withAppTimezone({
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })).formatToParts(date);
+
+  const hour = parts.find((part) => part.type === 'hour')?.value ?? '';
+  const minute = parts.find((part) => part.type === 'minute')?.value ?? '';
+  return hour && minute ? `${hour}:${minute}` : '';
+}
+
+/**
  * Formats a time value for display in IST.
  * @param {Date|string|number} value
  * @param {Intl.DateTimeFormatOptions} [options]

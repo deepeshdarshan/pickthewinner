@@ -7,6 +7,8 @@ import { renderPageHeader } from '../../components/page-header.component.js';
 import { ADMIN_PAGE_SHELL_CLASSES } from '../../components/admin-page-shell.component.js';
 import { renderIconInputField, renderIconSelectField } from '../../shared/form/icon-input.component.js';
 import { escapeHtml } from '../../utils/html.util.js';
+import { formatDateInput, parseAppDateTime, toDate } from '../../utils/date.util.js';
+import { formatTimeInput } from '../../utils/time.util.js';
 import { MATCH_ROUTES } from '../match.constants.js';
 import { getMatchStageLabel } from '../../master-data/match-stages/match-stage.labels.js';
 import { MATCH_STAGE_ROUTES } from '../../master-data/match-stages/match-stage.constants.js';
@@ -62,8 +64,8 @@ export function renderMatchFormPage(options) {
   const data = match ?? {};
   const title = isCreate ? 'Create Match' : (readOnly ? 'Match Details' : 'Edit Match');
   const kickoff = toDate(data.kickoffUtc);
-  const kickoffDate = kickoff ? kickoff.toISOString().slice(0, 10) : '';
-  const kickoffTime = kickoff ? kickoff.toTimeString().slice(0, 5) : '';
+  const kickoffDate = kickoff ? formatDateInput(kickoff) : '';
+  const kickoffTime = kickoff ? formatTimeInput(kickoff) : '';
 
   const tournamentOptions = tournaments.map((tournament) => ({
     value: tournament.id,
@@ -271,7 +273,7 @@ export function readMatchForm(form) {
   let kickoffUtc = null;
 
   if (date && time) {
-    kickoffUtc = new Date(`${date}T${time}:00+05:30`);
+    kickoffUtc = parseAppDateTime(date, time);
   }
 
   const roundField = form.elements.namedItem('round');
@@ -413,24 +415,4 @@ function renderMatchScoringConfigPanel(options) {
       </div>
     </div>
   `;
-}
-
-/**
- * @param {unknown} value
- * @returns {Date|null}
- */
-function toDate(value) {
-  if (!value) {
-    return null;
-  }
-
-  if (value instanceof Date) {
-    return value;
-  }
-
-  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof value.toDate === 'function') {
-    return value.toDate();
-  }
-
-  return null;
 }

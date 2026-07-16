@@ -70,6 +70,35 @@ export function formatDateTime(value, locale = appSettings.locale) {
 }
 
 /**
+ * Formats a date as YYYY-MM-DD for HTML date inputs in the app timezone.
+ * @param {Date|string|number} value
+ * @returns {string}
+ */
+export function formatDateInput(value) {
+  const date = toDate(value);
+  if (!date) {
+    return '';
+  }
+
+  return date.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
+}
+
+/**
+ * Parses date and time strings as an instant in the app timezone.
+ * @param {string} dateStr - YYYY-MM-DD
+ * @param {string} timeStr - HH:mm
+ * @returns {Date|null}
+ */
+export function parseAppDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) {
+    return null;
+  }
+
+  const parsed = new Date(`${dateStr}T${timeStr}:00+05:30`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
  * Formats a date without time for display (e.g., "Jul 15, 2026").
  * @param {Date|string|number} value
  * @param {string} [locale]

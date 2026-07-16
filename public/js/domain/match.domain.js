@@ -3,6 +3,8 @@
  * @module domain/match.domain
  */
 
+import { formatDateInput } from '../utils/date.util.js';
+
 const CUSTOM_SCORING_POINTS_MIN = 0;
 const CUSTOM_SCORING_POINTS_MAX = 100;
 
@@ -502,7 +504,7 @@ function toDateKey(value) {
     return '';
   }
 
-  return date.toISOString().slice(0, 10);
+  return formatDateInput(date);
 }
 
 /**

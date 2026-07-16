@@ -5,6 +5,7 @@
 
 import { MATCH_STATUS } from '../domain/match.domain.js';
 import { isMatchCompletedForContestant } from '../domain/contestant-match-view.domain.js';
+import { formatDateInput } from '../utils/date.util.js';
 import { getRoundLabel } from './match.constants.js';
 import { MATCH_LIST_PAGE_SIZE } from './renderers/list.renderer.js';
 
@@ -177,7 +178,7 @@ export function filterMatches(matches, filters) {
     }
 
     if (filters.date) {
-      const kickoffDate = formatKickoffDateForFilter(match.kickoffUtc);
+      const kickoffDate = formatDateInput(match.kickoffUtc);
       if (!kickoffDate || kickoffDate !== filters.date) {
         return false;
       }
@@ -267,22 +268,6 @@ export function getContestantMatchCardsGridClass(matchCount) {
 function toKickoffTime(value) {
   const date = toKickoffDate(value);
   return date ? date.getTime() : 0;
-}
-
-/** @type {Readonly<string>} */
-const MATCH_DISPLAY_TIMEZONE = 'Asia/Kolkata';
-
-/**
- * @param {unknown} value
- * @returns {string}
- */
-function formatKickoffDateForFilter(value) {
-  const date = toKickoffDate(value);
-  if (!date) {
-    return '';
-  }
-
-  return date.toLocaleDateString('en-CA', { timeZone: MATCH_DISPLAY_TIMEZONE });
 }
 
 /**

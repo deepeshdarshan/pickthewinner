@@ -17,6 +17,7 @@ import { db, ensureFirestoreOnline } from '../firebase/firebase.js';
 import { BaseFirestoreService } from '../services/BaseFirestoreService.js';
 import { MATCH_COLLECTIONS } from './match.constants.js';
 import { MatchDomain, MATCH_STATUS } from '../domain/match.domain.js';
+import { formatDateInput } from '../utils/date.util.js';
 
 /**
  * @typedef {Object} MatchListFilters
@@ -150,7 +151,7 @@ class MatchRepository extends BaseFirestoreService {
     if (filters.date) {
       matches = matches.filter((match) => {
         const kickoff = toDate(match.kickoffUtc);
-        return kickoff ? kickoff.toISOString().slice(0, 10) === filters.date : false;
+        return kickoff ? formatDateInput(kickoff) === filters.date : false;
       });
     }
 
