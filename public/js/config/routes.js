@@ -169,7 +169,7 @@ export const ROUTES = Object.freeze([
     path: '/tournaments/archived',
     name: 'tournaments-archived',
     title: 'Archived Tournaments',
-    pageModule: '../pages/contestant-section.page.js',
+    pageModule: '../tournament/tournament-contestant-archived.page.js',
     showInNavbar: false,
     showInMobileNav: false,
     requiresAuth: true,

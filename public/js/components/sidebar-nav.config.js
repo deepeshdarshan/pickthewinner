@@ -85,15 +85,7 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
 /** @type {ReadonlyArray<{ type: 'item', path: string, label: string, icon: string, hideWhenLeaderboardHidden?: boolean } | { type: 'group', label: string, icon: string, children: ReadonlyArray<{ path: string, label: string }>, hideWhenLeaderboardHidden?: boolean }>} */
 export const CONTESTANT_NAV_SECTIONS = Object.freeze([
   { type: 'item', path: '/dashboard', label: 'Dashboard', icon: 'bi-grid' },
-  {
-    type: 'group',
-    label: 'Tournaments',
-    icon: 'bi-trophy',
-    children: [
-      { path: '/tournaments', label: 'My Tournaments' },
-      { path: '/tournaments/archived', label: 'Archived Tournaments' },
-    ],
-  },
+  { type: 'item', path: '/tournaments', label: 'Tournaments', icon: 'bi-trophy' },
   {
     type: 'group',
     label: 'Predictions',

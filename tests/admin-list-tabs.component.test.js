@@ -133,9 +133,23 @@ describe('sidebar-nav.config active path matching', () => {
     assert.equal(isNavPathActive('/predictions', '/predictions/history', '/dashboard', contestantNavPaths), false);
   });
 
-  it('highlights only Archived Tournaments when on /tournaments/archived', () => {
-    assert.equal(isNavPathActive('/tournaments/archived', '/tournaments/archived', '/dashboard', contestantNavPaths), true);
-    assert.equal(isNavPathActive('/tournaments/archived', '/tournaments', '/dashboard', contestantNavPaths), false);
+  it('uses a single Tournaments item without archived sub-links', () => {
+    const tournamentsItem = CONTESTANT_NAV_SECTIONS.find((section) => (
+      section.type === 'item' && section.path === '/tournaments'
+    ));
+
+    assert.ok(tournamentsItem && tournamentsItem.type === 'item');
+    assert.equal(tournamentsItem.label, 'Tournaments');
+    assert.ok(!CONTESTANT_NAV_SECTIONS.some((section) => (
+      section.type === 'group'
+      && section.label === 'Tournaments'
+      && section.children?.some((child) => child.path.includes('archived'))
+    )));
+  });
+
+  it('highlights Tournaments when on /tournaments or legacy /tournaments/archived', () => {
+    assert.equal(isNavPathActive('/tournaments', '/tournaments', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/tournaments/archived', '/tournaments', '/dashboard', contestantNavPaths), true);
   });
 
   it('keeps parent admin routes active for nested detail paths', () => {

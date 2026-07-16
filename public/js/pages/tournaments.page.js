@@ -8,13 +8,32 @@ import { renderContestantPageHeader } from '../components/page-header.component.
 import { CONTESTANT_PAGE_SHELL_CLASSES } from '../components/contestant-page-shell.component.js';
 import { renderEmptyState } from '../components/empty-state.component.js';
 import { renderTournamentCard } from '../components/tournament-card.component.js';
+import {
+  activateAdminListTab,
+  consumeAdminTabFlag,
+  renderAdminListTabs,
+} from '../components/admin-list-tabs.component.js';
 import { showErrorToast } from '../utils/toast.util.js';
 import { getCurrentUser } from '../auth/auth.service.js';
-import { listTournamentsForContestant } from '../tournament/tournament.service.js';
+import {
+  listArchivedTournamentsForContestant,
+  listTournamentsForContestant,
+} from '../tournament/tournament.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
 import { filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionForUser } from '../prediction/prediction.service.js';
 import { Logger } from '../utils/logger.util.js';
+
+/** @type {Readonly<string>} */
+const CONTESTANT_TOURNAMENT_TABS_ID = 'ptw-contestant-tournament-list-tabs';
+
+/**
+ * @typedef {Object} ContestantTournamentListItem
+ * @property {import('../tournament/tournament.service.js').Tournament} tournament
+ * @property {number} totalMatches
+ * @property {number} submittedPredictions
+ * @property {number} upcomingMatchCount
+ */
 
 /**
  * Renders the tournaments page.
@@ -56,14 +75,18 @@ async function initTournamentsPage(outlet) {
       return;
     }
 
-    const tournaments = await listTournamentsForContestant();
+    const [activeTournaments, archivedTournaments, matches] = await Promise.all([
+      listTournamentsForContestant(),
+      listArchivedTournamentsForContestant(),
+      listMatchesForContestant(),
+    ]);
 
-    if (tournaments.length === 0) {
+    if (activeTournaments.length === 0 && archivedTournaments.length === 0) {
       outlet.innerHTML = `
         <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
           ${renderContestantPageHeader({
             title: 'Tournaments',
-            subtitle: 'Browse active prediction tournaments',
+            subtitle: 'Browse active and archived prediction tournaments',
           })}
           ${renderEmptyState({
             title: 'No Tournaments Available',
@@ -75,43 +98,15 @@ async function initTournamentsPage(outlet) {
       return;
     }
 
-    const matches = await listMatchesForContestant();
+    const [activeTournamentData, archivedTournamentData] = await Promise.all([
+      loadTournamentListData(activeTournaments, matches, user.uid),
+      loadTournamentListData(archivedTournaments, matches, user.uid),
+    ]);
 
-    // Load match counts and prediction progress for each tournament
-    const tournamentData = await Promise.all(
-      tournaments.map(async (tournament) => {
-        try {
-          const tournamentMatches = matches.filter((m) => m.tournamentId === tournament.id);
-          const upcomingMatchCount = filterUpcomingMatches(tournamentMatches).length;
+    const activeTabId = resolveInitialTournamentTab(activeTournaments.length, archivedTournaments.length);
 
-          // Count submitted predictions
-          let submittedCount = 0;
-          for (const match of tournamentMatches) {
-            const prediction = await getPredictionForUser(match.id, user.uid);
-            if (prediction) {
-              submittedCount++;
-            }
-          }
-
-          return {
-            tournament,
-            totalMatches: tournamentMatches.length,
-            submittedPredictions: submittedCount,
-            upcomingMatchCount,
-          };
-        } catch (error) {
-          Logger.error('[TournamentsPage] Failed to load tournament data:', error);
-          return {
-            tournament,
-            totalMatches: 0,
-            submittedPredictions: 0,
-            upcomingMatchCount: 0,
-          };
-        }
-      }),
-    );
-
-    outlet.innerHTML = renderTournamentsPage(tournamentData);
+    outlet.innerHTML = renderTournamentsPageWithTabs(activeTournamentData, archivedTournamentData, activeTabId);
+    activateAdminListTab(outlet, activeTabId, CONTESTANT_TOURNAMENT_TABS_ID);
   } catch (error) {
     Logger.error('[TournamentsPage] Failed to load:', error);
     outlet.innerHTML = renderErrorState(error.message);
@@ -122,88 +117,206 @@ async function initTournamentsPage(outlet) {
 }
 
 /**
- * Renders the tournaments page.
- * @param {Array<{tournament: import('../tournament/tournament.service.js').Tournament, totalMatches: number, submittedPredictions: number, upcomingMatchCount: number}>} tournamentData
+ * @param {import('../tournament/tournament.service.js').Tournament[]} tournaments
+ * @param {import('../match/match.service.js').EnrichedMatch[]} matches
+ * @param {string} userId
+ * @returns {Promise<ContestantTournamentListItem[]>}
+ */
+async function loadTournamentListData(tournaments, matches, userId) {
+  return Promise.all(
+    tournaments.map(async (tournament) => {
+      try {
+        const tournamentMatches = matches.filter((match) => match.tournamentId === tournament.id);
+        const upcomingMatchCount = filterUpcomingMatches(tournamentMatches).length;
+
+        let submittedCount = 0;
+        for (const match of tournamentMatches) {
+          const prediction = await getPredictionForUser(match.id, userId);
+          if (prediction) {
+            submittedCount++;
+          }
+        }
+
+        return {
+          tournament,
+          totalMatches: tournamentMatches.length,
+          submittedPredictions: submittedCount,
+          upcomingMatchCount,
+        };
+      } catch (error) {
+        Logger.error('[TournamentsPage] Failed to load tournament data:', error);
+        return {
+          tournament,
+          totalMatches: 0,
+          submittedPredictions: 0,
+          upcomingMatchCount: 0,
+        };
+      }
+    }),
+  );
+}
+
+/**
+ * @param {number} activeCount
+ * @param {number} archivedCount
+ * @returns {'active' | 'archived'}
+ */
+function resolveInitialTournamentTab(activeCount, archivedCount) {
+  if (consumeAdminTabFlag('contestant-tournaments-archived')) {
+    return 'archived';
+  }
+
+  if (activeCount === 0 && archivedCount > 0) {
+    return 'archived';
+  }
+
+  return 'active';
+}
+
+/**
+ * @param {ContestantTournamentListItem[]} activeTournamentData
+ * @param {ContestantTournamentListItem[]} archivedTournamentData
+ * @param {'active' | 'archived'} activeTabId
  * @returns {string}
  */
-function renderTournamentsPage(tournamentData) {
-  // Group by status
-  const live = tournamentData.filter((t) => t.tournament.status === 'live');
-  const upcoming = tournamentData.filter((t) => t.tournament.status === 'published');
-  const completed = tournamentData.filter((t) => t.tournament.status === 'completed');
+function renderTournamentsPageWithTabs(activeTournamentData, archivedTournamentData, activeTabId) {
+  const tabs = renderAdminListTabs({
+    groupId: CONTESTANT_TOURNAMENT_TABS_ID,
+    activeTabId,
+    tabs: [
+      {
+        id: 'active',
+        label: 'My Tournaments',
+        count: activeTournamentData.length,
+        contentHtml: renderTournamentTabContent(
+          activeTournamentData,
+          renderActiveTournamentsContent(activeTournamentData),
+        ),
+      },
+      {
+        id: 'archived',
+        label: 'Archived',
+        count: archivedTournamentData.length,
+        contentHtml: renderTournamentTabContent(
+          archivedTournamentData,
+          renderArchivedTournamentsContent(archivedTournamentData),
+        ),
+      },
+    ],
+  });
 
   return `
     <div class="${CONTESTANT_PAGE_SHELL_CLASSES}">
       ${renderContestantPageHeader({
         title: 'Tournaments',
-        subtitle: 'Browse and participate in prediction tournaments',
+        subtitle: 'Browse active and archived prediction tournaments',
       })}
+      ${tabs}
+    </div>
+  `;
+}
 
-      ${live.length > 0 ? `
-        <div class="mb-4">
-          <h3 class="h5 mb-3">
-            <i class="bi bi-broadcast text-success me-2" aria-hidden="true"></i>
-            Live Tournaments
-          </h3>
-          <div class="row g-3">
-            ${live.map((data) => `
-              <div class="col-12">
-                ${renderTournamentCard({
-                  tournament: data.tournament,
-                  totalMatches: data.totalMatches,
-                  submittedPredictions: data.submittedPredictions,
-                  showProgress: true,
-                  upcomingMatchCount: data.upcomingMatchCount,
-                })}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
+/**
+ * @param {ContestantTournamentListItem[]} tournamentData
+ * @param {string} bodyHtml
+ * @returns {string}
+ */
+function renderTournamentTabContent(tournamentData, bodyHtml) {
+  if (tournamentData.length === 0) {
+    return bodyHtml;
+  }
 
-      ${upcoming.length > 0 ? `
-        <div class="mb-4">
-          <h3 class="h5 mb-3">
-            <i class="bi bi-calendar-event text-warning me-2" aria-hidden="true"></i>
-            Upcoming Tournaments
-          </h3>
-          <div class="row g-3">
-            ${upcoming.map((data) => `
-              <div class="col-12">
-                ${renderTournamentCard({
-                  tournament: data.tournament,
-                  totalMatches: data.totalMatches,
-                  submittedPredictions: data.submittedPredictions,
-                  showProgress: true,
-                  upcomingMatchCount: data.upcomingMatchCount,
-                })}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
+  return `
+    <div class="card ptw-card">
+      <div class="card-body">
+        ${bodyHtml}
+      </div>
+    </div>
+  `;
+}
 
-      ${completed.length > 0 ? `
-        <div class="mb-4">
-          <h3 class="h5 mb-3">
-            <i class="bi bi-check-circle text-secondary me-2" aria-hidden="true"></i>
-            Completed Tournaments
-          </h3>
-          <div class="row g-3">
-            ${completed.map((data) => `
-              <div class="col-12">
-                ${renderTournamentCard({
-                  tournament: data.tournament,
-                  totalMatches: data.totalMatches,
-                  submittedPredictions: data.submittedPredictions,
-                  showProgress: false,
-                  upcomingMatchCount: data.upcomingMatchCount,
-                })}
-              </div>
-            `).join('')}
-          </div>
+/**
+ * @param {ContestantTournamentListItem[]} tournamentData
+ * @returns {string}
+ */
+function renderActiveTournamentsContent(tournamentData) {
+  if (tournamentData.length === 0) {
+    return renderEmptyState({
+      title: 'No Active Tournaments',
+      message: 'There are no active tournaments right now.',
+      icon: 'bi-calendar-event',
+    });
+  }
+
+  const live = tournamentData.filter((item) => item.tournament.status === 'live');
+  const upcoming = tournamentData.filter((item) => item.tournament.status === 'published');
+  const completed = tournamentData.filter((item) => item.tournament.status === 'completed');
+
+  return `
+    ${live.length > 0 ? renderTournamentStatusSection('Live Tournaments', 'bi-broadcast text-success', live, true) : ''}
+    ${upcoming.length > 0 ? renderTournamentStatusSection('Upcoming Tournaments', 'bi-calendar-event text-warning', upcoming, true) : ''}
+    ${completed.length > 0 ? renderTournamentStatusSection('Completed Tournaments', 'bi-check-circle text-secondary', completed, false) : ''}
+  `;
+}
+
+/**
+ * @param {ContestantTournamentListItem[]} tournamentData
+ * @returns {string}
+ */
+function renderArchivedTournamentsContent(tournamentData) {
+  if (tournamentData.length === 0) {
+    return renderEmptyState({
+      title: 'No Archived Tournaments',
+      message: 'Archived tournaments will appear here after they are closed.',
+      icon: 'bi-archive',
+    });
+  }
+
+  return `
+    <div class="row g-3">
+      ${tournamentData.map((data) => `
+        <div class="col-12">
+          ${renderTournamentCard({
+            tournament: data.tournament,
+            totalMatches: data.totalMatches,
+            submittedPredictions: data.submittedPredictions,
+            showProgress: data.totalMatches > 0,
+            upcomingMatchCount: data.upcomingMatchCount,
+            actionLabel: 'View Tournament',
+          })}
         </div>
-      ` : ''}
+      `).join('')}
+    </div>
+  `;
+}
+
+/**
+ * @param {string} title
+ * @param {string} iconClass
+ * @param {ContestantTournamentListItem[]} tournamentData
+ * @param {boolean} showProgress
+ * @returns {string}
+ */
+function renderTournamentStatusSection(title, iconClass, tournamentData, showProgress) {
+  return `
+    <div class="mb-4">
+      <h3 class="h5 mb-3">
+        <i class="bi ${iconClass} me-2" aria-hidden="true"></i>
+        ${title}
+      </h3>
+      <div class="row g-3">
+        ${tournamentData.map((data) => `
+          <div class="col-12">
+            ${renderTournamentCard({
+              tournament: data.tournament,
+              totalMatches: data.totalMatches,
+              submittedPredictions: data.submittedPredictions,
+              showProgress,
+              upcomingMatchCount: data.upcomingMatchCount,
+            })}
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 }
@@ -241,4 +354,3 @@ function renderErrorState(message) {
     </div>
   `;
 }
-

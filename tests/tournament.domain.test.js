@@ -78,12 +78,28 @@ describe('TournamentDomain', () => {
       false,
     );
     assert.equal(
-      TournamentDomain.isTournamentArchived({
+      TournamentDomain.isTournamentArchivedBrowsableForContestants({
         status: TOURNAMENT_STATUS.ARCHIVED,
         visibility: TOURNAMENT_VISIBILITY.VISIBLE,
         archived: true,
       }),
       true,
+    );
+    assert.equal(
+      TournamentDomain.isTournamentArchivedBrowsableForContestants({
+        status: TOURNAMENT_STATUS.DRAFT,
+        visibility: TOURNAMENT_VISIBILITY.VISIBLE,
+        archived: true,
+      }),
+      false,
+    );
+    assert.equal(
+      TournamentDomain.isTournamentArchivedBrowsableForContestants({
+        status: TOURNAMENT_STATUS.COMPLETED,
+        visibility: TOURNAMENT_VISIBILITY.HIDDEN,
+        archived: true,
+      }),
+      false,
     );
   });
 

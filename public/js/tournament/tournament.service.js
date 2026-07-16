@@ -95,6 +95,9 @@ let adminListCache = null;
 /** @type {Tournament[]|null} */
 let contestantListCache = null;
 
+/** @type {Tournament[]|null} */
+let contestantArchivedListCache = null;
+
 /** @type {Tournament|null} */
 let activeTournamentCache = null;
 
@@ -207,8 +210,16 @@ function toFirestoreTimestamp(value) {
 export function clearTournamentCache() {
   tournamentCache.clear();
   adminListCache = null;
-  contestantListCache = null;
+  invalidateContestantListCaches();
   activeTournamentCache = null;
+}
+
+/**
+ * @returns {void}
+ */
+function invalidateContestantListCaches() {
+  contestantListCache = null;
+  contestantArchivedListCache = null;
 }
 
 /**
@@ -386,6 +397,23 @@ export async function listTournamentsForContestant() {
 }
 
 /**
+ * @returns {Promise<Tournament[]>}
+ */
+export async function listArchivedTournamentsForContestant() {
+  if (contestantArchivedListCache) {
+    return contestantArchivedListCache;
+  }
+
+  const all = await listTournamentsForAdmin({ archivedOnly: true });
+
+  contestantArchivedListCache = all.filter((tournament) => (
+    TournamentDomain.isTournamentArchivedBrowsableForContestants(tournament)
+  ));
+
+  return contestantArchivedListCache;
+}
+
+/**
  * @returns {Promise<Tournament|null>}
  */
 export async function getActiveTournament() {
@@ -454,7 +482,7 @@ export async function createTournament(data, uid) {
 
     cacheTournament(tournament);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_CREATED, tournament);
     return tournament;
   });
@@ -499,7 +527,7 @@ export async function updateTournament(id, data, uid) {
 
     cacheTournament(tournament);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     emitTournamentEvent(TOURNAMENT_EVENTS.TOURNAMENT_UPDATED, tournament);
     return tournament;
   });
@@ -543,7 +571,7 @@ async function transitionTournamentStatus(id, uid, targetStatus, extra = {}) {
 
     cacheTournament(tournament);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     return tournament;
   });
 }
@@ -714,7 +742,7 @@ export async function archiveTournament(id, uid) {
 
     cacheTournament(updated);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     matchRepository.clearCache();
     return updated;
   });
@@ -807,7 +835,7 @@ export async function restoreTournament(id, uid) {
 
     cacheTournament(updated);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     matchRepository.clearCache();
     return updated;
   });
@@ -886,7 +914,7 @@ export async function deleteTournament(id, uid) {
 
     tournamentCache.delete(id);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
 
     if (activeTournamentCache?.id === id) {
       activeTournamentCache = null;
@@ -973,7 +1001,7 @@ export async function setActiveTournament(id, uid) {
     activeTournamentCache = tournament;
     cacheTournament(tournament);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     ApplicationContext.setTournament(tournament);
     emitTournamentEvent(TOURNAMENT_EVENTS.ACTIVE_TOURNAMENT_CHANGED, tournament);
     return tournament;
@@ -1021,7 +1049,7 @@ export async function deactivateTournament(id, uid) {
 
     cacheTournament(tournament);
     adminListCache = null;
-    contestantListCache = null;
+    invalidateContestantListCaches();
     emitTournamentEvent(TOURNAMENT_EVENTS.ACTIVE_TOURNAMENT_CHANGED, null);
     return tournament;
   });

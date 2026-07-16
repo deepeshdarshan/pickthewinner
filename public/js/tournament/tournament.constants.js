@@ -19,6 +19,7 @@ export const TOURNAMENT_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/tournaments',
   ARCHIVED_LIST: '/admin/tournaments',
   CONTESTANT_LIST: '/tournaments',
+  CONTESTANT_ARCHIVED_LIST: '/tournaments',
 });
 
 /** @type {Readonly<string>} */

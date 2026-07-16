@@ -249,6 +249,26 @@ export const TournamentDomain = {
   },
 
   /**
+   * Archived tournaments contestants can browse in the history tab.
+   * @param {{ status?: string, visibility?: string, archived?: boolean }} tournament
+   * @returns {boolean}
+   */
+  isTournamentArchivedBrowsableForContestants(tournament) {
+    if (!this.isTournamentArchived(tournament)) {
+      return false;
+    }
+
+    const status = String(tournament.status ?? '');
+    const visibility = String(tournament.visibility ?? TOURNAMENT_VISIBILITY.VISIBLE);
+
+    if (status === TOURNAMENT_STATUS.DRAFT || visibility === TOURNAMENT_VISIBILITY.HIDDEN) {
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationStart
    * @param {Date|import('firebase/firestore').Timestamp|null|undefined} registrationEnd
    * @param {Date} [now]
