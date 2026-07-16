@@ -4,6 +4,8 @@ import {
   CONTESTANT_PREDICTION_UI_STATUS,
   getContestantPredictionUiStatus,
   isPredictionNotYetOpen,
+  renderContestantPredictionActionButtons,
+  resolveContestantViewDetailsHref,
   resolvePredictionUiStatusFromCountdownPhase,
 } from '../public/js/match/match-prediction-ui.util.js';
 import { MATCH_COUNTDOWN_PHASE } from '../public/js/domain/match.domain.js';
@@ -96,5 +98,35 @@ describe('resolvePredictionUiStatusFromCountdownPhase', () => {
       }),
       CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
     );
+  });
+});
+
+describe('resolveContestantViewDetailsHref', () => {
+  it('links to prediction history detail when prediction id is available', () => {
+    assert.equal(
+      resolveContestantViewDetailsHref('match-1', 'pred-abc'),
+      '/predictions/history?id=pred-abc',
+    );
+  });
+
+  it('falls back to match detail when prediction id is missing', () => {
+    assert.equal(
+      resolveContestantViewDetailsHref('match-1'),
+      '/matches?id=match-1',
+    );
+  });
+});
+
+describe('renderContestantPredictionActionButtons', () => {
+  it('renders View Details linking to prediction history for published results', () => {
+    const html = renderContestantPredictionActionButtons({
+      matchId: 'match-1',
+      predictionId: 'pred-abc',
+      predictionStatus: CONTESTANT_PREDICTION_UI_STATUS.LOCKED,
+      resultPublished: true,
+    });
+
+    assert.match(html, /href="\/predictions\/history\?id=pred-abc"/);
+    assert.match(html, /View Details/);
   });
 });

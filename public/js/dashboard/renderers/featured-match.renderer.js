@@ -239,6 +239,7 @@ function resolvePredictedWinnerTeam(match, prediction) {
 function renderUpcomingActionButtons(match, prediction, predictionStatus) {
   return renderContestantPredictionActionButtons({
     matchId: match.id,
+    predictionId: prediction?.id ? String(prediction.id) : undefined,
     predictionStatus,
     resultPublished: Boolean(match.result?.published),
     predictionExists: Boolean(prediction),

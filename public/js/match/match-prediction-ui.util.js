@@ -5,6 +5,7 @@
 
 import { renderStatusBadge } from '../components/status-badge.component.js';
 import { MATCH_COUNTDOWN_PHASE } from '../domain/match.domain.js';
+import { PREDICTION_HISTORY_ROUTES } from '../prediction/history/prediction-history.constants.js';
 import { escapeHtml } from '../utils/html.util.js';
 
 /** @enum {string} */
@@ -92,6 +93,7 @@ export function getContestantPredictionUiStatus(match, prediction) {
 /**
  * @typedef {Object} ContestantPredictionActionButtonsOptions
  * @property {string} matchId
+ * @property {string} [predictionId]
  * @property {string} predictionStatus
  * @property {boolean} [resultPublished=false]
  * @property {boolean} [predictionExists=false]
@@ -218,12 +220,26 @@ export function renderContestantPredictionEditInline(matchId, options = {}) {
 }
 
 /**
+ * @param {string} matchId
+ * @param {string} [predictionId]
+ * @returns {string}
+ */
+export function resolveContestantViewDetailsHref(matchId, predictionId) {
+  if (predictionId) {
+    return `${PREDICTION_HISTORY_ROUTES.LIST}?id=${encodeURIComponent(predictionId)}`;
+  }
+
+  return `/matches?id=${encodeURIComponent(matchId)}`;
+}
+
+/**
  * @param {ContestantPredictionActionButtonsOptions} options
  * @returns {string}
  */
 function renderContestantPredictionActionButtonsInner(options) {
   const {
     matchId,
+    predictionId,
     predictionStatus,
     resultPublished = false,
     disabledButtonClass = 'btn btn-secondary w-100',
@@ -236,7 +252,7 @@ function renderContestantPredictionActionButtonsInner(options) {
 
   if (resultPublished) {
     return `
-      <a href="/matches?id=${encodeURIComponent(matchId)}" class="${viewDetailsButtonClass}" data-route>
+      <a href="${resolveContestantViewDetailsHref(matchId, predictionId)}" class="${viewDetailsButtonClass}" data-route>
         View Details
       </a>
     `;
@@ -272,6 +288,7 @@ function renderContestantPredictionActionButtonsInner(options) {
 export function renderContestantPredictionActionButtons(options) {
   const {
     matchId,
+    predictionId,
     predictionStatus,
     resultPublished = false,
     predictionExists = false,
@@ -288,6 +305,7 @@ export function renderContestantPredictionActionButtons(options) {
 
   const innerHtml = renderContestantPredictionActionButtonsInner({
     matchId,
+    predictionId,
     predictionStatus,
     resultPublished,
     disabledButtonClass,
@@ -310,6 +328,7 @@ export function renderContestantPredictionActionButtons(options) {
       data-ptw-prediction-actions
       data-syncable="${syncable ? 'true' : 'false'}"
       data-match-id="${escapeHtml(matchId)}"
+      data-prediction-id="${escapeHtml(predictionId ?? '')}"
       data-prediction-exists="${predictionExists ? 'true' : 'false'}"
       data-prediction-locked="${predictionLocked ? 'true' : 'false'}"
       data-result-published="${resultPublished ? 'true' : 'false'}"
@@ -354,6 +373,7 @@ export function syncContestantPredictionUiFromCountdownPhase(countdownContainer,
 
   actionsEl.innerHTML = renderContestantPredictionActionButtonsInner({
     matchId: actionsEl.dataset.matchId ?? '',
+    predictionId: actionsEl.dataset.predictionId || undefined,
     predictionStatus,
     resultPublished,
     disabledButtonClass: actionsEl.dataset.disabledButtonClass ?? 'btn btn-secondary w-100',

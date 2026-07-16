@@ -354,6 +354,7 @@ function checkExactScore(prediction, match) {
 function renderActionButtons(match, prediction, predictionStatus, showEditButton = false) {
   return renderContestantPredictionActionButtons({
     matchId: match.id,
+    predictionId: prediction?.id ? String(prediction.id) : undefined,
     predictionStatus,
     resultPublished: Boolean(match.result?.published),
     predictionExists: Boolean(prediction),
