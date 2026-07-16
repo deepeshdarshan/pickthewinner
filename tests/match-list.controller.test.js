@@ -2,8 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   filterMatches,
+  filterContestantCompletedMatches,
+  filterContestantUpcomingMatches,
   getContestantMatchCardsGridClass,
   paginateMatches,
+  partitionContestantBrowseMatches,
   sortMatchesByKickoff,
 } from '../public/js/match/match-list.util.js';
 import { MATCH_STATUS } from '../public/js/domain/match.domain.js';
@@ -60,6 +63,37 @@ describe('match-list.util', () => {
     assert.equal(page.pageMatches.length, 2);
     assert.equal(page.totalPages, 2);
     assert.equal(page.currentPage, 1);
+  });
+
+  it('partitions contestant browse matches into upcoming, completed, and archived tabs', () => {
+    const activeMatches = [
+      {
+        id: 'upcoming',
+        status: MATCH_STATUS.PREDICTION_OPEN,
+        kickoffUtc: new Date('2026-06-02T10:00:00Z'),
+        result: { published: false },
+      },
+      {
+        id: 'completed',
+        status: MATCH_STATUS.RESULT_PUBLISHED,
+        kickoffUtc: new Date('2026-06-01T10:00:00Z'),
+        result: { published: true },
+      },
+    ];
+    const archivedMatches = [
+      {
+        id: 'archived',
+        status: MATCH_STATUS.ARCHIVED,
+        kickoffUtc: new Date('2026-05-01T10:00:00Z'),
+        result: { published: true },
+      },
+    ];
+
+    const partitioned = partitionContestantBrowseMatches(activeMatches, archivedMatches);
+
+    assert.deepEqual(partitioned.upcoming.map((match) => match.id), ['upcoming']);
+    assert.deepEqual(partitioned.completed.map((match) => match.id), ['completed']);
+    assert.deepEqual(partitioned.archived.map((match) => match.id), ['archived']);
   });
 
   it('builds contestant browse grid classes for single and multiple matches', () => {

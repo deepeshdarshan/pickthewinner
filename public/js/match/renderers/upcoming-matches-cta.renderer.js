@@ -24,7 +24,7 @@ export function renderSeeAllUpcomingMatchesLink(upcomingMatchCount, options = {}
 
   return `
     <a
-      href="${escapeHtml(MATCH_ROUTES.CONTESTANT_LIST)}"
+      href="${escapeHtml(MATCH_ROUTES.CONTESTANT_LIST)}?tab=upcoming"
       class="${escapeHtml(className)}"
       data-route
     >

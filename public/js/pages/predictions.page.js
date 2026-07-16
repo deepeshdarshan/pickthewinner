@@ -104,7 +104,7 @@ async function renderPredictionsListView(outlet) {
             title: 'No Active Predictions',
             message: 'You have not submitted any predictions yet. Browse upcoming matches to get started.',
             icon: 'bi-bullseye',
-            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Browse Upcoming Matches</a>`,
+            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}?tab=upcoming" data-route>Browse Matches</a>`,
           })}
         </div>
       `;
@@ -139,7 +139,7 @@ async function renderPredictionsListView(outlet) {
             title: 'No Active Predictions',
             message: 'You have not submitted any predictions yet, or all your predictions have moved to history.',
             icon: 'bi-bullseye',
-            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}" data-route>Browse Upcoming Matches</a>`,
+            actionHtml: `<a class="btn btn-ptw-primary" href="${MATCH_ROUTES.CONTESTANT_LIST}?tab=upcoming" data-route>Browse Matches</a>`,
           })}
         </div>
       `;

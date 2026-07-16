@@ -86,12 +86,12 @@ export const ADMIN_NAV_SECTIONS = Object.freeze([
 export const CONTESTANT_NAV_SECTIONS = Object.freeze([
   { type: 'item', path: '/dashboard', label: 'Dashboard', icon: 'bi-grid' },
   { type: 'item', path: '/tournaments', label: 'Tournaments', icon: 'bi-trophy' },
+  { type: 'item', path: '/matches', label: 'Matches', icon: 'bi-flag' },
   {
     type: 'group',
     label: 'Predictions',
     icon: 'bi-bullseye',
     children: [
-      { path: '/matches', label: 'Upcoming Matches' },
       { path: '/predictions', label: 'My Predictions' },
       { path: '/predictions/history', label: 'Prediction History' },
     ],
@@ -222,5 +222,6 @@ export function isContestantShellPath(path) {
   }
 
   return normalized.startsWith('/tournaments/')
+    || normalized.startsWith('/matches/')
     || normalized.startsWith('/predictions/');
 }

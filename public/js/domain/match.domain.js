@@ -141,6 +141,16 @@ export const MatchDomain = {
   },
 
   /**
+   * Archived matches contestants can browse in the matches history tab.
+   * @param {string} status
+   * @param {boolean} visible
+   * @returns {boolean}
+   */
+  isArchivedMatchBrowsableForContestants(status, visible) {
+    return Boolean(visible) && status === MATCH_STATUS.ARCHIVED;
+  },
+
+  /**
    * @param {string} status
    * @returns {boolean}
    */

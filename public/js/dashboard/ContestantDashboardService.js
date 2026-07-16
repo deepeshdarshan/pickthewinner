@@ -11,6 +11,7 @@ import { getActiveTournament, listTournamentsForContestant } from '../tournament
 import { LEADERBOARD_MESSAGES, TOURNAMENT_ROUTES } from '../tournament/tournament.constants.js';
 import { PlatformSettingsService } from '../settings/settings.service.js';
 import { listMatchesForContestant } from '../match/match.service.js';
+import { MATCH_ROUTES } from '../match/match.constants.js';
 import { filterLiveMatches, filterUpcomingMatches } from '../match/match-list.util.js';
 import { getPredictionSummary } from '../prediction/prediction-submission.service.js';
 import { getCurrentUser } from '../auth/auth.service.js';
@@ -63,6 +64,7 @@ import { Logger } from '../utils/logger.util.js';
  * @property {string} emptyStateTitle
  * @property {string} emptyStateMessage
  * @property {string} tournamentsPath
+ * @property {string} matchesPath
  * @property {boolean} leaderboardVisible
  * @property {string} leaderboardPath
  * @property {string} leaderboardPendingMessage
@@ -238,6 +240,7 @@ export const ContestantDashboardService = {
       emptyStateTitle: 'No Active Tournaments',
       emptyStateMessage: 'Once a tournament is published, you can begin submitting predictions.',
       tournamentsPath: TOURNAMENT_ROUTES.CONTESTANT_LIST,
+      matchesPath: MATCH_ROUTES.CONTESTANT_LIST,
       leaderboardVisible,
       leaderboardPath: '/leaderboard',
       leaderboardPendingMessage: LEADERBOARD_MESSAGES.DASHBOARD_PENDING,

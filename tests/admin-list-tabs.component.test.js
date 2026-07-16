@@ -147,6 +147,27 @@ describe('sidebar-nav.config active path matching', () => {
     )));
   });
 
+  it('uses a single Matches item without sub-links under Predictions', () => {
+    const matchesItem = CONTESTANT_NAV_SECTIONS.find((section) => (
+      section.type === 'item' && section.path === '/matches'
+    ));
+
+    assert.ok(matchesItem && matchesItem.type === 'item');
+    assert.equal(matchesItem.label, 'Matches');
+    assert.ok(!CONTESTANT_NAV_SECTIONS.some((section) => (
+      section.type === 'group'
+      && section.label === 'Predictions'
+      && section.children?.some((child) => child.path === '/matches')
+    )));
+  });
+
+  it('highlights Matches when on /matches or legacy tab routes', () => {
+    assert.equal(isNavPathActive('/matches', '/matches', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/matches/upcoming', '/matches', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/matches/completed', '/matches', '/dashboard', contestantNavPaths), true);
+    assert.equal(isNavPathActive('/matches/archived', '/matches', '/dashboard', contestantNavPaths), true);
+  });
+
   it('highlights Tournaments when on /tournaments or legacy /tournaments/archived', () => {
     assert.equal(isNavPathActive('/tournaments', '/tournaments', '/dashboard', contestantNavPaths), true);
     assert.equal(isNavPathActive('/tournaments/archived', '/tournaments', '/dashboard', contestantNavPaths), true);

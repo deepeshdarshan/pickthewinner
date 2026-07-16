@@ -54,6 +54,7 @@ async function initDashboard(outlet) {
       emptyStateTitle: 'Unable to Load Dashboard',
       emptyStateMessage: 'Please refresh the page and try again.',
       tournamentsPath: '/tournaments',
+      matchesPath: '/matches',
       leaderboardVisible: false,
       leaderboardPath: '/leaderboard',
       leaderboardPendingMessage: '',

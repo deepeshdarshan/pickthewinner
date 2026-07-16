@@ -4,6 +4,7 @@
  */
 
 import { MATCH_STATUS } from '../domain/match.domain.js';
+import { isMatchCompletedForContestant } from '../domain/contestant-match-view.domain.js';
 import { getRoundLabel } from './match.constants.js';
 import { MATCH_LIST_PAGE_SIZE } from './renderers/list.renderer.js';
 
@@ -50,6 +51,49 @@ export function filterUpcomingMatches(matches, now = new Date()) {
 
     return true;
   });
+}
+
+/**
+ * Active contestant matches that are not completed or archived (includes live and open predictions).
+ * @param {EnrichedMatch[]} matches
+ * @returns {EnrichedMatch[]}
+ */
+export function filterContestantUpcomingMatches(matches) {
+  return matches.filter((match) => {
+    if (String(match.status ?? '') === MATCH_STATUS.ARCHIVED) {
+      return false;
+    }
+
+    return !isMatchCompletedForContestant(match);
+  });
+}
+
+/**
+ * Completed contestant matches that are not archived.
+ * @param {EnrichedMatch[]} matches
+ * @returns {EnrichedMatch[]}
+ */
+export function filterContestantCompletedMatches(matches) {
+  return matches.filter((match) => {
+    if (String(match.status ?? '') === MATCH_STATUS.ARCHIVED) {
+      return false;
+    }
+
+    return isMatchCompletedForContestant(match);
+  });
+}
+
+/**
+ * @param {EnrichedMatch[]} activeMatches
+ * @param {EnrichedMatch[]} archivedMatches
+ * @returns {{ upcoming: EnrichedMatch[], completed: EnrichedMatch[], archived: EnrichedMatch[] }}
+ */
+export function partitionContestantBrowseMatches(activeMatches, archivedMatches) {
+  return {
+    upcoming: filterContestantUpcomingMatches(activeMatches),
+    completed: filterContestantCompletedMatches(activeMatches),
+    archived: [...archivedMatches],
+  };
 }
 
 /**

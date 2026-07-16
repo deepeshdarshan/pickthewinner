@@ -85,6 +85,14 @@ export function renderContestantDashboard(data) {
 
       ${renderActiveTournamentHero(data)}
 
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+        <h2 class="h5 mb-0">Matches</h2>
+        <a class="btn btn-sm btn-outline-light" href="${data.matchesPath}" data-route>
+          View all matches
+          <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+        </a>
+      </div>
+
       <div class="ptw-dashboard-main-grid mb-4">
         <div class="row g-3 ptw-dashboard-match-row">
           ${liveColumnHtml}

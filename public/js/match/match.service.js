@@ -261,6 +261,18 @@ export async function listMatchesForContestant(filters = {}) {
 }
 
 /**
+ * @returns {Promise<EnrichedMatch[]>}
+ */
+export async function listArchivedMatchesForContestant() {
+  const matches = await listMatchesForAdmin({ archivedOnly: true });
+
+  return matches.filter((match) => MatchDomain.isArchivedMatchBrowsableForContestants(
+    String(match.status ?? ''),
+    Boolean(match.visible),
+  ));
+}
+
+/**
  * @param {string} id
  * @param {{ forceRefresh?: boolean }} [options]
  * @returns {Promise<EnrichedMatch|null>}

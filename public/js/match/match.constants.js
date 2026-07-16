@@ -19,6 +19,9 @@ export const MATCH_ROUTES = Object.freeze({
   ADMIN_LIST: '/admin/matches',
   ARCHIVED_LIST: '/admin/matches',
   CONTESTANT_LIST: '/matches',
+  CONTESTANT_UPCOMING_LIST: '/matches',
+  CONTESTANT_COMPLETED_LIST: '/matches',
+  CONTESTANT_ARCHIVED_LIST: '/matches',
 });
 
 /** @enum {string} */

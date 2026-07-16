@@ -27,6 +27,12 @@ describe('MatchDomain', () => {
     assert.equal(MatchDomain.isVisibleToContestants(MATCH_STATUS.PUBLISHED, false), false);
   });
 
+  it('shows only visible archived matches in contestant archived browse', () => {
+    assert.equal(MatchDomain.isArchivedMatchBrowsableForContestants(MATCH_STATUS.ARCHIVED, true), true);
+    assert.equal(MatchDomain.isArchivedMatchBrowsableForContestants(MATCH_STATUS.ARCHIVED, false), false);
+    assert.equal(MatchDomain.isArchivedMatchBrowsableForContestants(MATCH_STATUS.COMPLETED, true), false);
+  });
+
   it('calculates prediction window', () => {
     const kickoff = new Date('2026-07-10T18:00:00+05:30');
     const window = MatchDomain.calculatePredictionWindow(kickoff, 48, 10);
