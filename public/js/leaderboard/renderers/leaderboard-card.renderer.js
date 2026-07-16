@@ -16,15 +16,16 @@ import {
   renderPerformanceCardHeader,
   renderPerformanceCardStats,
 } from '../../shared/cards/performance-card.component.js';
+import { adminPredictionHistoryContestantRoute } from '../../prediction/history/prediction-history.constants.js';
 
 /**
  * Renders leaderboard as card list for mobile.
  * @param {Array<import('../leaderboard.service.js').LeaderboardEntry>} entries
- * @param {{ linkProfiles?: boolean }} [options]
+ * @param {{ linkProfiles?: boolean, showViewHistory?: boolean }} [options]
  * @returns {string}
  */
 export function renderLeaderboardCards(entries, options = {}) {
-  const { linkProfiles = false } = options;
+  const { linkProfiles = false, showViewHistory = false } = options;
 
   if (!entries || entries.length === 0) {
     return '<p class="text-center text-muted">No leaderboard data available</p>';
@@ -32,7 +33,7 @@ export function renderLeaderboardCards(entries, options = {}) {
 
   return `
     <div class="ptw-leaderboard-cards">
-      ${entries.map((entry) => renderLeaderboardCard(entry, { linkProfiles })).join('')}
+      ${entries.map((entry) => renderLeaderboardCard(entry, { linkProfiles, showViewHistory })).join('')}
     </div>
   `;
 }
@@ -40,11 +41,11 @@ export function renderLeaderboardCards(entries, options = {}) {
 /**
  * Renders a single leaderboard card.
  * @param {import('../leaderboard.service.js').LeaderboardEntry} entry
- * @param {{ linkProfiles?: boolean }} options
+ * @param {{ linkProfiles?: boolean, showViewHistory?: boolean }} options
  * @returns {string}
  */
 function renderLeaderboardCard(entry, options = {}) {
-  const { linkProfiles = false } = options;
+  const { linkProfiles = false, showViewHistory = false } = options;
   const rowHighlightClass = getRankRowHighlightClass(entry.rank);
   const nameHtml = linkProfiles
     ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link ptw-performance-card__title mb-0 d-inline-block text-decoration-none" data-route title="View profile">
@@ -95,8 +96,18 @@ function renderLeaderboardCard(entry, options = {}) {
           leftIcon: 'bi-clock',
           leftValue: escapeHtml(formatDurationMs(entry.averageResponseTimeMs)),
           leftLabel: 'Avg Response Time',
-          inline: true,
-          rightHtml: `
+          inline: !showViewHistory,
+          rightHtml: showViewHistory
+            ? `
+            <a
+              href="${escapeHtml(adminPredictionHistoryContestantRoute(entry.userId))}"
+              class="btn btn-sm btn-primary w-100"
+              data-route
+            >
+              View History
+            </a>
+          `
+            : `
             ${renderPerformanceCardFooterMeta([
               { icon: 'bi-bullseye', label: 'Predicted', value: entry.matchesPredicted },
               { icon: 'bi-hourglass-split', label: 'Remaining', value: entry.matchesRemaining },

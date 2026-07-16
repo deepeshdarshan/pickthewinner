@@ -6,10 +6,12 @@
 import { escapeHtml } from '../../utils/html.util.js';
 import { formatDurationMs } from '../../utils/time.util.js';
 import { getRankRowHighlightClass, renderRankBadge } from '../../shared/badges/rank-badge.component.js';
+import { adminPredictionHistoryContestantRoute } from '../../prediction/history/prediction-history.constants.js';
 
 /**
  * @typedef {Object} LeaderboardTableOptions
  * @property {boolean} [linkProfiles]
+ * @property {boolean} [showViewHistory]
  */
 
 /**
@@ -19,15 +21,19 @@ import { getRankRowHighlightClass, renderRankBadge } from '../../shared/badges/r
  * @returns {string}
  */
 export function renderLeaderboardTable(entries, options = {}) {
-  const { linkProfiles = false } = options;
+  const { linkProfiles = false, showViewHistory = false } = options;
 
   if (!entries || entries.length === 0) {
     return '<p class="text-center text-muted">No leaderboard data available</p>';
   }
 
+  const tableClass = showViewHistory
+    ? 'ptw-leaderboard-table ptw-leaderboard-table--with-actions'
+    : 'ptw-leaderboard-table';
+
   return `
     <div class="ptw-leaderboard-table-wrap">
-      <table class="table table-dark table-hover ptw-table ptw-table--compact ptw-leaderboard-table">
+      <table class="table table-dark table-hover ptw-table ptw-table--compact ${tableClass}">
         <colgroup>
           <col class="ptw-leaderboard-table__rank">
           <col class="ptw-leaderboard-table__contestant">
@@ -37,6 +43,7 @@ export function renderLeaderboardTable(entries, options = {}) {
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
           <col class="ptw-leaderboard-table__stat">
+          ${showViewHistory ? '<col class="ptw-leaderboard-table__action">' : ''}
         </colgroup>
         <thead>
           <tr>
@@ -48,10 +55,11 @@ export function renderLeaderboardTable(entries, options = {}) {
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Accuracy')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Predicted', 'Matches')}</th>
             <th scope="col" class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">${renderLeaderboardTableHeader('Avg Response', 'Time')}</th>
+            ${showViewHistory ? `<th scope="col" class="text-end ptw-leaderboard-table__action">${renderLeaderboardTableHeader('Action')}</th>` : ''}
           </tr>
         </thead>
         <tbody>
-          ${entries.map((entry) => renderLeaderboardRow(entry, { linkProfiles })).join('')}
+          ${entries.map((entry) => renderLeaderboardRow(entry, { linkProfiles, showViewHistory })).join('')}
         </tbody>
       </table>
     </div>
@@ -65,7 +73,7 @@ export function renderLeaderboardTable(entries, options = {}) {
  * @returns {string}
  */
 function renderLeaderboardRow(entry, options = {}) {
-  const { linkProfiles = false } = options;
+  const { linkProfiles = false, showViewHistory = false } = options;
   const rowHighlightClass = getRankRowHighlightClass(entry.rank);
   const nameHtml = linkProfiles
     ? `<a href="/admin/users/${escapeHtml(entry.userId)}" class="ptw-profile-link fw-semibold text-white text-decoration-none text-truncate d-block" data-route title="View profile">
@@ -105,6 +113,17 @@ function renderLeaderboardRow(entry, options = {}) {
       <td class="text-center d-none d-xl-table-cell ptw-leaderboard-table__stat">
         ${escapeHtml(formatDurationMs(entry.averageResponseTimeMs))}
       </td>
+      ${showViewHistory ? `
+      <td class="text-end ptw-leaderboard-table__action">
+        <a
+          href="${escapeHtml(adminPredictionHistoryContestantRoute(entry.userId))}"
+          class="btn btn-sm btn-primary"
+          data-route
+        >
+          View History
+        </a>
+      </td>
+      ` : ''}
     </tr>
   `;
 }

@@ -127,7 +127,7 @@ async function initLeaderboardPage(outlet) {
  */
 function renderLeaderboardView(entries, tournamentStats, contestantStats) {
   const isMobile = window.innerWidth < 768;
-  const linkOptions = { linkProfiles: canLinkContestantProfiles };
+  const linkOptions = { linkProfiles: canLinkContestantProfiles, showViewHistory: canLinkContestantProfiles };
   const showMyPosition = !!currentUserId
     && (maxVisibleRank === null || entries.some((entry) => entry.userId === currentUserId));
 
@@ -288,7 +288,7 @@ function updateLeaderboardContent(outlet, entries) {
   if (!contentContainer) return;
 
   const isMobile = window.innerWidth < 768;
-  const linkOptions = { linkProfiles: canLinkContestantProfiles };
+  const linkOptions = { linkProfiles: canLinkContestantProfiles, showViewHistory: canLinkContestantProfiles };
   contentContainer.innerHTML = isMobile
     ? renderLeaderboardCards(entries, linkOptions)
     : renderLeaderboardTable(entries, linkOptions);

@@ -59,6 +59,21 @@
   white-space: nowrap;
 }
 
+.ptw-leaderboard-table--with-actions .ptw-leaderboard-table__points {
+  width: 4.25rem;
+}
+
+.ptw-leaderboard-table--with-actions .ptw-leaderboard-table__stat {
+  width: 4.75rem;
+  min-width: 4.75rem;
+}
+
+.ptw-leaderboard-table__action {
+  width: 7.5rem;
+  min-width: 7.5rem;
+  white-space: nowrap;
+}
+
 .ptw-leaderboard-table__avatar {
   width: 28px;
   height: 28px;

@@ -327,10 +327,10 @@ function updateLeaderboardContent(outlet, entries) {
 
   contentContainer.innerHTML = `
     <div class="d-none d-lg-block">
-      ${renderLeaderboardTable(entries, { linkProfiles: true })}
+      ${renderLeaderboardTable(entries, { linkProfiles: true, showViewHistory: true })}
     </div>
     <div class="d-lg-none">
-      ${renderLeaderboardCards(entries, { linkProfiles: true })}
+      ${renderLeaderboardCards(entries, { linkProfiles: true, showViewHistory: true })}
     </div>
   `;
 }

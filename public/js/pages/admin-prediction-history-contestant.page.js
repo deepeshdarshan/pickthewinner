@@ -21,6 +21,7 @@ import {
 import {
   ADMIN_PREDICTION_HISTORY_MESSAGES,
 } from '../prediction/admin/admin-prediction-history.constants.js';
+import { LEADERBOARD_ROUTES } from '../leaderboard/leaderboard.constants.js';
 import { Logger } from '../utils/logger.util.js';
 
 /**
@@ -76,8 +77,8 @@ async function initAdminPredictionHistoryContestantPage(outlet, targetUserId) {
           title: `${contestantName}'s Prediction History`,
           subtitle: 'Read-only view of contestant predictions, statistics, and performance',
           actionsHtml: `
-            <a href="${PREDICTION_HISTORY_ROUTES.ADMIN_LIST}" class="btn btn-sm btn-outline-secondary" data-route>
-              <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to Contestants
+            <a href="${LEADERBOARD_ROUTES.MAIN}" class="btn btn-sm btn-outline-secondary" data-route>
+              <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to Leaderboard
             </a>
           `,
         })}
@@ -145,8 +146,8 @@ function renderNotFoundState() {
         title: 'Prediction History',
         subtitle: 'Read-only contestant prediction history',
         actionsHtml: `
-          <a href="${PREDICTION_HISTORY_ROUTES.ADMIN_LIST}" class="btn btn-sm btn-outline-secondary" data-route>
-            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to Contestants
+          <a href="${LEADERBOARD_ROUTES.MAIN}" class="btn btn-sm btn-outline-secondary" data-route>
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back to Leaderboard
           </a>
         `,
       })}

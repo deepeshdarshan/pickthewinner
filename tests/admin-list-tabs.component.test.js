@@ -94,7 +94,7 @@ describe('sidebar-nav.config admin sections', () => {
     assert.ok(!tournamentGroup.children.some((child) => child.path.includes('archived')));
   });
 
-  it('groups predictions, history, and leaderboard under Predictions', () => {
+  it('groups predictions and leaderboard under Predictions', () => {
     const predictionsGroup = ADMIN_NAV_SECTIONS.find((section) => (
       section.type === 'group' && section.label === 'Predictions'
     ));
@@ -102,7 +102,7 @@ describe('sidebar-nav.config admin sections', () => {
     assert.ok(predictionsGroup && predictionsGroup.type === 'group');
     assert.deepEqual(
       predictionsGroup.children.map((child) => child.path),
-      ['/admin/predictions', '/admin/prediction-history', '/leaderboard'],
+      ['/admin/predictions', '/leaderboard'],
     );
   });
 
