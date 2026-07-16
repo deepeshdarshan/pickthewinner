@@ -4,6 +4,7 @@
  */
 
 import { escapeHtml } from '../../utils/html.util.js';
+import { renderMatchCardBgIcons } from '../../components/match-card-bg-icons.component.js';
 
 /**
  * @param {number|null} percent
@@ -129,6 +130,7 @@ export function renderMyRankSection(data) {
 
   return `
     <section class="ptw-my-rank-card" aria-labelledby="ptw-my-rank-heading">
+      ${renderMatchCardBgIcons('rank')}
       <header class="ptw-my-rank-card__header">
         <h2 class="ptw-my-rank-card__title mb-0" id="ptw-my-rank-heading">
           <i class="bi bi-trophy-fill ptw-my-rank-card__title-icon" aria-hidden="true"></i>
@@ -144,12 +146,11 @@ export function renderMyRankSection(data) {
       <footer class="ptw-my-rank-card__footer">
         <a
           href="${escapeHtml(data.leaderboardPath)}"
-          class="btn ptw-my-rank-card__cta w-100${myRank.isAvailable ? '' : ' disabled'}"
+          class="btn btn-ptw-primary ptw-active-tournament-hero__cta w-100${myRank.isAvailable ? '' : ' disabled'}"
           data-route
           ${myRank.isAvailable ? '' : 'aria-disabled="true" tabindex="-1"'}
         >
-          View Leaderboard
-          <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          <i class="bi bi-bar-chart me-2" aria-hidden="true"></i>View Leaderboard
         </a>
       </footer>
     </section>

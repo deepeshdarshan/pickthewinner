@@ -34,10 +34,14 @@ const MATCH_CARD_BG_ICONS = Object.freeze({
     { icon: 'bi-clock', modifier: '--secondary' },
     { icon: 'bi-bullseye', modifier: '--tertiary' },
   ],
+  rank: [
+    { icon: 'bi-award-fill', modifier: '--secondary' },
+    { icon: 'bi-trophy-fill', modifier: '--primary' },
+  ],
 });
 
 /**
- * @param {'live'|'upcoming'|'history'|'empty'} variant
+ * @param {'live'|'upcoming'|'history'|'empty'|'rank'} variant
  * @returns {string}
  */
 export function renderMatchCardBgIcons(variant) {
